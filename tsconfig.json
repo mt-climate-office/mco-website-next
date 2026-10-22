@@ -6,7 +6,8 @@
   ],
   "exclude": [
     "dist",
-    "verify-root"
+    "verify-root",
+    "docs"
   ],
   "compilerOptions": {
     "types": [
