@@ -86,8 +86,14 @@ always within the clean range.
 
 **Amended 22 Oct 2026 (D15):** the re-aim took effect at **2026-10-21 16:00
 MDT** for all 165 cameras (`schedule.json`), after that day's last slot, so
-the first public date is 2026-10-22. The clamp applies to every public
-surface, all directions: the website, the Photo Explorer and the dashboard.
+the first clean date is 2026-10-22.
+
+**Corrected 22 Oct 2026 (D16):** the clamp applies to the **website's
+photo hero only**. The Photo Explorer and the Station Dashboard keep the
+full public history in every direction, including pre-cutover North and
+South, as they showed before. An earlier amendment applied the clamp to
+every public surface; that misread the owner's answer and was never
+deployed.
 
 ## D8 — Snow, Pluvio and Solar views
 
@@ -294,4 +300,19 @@ Three things follow from that, and they are not optional.
   University of Montana, Missoula, MT 59812.
 - The newsletter renderer is **ported into `mco-website-next`**, with pinned
   dependencies, not checked out from the private `mco-mailing-lists`.
+
+---
+
+## D16 — Photo history stays in the tools
+
+**Decided 22 October 2026**, correcting D15's reading of D7.
+
+- The 2026-10-22 public start (the kit's default) applies to the
+  **website's photo hero** only.
+- The Photo Explorer and the Station Dashboard show the **full public
+  history**, all four directions, including pre-cutover North and South
+  (then aimed at the rain gauge and the snow stake), exactly as before.
+- The kit keeps its clamped default and gains an opt-in for full history
+  (`MCO.photos`, v0.15.0, MINOR). The tools pass it; the website does not.
+- The dashboard's photo tile follows the Photo Explorer.
 
