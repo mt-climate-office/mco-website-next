@@ -7,11 +7,12 @@
 // Not shown: maintenance compliance (D4, unresolved) and UMRB cells (not in
 // D10). Figures are plain text; colour carries nothing here.
 //
-// Absent `summary`: a short notice and the link to the Status tool, no
-// figures. Once the summary exists, a build-time snapshot goes here as the
-// fallback, with its timestamp (CLAUDE.md, "Fetch, don't frame").
+// The homepage passes the build-time snapshot of the summary, shown with its
+// timestamp (CLAUDE.md, "Fetch, don't frame"); the nightly rebuild keeps it
+// fresh. Absent `summary`: a short notice, no figures.
 import type { NetworkSummary } from './types';
 import { count, isoTime, percent, stampMT } from '../../lib/format';
+import { url } from '../../lib/paths';
 
 interface Props {
   summary?: NetworkSummary | null;
@@ -20,8 +21,6 @@ interface Props {
 const { summary = null } = Astro.props;
 const pct = summary ? percent(summary.reporting, summary.stations) : null;
 const windowLabel = summary ? `${summary.reportingWindowHours} hour${summary.reportingWindowHours === 1 ? "" : "s"}` : "";
-const STATUS = 'https://mesonet.climate.umt.edu/status/';
-const HEALTH = 'https://mesonet.climate.umt.edu/status/?mode=health';
 ---
 <section class="net band" aria-labelledby="net-title">
   <div class="wrap net-inner">
@@ -65,7 +64,7 @@ const HEALTH = 'https://mesonet.climate.umt.edu/status/?mode=health';
     )}
 
     <p class="net-links">
-      <a class="nav-btn site-cta" href={summary ? HEALTH : STATUS}>Open Station Status</a>
+      <a class="nav-btn site-cta" href={url('mesonet/status/')}>Every station's status</a>
     </p>
   </div>
 </section>

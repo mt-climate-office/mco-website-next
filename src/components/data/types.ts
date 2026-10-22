@@ -34,9 +34,9 @@ export interface PhotoSet {
 }
 
 /**
- * Headline network figures (DECISIONS D10), from the mesonet-compliance
- * summary JSON on data2 (D5). Its schema does not exist yet; this is the
- * shape the homepage needs from it. No maintenance figure (D4).
+ * Headline network figures (DECISIONS D10), mapped from the mesonet-compliance
+ * summary JSON on data2 (D5) by toNetworkSummary() in src/lib/compliance.ts.
+ * No maintenance figure (D4, D15).
  */
 export interface NetworkSummary {
   /** When the summary was computed, epoch ms. */
