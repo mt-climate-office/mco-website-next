@@ -23,6 +23,7 @@ const PAGES = [
   { name: 'stations', path: 'mesonet/stations/' },
   { name: 'station', path: 'mesonet/stations/aceabsar/' },
   { name: 'status', path: 'mesonet/status/' },
+  { name: 'search', path: 'search/' },
 ];
 const MIN = { accessibility: 1, performance: 0.9 };
 const RUNS = 3;

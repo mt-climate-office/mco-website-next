@@ -5,6 +5,12 @@
 // `ready` and `effect` functions are serialized into the page: they cannot
 // call anything defined in this file.
 
+// Search results have rendered, so axe sees the list and its excerpts.
+const resultsReady = () =>
+  !document.documentElement.classList.contains('mco-booting') &&
+  !document.getElementById('search-status')?.hidden &&
+  !/^Searching/.test(document.getElementById('search-status')?.textContent || '');
+
 const chromeReady = () =>
   !document.documentElement.classList.contains('mco-booting') &&
   /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '');
@@ -33,6 +39,8 @@ export default {
       ready: () => !document.documentElement.classList.contains('mco-booting') &&
         document.querySelector('#st-table th[aria-sort="descending"]') != null,
     },
+    { name: 'search', query: 'search/', ready: chromeReady },
+    { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
   probes: async ({ open, check }) => {
     // Station directory: the filter appears with JS, narrows the rows, says
@@ -98,6 +106,33 @@ export default {
       const shown = await page.locator('#st-rows tr:not([hidden])').count();
       check('status: Download CSV writes exactly the rows shown',
         lines.length - 1 === shown && lines.slice(1).every((l) => l.includes('"AgriMet"')), `csv=${lines.length - 1} shown=${shown}`);
+      await close();
+    }
+
+    // Search: the header link reaches it; typing and Enter lists the
+    // homepage, the count is announced, and focus stays in the field.
+    {
+      const { page, close } = await open('');
+      const href = await page.locator('#btn-search').getAttribute('href');
+      check('header search link points at the search page', /\/search\/$/.test(href || ''), href);
+      await page.goto(new URL(href, page.url()).href);
+      await page.locator('#search-q').focus();
+      await page.keyboard.type('soil');
+      await page.keyboard.press('Enter');
+      await page.waitForFunction(() => /result/.test(document.getElementById('search-status').textContent), null, { timeout: 15000 });
+      // MCO.announce clears the region, then sets it on a later tick.
+      await page.waitForFunction(() => [...document.querySelectorAll('[aria-live="polite"]')]
+        .some((e) => /result/.test(e.textContent)), null, { timeout: 3000 }).catch(() => {});
+      const got = await page.evaluate(() => ({
+        status: document.getElementById('search-status').textContent,
+        links: [...document.querySelectorAll('#search-results a')].map((a) => new URL(a.href).pathname),
+        home: new URL(document.querySelector('.logo-link').href).pathname,
+        focus: document.activeElement?.id,
+        live: [...document.querySelectorAll('[aria-live="polite"]')].some((e) => /result/.test(e.textContent)),
+      }));
+      check('search: a homepage word finds the homepage',
+        got.links.includes(got.home) && got.focus === 'search-q', JSON.stringify(got));
+      check('search: the count is announced', got.live, got.status);
       await close();
     }
 

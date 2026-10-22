@@ -129,6 +129,7 @@ src/lib/                paths.ts (url(), canonicalUrl()), nav.ts (sections),
                         mesonet.ts (API client) + mesonet.openapi.d.ts
                         (generated: npm run gen:api, manual, never in CI)
 src/scripts/chrome.ts   theme toggle, drawer, MCO.ready()
+src/scripts/search.ts   /search/ on Pagefind's JS API (loaded on first query)
 src/styles/site.css     site layer over the kit; tokens only
 src/pages/              routes, robots.txt endpoint, 404
 public/mco-logo.png     navbar badge, vendored from the kit tag
@@ -151,6 +152,9 @@ checks: `@astrojs/check`, `typescript`, `@types/node`, `html-validate`,
 `playwright`, `@axe-core/playwright`, `lighthouse`, `chrome-launcher`, and
 `openapi-typescript` for `gen:api`. Its peer range stops at TypeScript 5, so
 `overrides` in `package.json` points it at ours, as the dashboard does.
+`pagefind` builds the site-search index into `dist/pagefind/` as the second
+half of `npm run build`. It indexes only `<main data-pagefind-body>`, which
+`Base.astro` sets unless a page passes `searchable={false}` (404, search).
 `mjml`, `marked`, `cheerio` and `yaml` are for the newsletter renderer
 (`scripts/newsletter/`, D15).
 
