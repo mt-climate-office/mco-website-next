@@ -97,8 +97,9 @@ scoped to this repo only.
 the API knows — counts, percentages, schedules — must not be typeable in the
 CMS. Use a component, not a number in Markdown.
 
-Read `send-newsletter.yml` before finalising the news schema; it dictates
-fields the schema must carry.
+Read `docs/newsletter.md` before finalising the news schema; it lists the
+fields the newsletter workflow needs (`summary`, `draft`, `email`, ...) and
+the `/news/<slug>/` URL helper in `src/lib/news.ts` the route must use.
 
 ## Accessibility — WCAG 2.1 AA, UM policy
 
@@ -146,6 +147,8 @@ checks: `@astrojs/check`, `typescript`, `@types/node`, `html-validate`,
 `playwright`, `@axe-core/playwright`, `lighthouse`, `chrome-launcher`, and
 `openapi-typescript` for `gen:api`. Its peer range stops at TypeScript 5, so
 `overrides` in `package.json` points it at ours, as the dashboard does.
+`mjml`, `marked`, `cheerio` and `yaml` are for the newsletter renderer
+(`scripts/newsletter/`, D15).
 
 ## Build rules
 

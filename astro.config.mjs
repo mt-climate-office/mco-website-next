@@ -2,8 +2,9 @@
 import { defineConfig } from 'astro/config';
 
 // The production host. Canonical URLs point here whatever host a build is
-// deployed to (DECISIONS D2). This file is the only place a host is written.
-const CANONICAL_ORIGIN = 'https://climate.umt.edu';
+// deployed to (DECISIONS D2). This file is the only place a host is written;
+// scripts that need it (the newsletter renderer) import it from here.
+export const CANONICAL_ORIGIN = 'https://climate.umt.edu';
 
 // Where this build is deployed. The deploy workflow sets both from
 // actions/configure-pages, so neither the staging host nor the project-pages

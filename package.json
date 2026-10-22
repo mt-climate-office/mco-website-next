@@ -17,7 +17,9 @@
     "check:html": "html-validate \"dist/**/*.html\"",
     "verify": "node scripts/verify.mjs",
     "lighthouse": "node scripts/lighthouse.mjs",
-    "gen:api": "node scripts/gen-api.mjs"
+    "gen:api": "node scripts/gen-api.mjs",
+    "test:newsletter": "node --test \"scripts/newsletter/test/*.test.mjs\"",
+    "newsletter:preview": "node scripts/newsletter/send.mjs --dry-run --out previews"
   },
   "dependencies": {
     "astro": "7.3.8"
@@ -26,12 +28,16 @@
     "@astrojs/check": "0.9.10",
     "@axe-core/playwright": "4.13.0",
     "@types/node": "24.19.1",
+    "cheerio": "1.2.0",
     "chrome-launcher": "1.2.1",
     "html-validate": "11.16.2",
     "lighthouse": "13.5.0",
+    "marked": "18.1.0",
+    "mjml": "5.4.1",
     "openapi-typescript": "7.13.0",
     "playwright": "1.64.0",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "yaml": "2.9.1"
   },
   "overrides": {
     "openapi-typescript": {

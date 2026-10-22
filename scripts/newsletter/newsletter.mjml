@@ -1,0 +1,90 @@
+<!--
+  MCO newsletter template, MJML compiled to table-based, CSS-inlined HTML.
+  Ported from mco-mailing-lists/email/newsletter.mjml (DECISIONS D15).
+
+  Two templating layers, kept apart:
+    @@TOKEN@@   replaced by render.mjs at build time (title, body, URLs)
+    {{ ... }}   Listmonk subscriber tags, replaced at send time
+                ({{ UnsubscribeURL }}). MJML passes these through.
+
+  No host is written here: @@ORIGIN@@ and @@HOST@@ come from
+  CANONICAL_ORIGIN in astro.config.mjs, images from the pinned kit tag.
+
+  Colours are the old site's teal (#52adc8, #2a7f9e), carried over unchanged.
+  Whether email moves to the kit blue is an open owner decision; see
+  docs/newsletter.md.
+-->
+<mjml lang="en">
+  <mj-head>
+    <mj-title>@@TITLE@@</mj-title>
+    <mj-preview>@@PREHEADER@@</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Helvetica, Arial, sans-serif" />
+      <mj-text font-size="16px" color="#333333" line-height="1.6" />
+    </mj-attributes>
+    <mj-style>
+      .post-body img { max-width: 100% !important; height: auto !important; border-radius: 4px; }
+      .post-body a { color: #2a7f9e; }
+      .post-body h2 { font-size: 20px; margin: 24px 0 8px; }
+      .post-body h3 { font-size: 18px; margin: 20px 0 8px; }
+      .post-body blockquote { border-left: 3px solid #52adc8; margin: 16px 0; padding: 4px 16px; color: #555555; }
+    </mj-style>
+  </mj-head>
+
+  <mj-body background-color="#f2f3f3">
+    <mj-section background-color="#ffffff" padding="24px 0 8px">
+      <mj-column>
+        <mj-image src="@@LOGO_URL@@" alt="Montana Climate Office" width="72px"
+                  align="center" href="@@ORIGIN@@/" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#52adc8" padding="0">
+      <mj-column>
+        <mj-spacer height="3px" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="24px 24px 0">
+      <mj-column>
+        <mj-text font-size="26px" font-weight="bold" color="#1f2d33" line-height="1.3">
+          <h1 style="font-size:26px;line-height:1.3;margin:0;">@@TITLE@@</h1>
+        </mj-text>
+        <mj-text font-size="13px" color="#6b6b6b" padding-top="4px">@@DATE@@</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="8px 24px 0">
+      <mj-column>
+        <mj-raw>
+          <div class="post-body">
+            @@CONTENT@@
+          </div>
+        </mj-raw>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="16px 24px 32px">
+      <mj-column>
+        <mj-button background-color="#52adc8" color="#ffffff" font-size="16px"
+                   border-radius="4px" href="@@POST_URL@@" align="left" inner-padding="12px 22px">
+          Read this post on @@HOST@@
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#f2f3f3" padding="24px">
+      <mj-column>
+        <mj-text font-size="12px" color="#595959" line-height="1.7" align="center">
+          You get this email because you subscribed to Montana Climate Office news.<br />
+          <a href="{{ UnsubscribeURL }}" style="color:#2a7f9e;">Unsubscribe</a><br />
+          <a href="@@ORIGIN@@/" style="color:#2a7f9e;">@@HOST@@</a>
+          <br /><br />
+          Montana Climate Office<br />
+          W.A. Franke College of Forestry &amp; Conservation<br />
+          University of Montana, Missoula, MT 59812
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
