@@ -28,14 +28,15 @@ export const percent = (part: number, whole: number): number | null =>
 export const formatReading = (value: number | null, unit: string, digits = 0): string =>
   value == null ? 'No report' : `${value.toFixed(digits)}${unit}`;
 
-// /stations/ stores date_installed as a calendar date at 00:00 UTC (every
-// row, checked 22 Oct 2026). Read in Mountain time it would fall on the day
-// before, so it is formatted as the UTC calendar date it encodes.
+// date_installed is a Mountain-time calendar date, which the API encodes as
+// that date at 00:00 UTC (every row, checked 22 Oct 2026). Converting the
+// instant to Mountain time would land on the day before, so the date parts
+// are read in UTC: they are the Mountain-time date.
 const CAL_DATE = new Intl.DateTimeFormat('en-US', {
   timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric',
 });
 
-/** "Jun 2, 2021", for an API date stored at UTC midnight. */
+/** "Jun 2, 2021": a Mountain-time calendar date the API stores at 00:00 UTC. */
 export const calendarDate = (ms: number): string => CAL_DATE.format(new Date(ms));
 
 /** "2021-06-02", for a <time datetime> of the same date. */

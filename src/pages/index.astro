@@ -2,9 +2,11 @@
 // Homepage, direction "A + C" (docs/design/homepage-reference.html): the
 // instrument chassis with the station-camera mosaic as the hero.
 //
-// Data-free layout. Each data component takes typed props
-// (src/components/data/types.ts) and renders its empty state when they are
-// absent, which is what ships until the data layer is wired. Never pass
+// Each data component takes typed props (src/components/data/types.ts) and
+// renders its empty state when they are absent. The status bar reads the
+// mesonet-compliance summary at build time (a failed fetch fails the build,
+// so the previous deploy stays up). The photo hero and conditions card stay
+// empty until the kit's photo module and place search are wired. Never pass
 // sample data here; the page must not show a made-up figure.
 // Copy follows docs/VOICE.md. Each question's claims are sourced beside it.
 import Base from '../layouts/Base.astro';
@@ -14,6 +16,9 @@ import NetworkStatusBar from '../components/data/NetworkStatusBar.astro';
 import QuestionCard from '../components/content/QuestionCard.astro';
 import ToolList from '../components/content/ToolList.astro';
 import { DASHBOARD, TOOLS } from '../lib/tools';
+import { loadSummary, toNetworkSummary } from '../lib/compliance';
+
+const summary = toNetworkSummary(await loadSummary());
 
 const QUESTIONS = [
   // mco-drought-dashboard/docs/index.html:175-178 (indices), :836 (15 d to
@@ -78,7 +83,7 @@ const QUESTIONS = [
     </div>
   </section>
 
-  <NetworkStatusBar />
+  <NetworkStatusBar summary={summary} />
 
   <section class="section" aria-labelledby="questions-title">
     <div class="wrap">
