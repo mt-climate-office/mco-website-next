@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "check": "astro check",
     "check:paths": "node scripts/check-paths.mjs",
@@ -35,6 +35,7 @@
     "marked": "18.1.0",
     "mjml": "5.4.1",
     "openapi-typescript": "7.13.0",
+    "pagefind": "1.5.2",
     "playwright": "1.64.0",
     "typescript": "6.0.3",
     "yaml": "2.9.1"

@@ -15,16 +15,40 @@ const JSDELIVR = 'https://cdn.jsdelivr.net';
 // (DECISIONS D6). The photo frames will need it in img-src too.
 const DATA2 = 'https://data2.climate.umt.edu';
 
+export interface CspOptions {
+  /**
+   * The page runs site search (src/pages/search.astro). Only that page gets
+   * these, so no other page grows its policy.
+   *
+   * Pagefind runs in a worker, <base>pagefind/pagefind-worker.js. With no
+   * worker-src, script-src 'self' governs it. A worker from a URL takes its
+   * policy from its own response, not this meta tag, so the fetches and the
+   * wasm compile in it need nothing here. When the worker cannot start,
+   * Pagefind falls back to this page's main thread, and that path needs the
+   * two below (checked: without them the fallback finds nothing):
+   *   - script-src 'wasm-unsafe-eval': compiles Pagefind's WebAssembly. It
+   *     allows WebAssembly compilation only, not eval or new Function.
+   *   - connect-src 'self': fetches the index, fragments and wasm from this
+   *     site's own pagefind/ directory.
+   * The rest:
+   *   - img-src data: the kit's .mco-search-icon glyph is a data: URI mask.
+   *   - form-action 'self': the search form submits to the search page
+   *     (GET ?q=), so it works before the script loads.
+   */
+  search?: boolean;
+}
+
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
-export function contentSecurityPolicy(inlineScripts: string[]): string {
+export function contentSecurityPolicy(inlineScripts: string[], { search = false }: CspOptions = {}): string {
+  const hashes = inlineScripts.map(hash).join(' ');
   return [
     "default-src 'none'",
-    `script-src 'self' ${JSDELIVR} ${inlineScripts.map(hash).join(' ')}`,
+    `script-src 'self' ${JSDELIVR} ${hashes}${search ? " 'wasm-unsafe-eval'" : ''}`,
     `style-src 'self' ${JSDELIVR}`,
     `font-src ${JSDELIVR}`,
-    `img-src 'self' ${JSDELIVR}`,
-    `connect-src ${API_ORIGIN} ${DATA2}`,
+    `img-src 'self' ${JSDELIVR}${search ? ' data:' : ''}`,
+    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}`,
     "base-uri 'none'",
-    "form-action 'none'",
+    `form-action ${search ? "'self'" : "'none'"}`,
   ].join('; ');
 }
