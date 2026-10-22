@@ -13,8 +13,42 @@ export default {
   scenarios: [
     { name: 'home', query: '', ready: chromeReady },
     { name: 'not-found', query: '404.html', ready: chromeReady },
+    // Station directory with the filter applied from the URL, and one station.
+    { name: 'stations', query: 'mesonet/stations/?q=gallatin',
+      ready: () => !document.documentElement.classList.contains('mco-booting') &&
+        /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
+        document.getElementById('station-count').textContent !== '' },
+    { name: 'station', query: 'mesonet/stations/aceabsar/', ready: chromeReady },
   ],
   probes: async ({ open, check }) => {
+    // Station directory: the filter appears with JS, narrows the rows, says
+    // how many match, mirrors ?q=, and clearing it shows every row again.
+    {
+      const { page, close } = await open('mesonet/stations/');
+      const rows = page.locator('#station-table tbody tr');
+      const total = await rows.count();
+      await page.locator('#station-q').fill('absarokee');
+      await page.waitForTimeout(200);
+      const narrowed = await page.evaluate(() => ({
+        shown: [...document.querySelectorAll('#station-table tbody tr')].filter((r) => !r.hidden).map((r) => r.dataset.id),
+        count: document.getElementById('station-count').textContent,
+        q: new URLSearchParams(location.search).get('q'),
+      }));
+      check('stations: filter narrows the table to matching rows',
+        total > 100 && narrowed.shown.includes('aceabsar') && narrowed.shown.length < total, JSON.stringify(narrowed));
+      check('stations: filter states the count and mirrors ?q=',
+        narrowed.count === `${narrowed.shown.length} of ${total} stations` && narrowed.q === 'absarokee', JSON.stringify(narrowed));
+      await page.locator('#station-q').fill('');
+      await page.waitForTimeout(200);
+      const cleared = await page.evaluate(() => ({
+        hidden: document.querySelectorAll('#station-table tbody tr[hidden]').length,
+        q: new URLSearchParams(location.search).has('q'),
+      }));
+      check('stations: clearing the filter shows every row and drops ?q=',
+        cleared.hidden === 0 && !cleared.q, JSON.stringify(cleared));
+      await close();
+    }
+
     // Theme toggle cycles dark → light → high contrast and names the next one.
     {
       const { page, close } = await open('?theme=dark');
