@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+verify-root/
+verify-out/
+.lighthouseci/
+.DS_Store
+.kit/

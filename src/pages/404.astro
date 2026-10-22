@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/paths';
+---
+<Base short="Not found" description="No page at this address." indexable={false}>
+  <div class="prose">
+    <h1>Page not found</h1>
+    <p>No page at this address. It may have moved when the site was rebuilt.</p>
+    <p><a href={url()}>Go to the Montana Climate Office homepage</a></p>
+  </div>
+</Base>

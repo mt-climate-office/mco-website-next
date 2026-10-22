@@ -1,0 +1,112 @@
+# Build, verify, and deploy to GitHub Pages.
+#
+# verify runs on every pull request and push. deploy runs on main only, after
+# verify passes. Actions are pinned to commit SHAs; npm packages are pinned
+# exactly in package-lock.json.
+name: site
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ASTRO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  verify:
+    name: Build and verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      # A base path no deploy uses, so any link that ignores the base path
+      # 404s in the browser pass. The deploy base comes from configure-pages.
+      BASE_PATH: /verify-base/
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: No hosts or base paths in source
+        run: npm run check:paths
+      - name: Kit pin matches the published tag (SRI, anti-flash, logo)
+        run: npm run check:kit
+      - name: Type check
+        run: npm run check
+
+      - run: npm run build
+      - name: Built pages (CSP hashes, noindex, canonical, one h1, base path)
+        run: npm run check:built
+      - name: HTML validity
+        run: npm run check:html
+
+      # The kit's verify harness, at the tag this site pins.
+      - id: kit
+        run: echo "version=$(node -p "require('fs').readFileSync('src/kit/kit.ts','utf8').match(/KIT_VERSION = '([^']+)'/)[1]")" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: mt-climate-office/mco-web-style
+          ref: v${{ steps.kit.outputs.version }}
+          path: .kit
+          persist-credentials: false
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Kit gates (head, lint-css, axe × 3 themes × 2 widths × 2 engines, keyboard)
+        run: npm run verify
+        env:
+          KIT_DIR: .kit
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # Origin and base path come from the repo's Pages settings: the
+      # project-pages URL now, the custom domain once one is set there.
+      - id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - run: npm ci
+      - run: npm run build
+        env:
+          SITE_ORIGIN: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      # Fails a build that lost noindex. At cutover (rebuild plan Phase 5,
+      # step 17) set EXPECT_INDEXABLE: '1' here, deliberately, in the same
+      # change that moves the domain.
+      - name: Built pages are noindex
+        run: npm run check:built
+        env:
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          EXPECT_INDEXABLE: '0'
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

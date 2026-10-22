@@ -1,0 +1,82 @@
+---
+// The document shell every page uses. Head order follows the kit's
+// snippets/head.html: metas, anti-flash inline, font preloads, stylesheets.
+import antiFlash from '../kit/anti-flash.inline.js?raw';
+import { contentSecurityPolicy } from '../kit/csp';
+import { kit, KIT_SRI } from '../kit/kit';
+import { canonicalUrl } from '../lib/paths';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import '../styles/site.css';
+
+interface Props {
+  /** Short page name (HOUSE-STYLE §1 Naming). Omit on the homepage. */
+  short?: string;
+  /** One or two sentences for search results and link cards. */
+  description: string;
+  /** False for pages that must never be indexed or canonicalized (404). */
+  indexable?: boolean;
+}
+
+const { short, description, indexable = true } = Astro.props;
+const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
+const FAMILY_SHORT = 'MCO';
+const FAMILY_LONG = 'Montana Climate Office';
+// Tab: "<Short> · MCO". Card: "<Short> · Montana Climate Office".
+const title = short ? `${short} · ${FAMILY_SHORT}` : FAMILY_LONG;
+const cardTitle = short ? `${short} · ${FAMILY_LONG}` : FAMILY_LONG;
+const canonical = canonicalUrl(Astro.url.pathname);
+const ogImage = kit('assets/og-card.png');
+const csp = contentSecurityPolicy([antiFlash]);
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content={csp}>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="author" content="Montana Climate Office">
+  <!-- Token copies: light is --accent, dark is --bg-deep (kit snippets/head.html). -->
+  <meta name="theme-color" content="#1a6faf" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#161b22" media="(prefers-color-scheme: dark)">
+  <script is:inline set:html={antiFlash}></script>
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  {noindex && <meta name="robots" content="noindex, nofollow">}
+  {indexable && <link rel="canonical" href={canonical}>}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content={FAMILY_LONG}>
+  <meta property="og:title" content={cardTitle}>
+  <meta property="og:description" content={description}>
+  {indexable && <meta property="og:url" content={canonical}>}
+  <meta property="og:image" content={ogImage}>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Montana Climate Office">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content={cardTitle}>
+  <meta name="twitter:description" content={description}>
+  <meta name="twitter:image" content={ogImage}>
+  <meta name="twitter:image:alt" content="Montana Climate Office">
+  <link rel="icon" type="image/png" sizes="32x32" href={kit('assets/favicon-32.png')}>
+  <link rel="icon" type="image/png" sizes="16x16" href={kit('assets/favicon-16.png')}>
+  <link rel="apple-touch-icon" sizes="180x180" href={kit('assets/apple-touch-icon.png')}>
+  <link rel="preload" href={kit('fonts/outfit-latin.woff2')} as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href={kit('fonts/space-mono-latin.woff2')} as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href={kit('theme/mco-theme.css')}
+        integrity={KIT_SRI['theme/mco-theme.css']} crossorigin="anonymous">
+</head>
+<body>
+  <a class="mco-skip-link" href="#main">Skip to main content</a>
+  <Header />
+  <main id="main" tabindex="-1">
+    <slot />
+  </main>
+  <Footer />
+  <script is:inline src={kit('core/mco-core.js')}
+          integrity={KIT_SRI['core/mco-core.js']} crossorigin="anonymous"></script>
+  <script>
+    import '../scripts/chrome';
+  </script>
+</body>
+</html>

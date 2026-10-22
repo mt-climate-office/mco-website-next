@@ -1,0 +1,17 @@
+---
+// Kit footer: the wordmark pair from the pinned tag, and the theme shows one
+// (HOUSE-STYLE §1 Logo). The network-status line (rebuild plan §4.3) and the
+// newsletter signup (DECISIONS D11) wait on mesonet-compliance and on the
+// MCO News list existing.
+import { kit } from '../../kit/kit';
+
+const year = new Date().getFullYear();
+---
+<footer class="mco-footer site-footer">
+  <img class="mco-wordmark is-on-dark" src={kit('assets/mco-wordmark-on-dark.svg')}
+       alt="Montana Climate Office" width="130" height="48">
+  <img class="mco-wordmark is-on-light" src={kit('assets/mco-wordmark-on-light.svg')}
+       alt="Montana Climate Office" width="130" height="48">
+  <p><a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a></p>
+  <p>© {year} Montana Climate Office, University of Montana</p>
+</footer>

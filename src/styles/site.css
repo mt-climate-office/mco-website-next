@@ -1,0 +1,79 @@
+/* Site layer over mco-web-style. Tokens only (HOUSE-STYLE §2); breakpoints
+   only from the kit ladder (§3). Kit selectors are overridden only with a
+   `kit-override:` comment saying why. */
+
+/* The kit resets margins and ships no page layout: a document page needs
+   one. Footer at the bottom of short pages. */
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: var(--space-7) max(var(--space-5), env(safe-area-inset-right)) var(--space-7) max(var(--space-5), env(safe-area-inset-left));
+}
+
+/* Reading layer (rebuild plan §4.4): the kit's scale is tuned for dense
+   instrument UI, so long-form text gets its own size. App-local until a
+   second property wants it (HOUSE-STYLE §8). */
+.prose {
+  max-width: 68ch;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-body);
+}
+.prose > * + * { margin-top: var(--space-5); }
+.prose h1 { font-size: var(--fs-2xl); line-height: var(--lh-tight); font-weight: var(--fw-bold); }
+.prose h2 { font-size: var(--fs-xl); line-height: var(--lh-tight); font-weight: var(--fw-semibold); margin-top: var(--space-7); }
+.prose ul { padding-left: var(--space-6); }
+.prose li + li { margin-top: var(--space-2); }
+/* Link text uses --accent-line, never --accent (HOUSE-STYLE §2). The
+   underline keeps links distinguishable without color (WCAG 1.4.1). */
+.prose a {
+  color: var(--accent-line);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Navbar sections ────────────────────────────────────────────────────── */
+.site-nav ul {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-1);
+  list-style: none;
+}
+.site-drawer-nav ul { list-style: none; }
+.site-drawer-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: var(--fs-lg);
+  text-decoration: none;
+}
+.site-drawer-nav a[aria-current="page"] {
+  color: var(--accent-line);
+  font-weight: var(--fw-semibold);
+}
+
+/* kit-override: the drawer and its scrim start below the sticky navbar,
+   which sits on a higher tier (--z-chrome-top) and would cover the drawer
+   head. --chrome-h is published by mco-core. */
+#site-drawer.mco-drawer,
+#site-scrim.mco-scrim { top: var(--chrome-h, 52px); }
+
+/* Compact (the kit's COMPACT_MQ, kept in sync with MCO.viewport): the
+   section links move into the drawer so the sticky bar stays one row. */
+.site-menu-toggle { display: none; }
+@media (max-width: 640px), (max-height: 560px) {
+  .site-nav { display: none; }
+  .site-menu-toggle { display: inline-flex; }
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.site-footer { padding-block: var(--space-7); }

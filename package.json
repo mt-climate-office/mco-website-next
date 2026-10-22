@@ -1,0 +1,31 @@
+{
+  "name": "mco-website-next",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.22.1"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "check:paths": "node scripts/check-paths.mjs",
+    "check:kit": "node scripts/check-kit.mjs",
+    "check:built": "node scripts/check-built.mjs",
+    "check:html": "html-validate \"dist/**/*.html\"",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "astro": "7.3.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@axe-core/playwright": "4.13.0",
+    "@types/node": "24.19.1",
+    "html-validate": "11.16.2",
+    "playwright": "1.64.0",
+    "typescript": "6.0.3"
+  }
+}

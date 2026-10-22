@@ -1,0 +1,25 @@
+---
+// Phase 1 placeholder. The homepage proper (live conditions, photo mosaic)
+// is Phase 2. Copy follows docs/VOICE.md.
+import Base from '../layouts/Base.astro';
+
+const TOOLS = [
+  { name: 'Mesonet Explorer', href: 'https://mesonet.climate.umt.edu/explorer/' },
+  { name: 'Photo Explorer', href: 'https://mesonet.climate.umt.edu/photos/' },
+  { name: 'Station Dashboard', href: 'https://mesonet.climate.umt.edu/dash/next/' },
+  { name: 'Station Status', href: 'https://mesonet.climate.umt.edu/status/' },
+  { name: 'Station Maintenance', href: 'https://mesonet.climate.umt.edu/maintenance/' },
+  { name: 'UMRB Build Status', href: 'https://mesonet.climate.umt.edu/umrb/' },
+  { name: 'Snowpack Explorer', href: 'https://snow.climate.umt.edu/' },
+  { name: 'D³ Drought Data Dashboard (beta)', href: 'https://d3drought.org/' },
+];
+---
+<Base description="Weather, soil moisture, drought and snowpack data for Montana.">
+  <div class="prose">
+    <h1>Montana Climate Office</h1>
+    <h2>Tools</h2>
+    <ul>
+      {TOOLS.map((t) => <li><a href={t.href}>{t.name}</a></li>)}
+    </ul>
+  </div>
+</Base>
