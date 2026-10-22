@@ -20,6 +20,7 @@ import { base, stage, stageDist } from './stage.mjs';
 const PAGES = [
   { name: 'home', path: '', jsBudgetKB: 150 },
   { name: 'not-found', path: '404.html' },
+  { name: 'status', path: 'mesonet/status/' },
 ];
 const MIN = { accessibility: 1, performance: 0.9 };
 const RUNS = 3;
