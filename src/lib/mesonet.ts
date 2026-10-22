@@ -35,6 +35,9 @@ export type StationsParams = Omit<Query<'get_stations_stations__get'>, 'type'>;
 export type LatestParams =
   Omit<Query<'read_latest_latest__get'>, 'type' | 'wide' | 'simple_datetime' | 'stations' | 'elements'> & Ids;
 
+// `all=true` (the bulk per-station listing) is fixed by getElementsAll().
+export type ElementsParams = Omit<Query<'read_elements_elements__get'>, 'type' | 'all' | 'grouped'>;
+
 /** One row of `/stations/?type=json`. */
 export interface Station {
   station: string;
@@ -74,11 +77,32 @@ export const reading = (row: LatestRow, element: string): number | null => {
   return typeof v === 'number' ? v : null;
 };
 
+/**
+ * One row of `/elements/?all=true&type=json`: an element a station is
+ * expected to report. The bulk listing repeats rows; the mesonet-compliance
+ * ruleset dedupes them.
+ */
+export interface ElementRow {
+  station: string;
+  /** Element code, e.g. 'air_temp_0200'. */
+  element: string;
+  description: string;
+  /** Matches the `/latest/` column name without its unit, e.g. 'Air Temperature @ 2 m'. */
+  description_short: string;
+  base_units: string | null;
+  us_units: string | null;
+  sort_order: number | null;
+}
+
 export const getStations = (params: StationsParams = {}, signal?: AbortSignal) =>
   get<Station>('stations/', params, signal);
 
 export const getLatest = (params: LatestParams = {}, signal?: AbortSignal) =>
   get<LatestRow>('latest/', { ...params, wide: true }, signal);
+
+/** Expected elements for every active public station, in one response. */
+export const getElementsAll = (params: ElementsParams = {}, signal?: AbortSignal) =>
+  get<ElementRow>('elements/', { ...params, all: true }, signal);
 
 async function get<Row>(path: string, params: object, signal?: AbortSignal): Promise<Row[]> {
   const url = new URL(path, API_BASE + '/');
