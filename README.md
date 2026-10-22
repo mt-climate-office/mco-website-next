@@ -30,4 +30,5 @@ Every pull request runs: a scan for hosts and base paths in source, the kit
 pin against the published tag, a type check, checks on the built pages (CSP,
 `noindex`, canonical, one `h1`, base path), HTML validation, and the kit's own
 verify harness (axe in three themes at two widths in Chromium and WebKit, plus
-keyboard probes). See `CLAUDE.md` for running them locally.
+keyboard probes), and Lighthouse budgets (accessibility 100, performance 90 or
+more on mobile, homepage JavaScript under 150 KB). See `CLAUDE.md` for running them locally.

@@ -34,4 +34,5 @@ npm run check:paths && npm run check:kit && npm run check
 BASE_PATH=/verify-base/ npm run build
 BASE_PATH=/verify-base/ npm run check:built && npm run check:html
 KIT_DIR=<mco-web-style checkout at the pinned tag> BASE_PATH=/verify-base/ npm run verify
+BASE_PATH=/verify-base/ npm run lighthouse
 ```

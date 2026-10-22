@@ -8,20 +8,14 @@
 // KIT_DIR is a checkout of mco-web-style at the KIT_VERSION tag. dist/ must
 // have been built with the same BASE_PATH.
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import { site, stage, stageDist } from './stage.mjs';
 
 const kitDir = process.env.KIT_DIR;
 if (!kitDir) { console.error('verify: set KIT_DIR to a mco-web-style checkout at the pinned tag'); process.exit(2); }
 const tools = join(resolve(kitDir), 'tools', 'verify');
-const base = (process.env.BASE_PATH || '/').replace(/^\/?/, '/').replace(/\/?$/, '/');
-const stage = resolve('verify-root');
-const site = join(stage, base);
-
-// Stage dist/ at its base path, so root-absolute asset URLs resolve.
-rmSync(stage, { recursive: true, force: true });
-mkdirSync(site, { recursive: true });
-cpSync('dist', site, { recursive: true });
+stageDist();
 
 // lint-css reads stylesheets relative to a page, and the built CSS has lost
 // its kit-override comments, so lint the source stylesheet through a stub.

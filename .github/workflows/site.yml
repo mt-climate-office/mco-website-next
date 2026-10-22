@@ -63,6 +63,8 @@ jobs:
         run: npm run verify
         env:
           KIT_DIR: .kit
+      - name: Lighthouse budgets (accessibility 100, performance ≥ 90 mobile, homepage JS < 150 KB)
+        run: npm run lighthouse
 
   deploy:
     name: Deploy to GitHub Pages
