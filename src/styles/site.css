@@ -17,6 +17,61 @@ main {
   padding: var(--space-7) max(var(--space-5), env(safe-area-inset-right)) var(--space-7) max(var(--space-5), env(safe-area-inset-left));
 }
 
+/* Full-bleed pages (Base fullBleed): bands run edge to edge and each one
+   centres its content in a .wrap with the same cap and gutters as <main>. */
+main.is-full-bleed { max-width: none; padding: 0; }
+.wrap {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: max(var(--space-5), env(safe-area-inset-right)) max(var(--space-5), env(safe-area-inset-left));
+}
+/* A band on the raised-from-ground surface, ruled top and bottom. */
+.band { background: var(--bg-surface); border-bottom: 1px solid var(--border); }
+.section { padding-block: var(--space-7); }
+.section + .section { padding-top: 0; }
+.section-title {
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-tight);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+}
+.section-lede {
+  margin-top: var(--space-3);
+  max-width: 62ch;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+
+/* Links in page content (outside .prose, which has its own rule): text on
+   any surface uses --accent-line, underlined so colour is not the only cue
+   (HOUSE-STYLE §2, WCAG 1.4.1). Kit buttons keep their own look. */
+main a:not([class]) {
+  color: var(--accent-line);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Timestamp and meta lines: mono, muted (HOUSE-STYLE §1 Typography).
+   --text-muted is only for deep and surface grounds, never raised. */
+.stamp {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* kit-override: a page-level call to action. .nav-btn is sized for a dense
+   toolbar (34px, 0.78rem); on a content page the same button gets a 44px
+   target and body-size text. Colours and states stay the kit's. */
+.nav-btn.site-cta {
+  display: inline-flex;
+  min-height: 44px;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+}
+
 /* Reading layer (rebuild plan §4.4): the kit's scale is tuned for dense
    instrument UI, so long-form text gets its own size. App-local until a
    second property wants it (HOUSE-STYLE §8). */

@@ -47,6 +47,10 @@ overdue; the feed's `compliance_state` gives 41 (37 AgriMet + 4 absent from
 Until this is settled, **no compliance figure is published anywhere** — not in
 the footer, not on `/mesonet/status/`, not in the mockups. See D10.
 
+**Resolved 22 Oct 2026 (D15):** the maintenance app's rules are the
+definition. The figure stays unpublished until the API's `compliance_state`
+no longer contradicts them.
+
 ## D5 — Where compliance and health are computed
 
 **A new repo, `mesonet-compliance`**, holding the ruleset as versioned,
@@ -80,6 +84,11 @@ a North default on an older date shows a rain gauge.
 The homepage hero defaults to North and the most recent capture, which is
 always within the clean range.
 
+**Amended 22 Oct 2026 (D15):** the re-aim took effect at **2026-10-21 16:00
+MDT** for all 165 cameras (`schedule.json`), after that day's last slot, so
+the first public date is 2026-10-22. The clamp applies to every public
+surface, all directions: the website, the Photo Explorer and the dashboard.
+
 ## D8 — Snow, Pluvio and Solar views
 
 **Staff-only, as today.** Behind `?internal=1` in the Photo Explorer. Not on a
@@ -109,6 +118,11 @@ The health split includes the partial-outage figure (~12%). Publishing it is
 deliberate. It needs one plain-language line on the page explaining that
 partial means one sensor of several is down and the station is still
 reporting — otherwise it reads worse than it is.
+
+**Amended 22 Oct 2026 (D15):** the line follows the ruleset, which counts a
+station as partial when any expected sensor is silent: "A station with a
+partial sensor outage is still reporting. At least one of its sensors is
+not." Percentages are floored, so 100% means every station reported.
 
 ## D11 — Newsletter
 
@@ -241,3 +255,43 @@ Three things follow from that, and they are not optional.
   people can conflict. Fine for serial editorial work, which is what this is.
 - There is no built-in draft/publish workflow — hence the `draft` boolean in
   the schema.
+
+---
+
+## D15 — Second round, after the Phase 1.5 drafts
+
+**Decided 22 October 2026**, against the worker reports on
+`mesonet-compliance`, the MCO News list and the kit's `MCO.photos` draft.
+
+**Compliance (D4, D5).**
+- The maintenance app's rules define compliance. Fix the API's
+  `compliance_state` to agree or remove it; until then the figure is not
+  published, and **the summary JSON omits the maintenance section entirely**
+  (it sits at a public URL, so a flag would not hide it).
+- `mesonet-compliance` is a **public** repo. The 15-minute job runs on
+  **EventBridge + Lambda** in `mco-aws`, with a missed-run alarm, as
+  `mesonet-aq` and `mesonet-power` do. Not a GitHub Actions cron.
+- Reporting percentage is **floored**.
+
+**Homepage.**
+- The conditions card shows its empty state (a link to the Station
+  Dashboard) until place search ships in the kit. No default station.
+
+**Photos (D7, D9).**
+- Public direction order is **N, E, S, W**.
+- Staff-view labels for pre-cutover N and S stay "North" and "South".
+- The dashboard adopts `MCO.photos` by loading the pinned kit file; its
+  vitest suite loads the same file. No TypeScript copy.
+- `MCO.photos` ships as a full kit release (0.14.0) with the Photo Explorer
+  and dashboard retrofit PRs ready (D3).
+
+**Newsletter (D11).**
+- List description: "Posts from climate.umt.edu by email, including the
+  Montana Drought & Climate update. Every message has an unsubscribe link."
+- Anti-abuse: the honeypot plus a Caddy rate limit on the Listmonk host; the
+  form stays JavaScript-free.
+- Postal address everywhere: W.A. Franke College of Forestry & Conservation,
+  University of Montana, Missoula, MT 59812.
+- The newsletter renderer is **ported into `mco-website-next`**, with pinned
+  dependencies, not checked out from the private `mco-mailing-lists`.
+

@@ -1,0 +1,40 @@
+---
+// One question and the tool that answers it. Copy follows docs/VOICE.md:
+// every claim in `body` must be checkable against the tool itself.
+interface Props {
+  /** The question, as a reader would ask it. Rendered as an <h3>. */
+  question: string;
+  /** One or two sentences on what the tool shows. No figures that change. */
+  body: string;
+  /** Tool name, used as the link text. */
+  tool: string;
+  href: string;
+  /** Status the tool itself shows, e.g. "beta". Printed in words. */
+  status?: string;
+}
+
+const { question, body, tool, href, status } = Astro.props;
+---
+<article class="mco-card question">
+  <div class="mco-card-body">
+    <h3>{question}</h3>
+    <p>{body}</p>
+    <p class="question-link">
+      <a href={href}>{tool}</a>{status && <span class="question-status"> ({status})</span>}
+    </p>
+  </div>
+</article>
+
+<style>
+  .question > .mco-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    height: 100%;
+    padding: var(--space-6);
+  }
+  .question h3 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); }
+  .question p { font-size: var(--fs-base); color: var(--text-secondary); }
+  .question-link { margin-top: auto; font-weight: var(--fw-semibold); }
+  .question-status { font-weight: var(--fw-regular); color: var(--text-secondary); }
+</style>

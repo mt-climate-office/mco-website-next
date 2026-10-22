@@ -16,9 +16,12 @@ interface Props {
   description: string;
   /** False for pages that must never be indexed or canonicalized (404). */
   indexable?: boolean;
+  /** Full-bleed page: <main> drops its width cap and padding, and the page
+      lays out its own bands (.band > .wrap). The homepage uses this. */
+  fullBleed?: boolean;
 }
 
-const { short, description, indexable = true } = Astro.props;
+const { short, description, indexable = true, fullBleed = false } = Astro.props;
 const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
 const FAMILY_SHORT = 'MCO';
 const FAMILY_LONG = 'Montana Climate Office';
@@ -69,7 +72,7 @@ const csp = contentSecurityPolicy([antiFlash]);
 <body>
   <a class="mco-skip-link" href="#main">Skip to main content</a>
   <Header />
-  <main id="main" tabindex="-1">
+  <main id="main" tabindex="-1" class:list={[{ 'is-full-bleed': fullBleed }]}>
     <slot />
   </main>
   <Footer />

@@ -1,0 +1,109 @@
+---
+// Headline network figures (DECISIONS D10): station count, reporting count
+// and percentage, and the health split with one line saying what "partial"
+// means. Read from the mesonet-compliance summary JSON (D5); never computed
+// here and never typed into the CMS.
+//
+// Not shown: maintenance compliance (D4, unresolved) and UMRB cells (not in
+// D10). Figures are plain text; colour carries nothing here.
+//
+// Absent `summary`: a short notice and the link to the Status tool, no
+// figures. Once the summary exists, a build-time snapshot goes here as the
+// fallback, with its timestamp (CLAUDE.md, "Fetch, don't frame").
+import type { NetworkSummary } from './types';
+import { count, isoTime, percent, stampMT } from '../../lib/format';
+
+interface Props {
+  summary?: NetworkSummary | null;
+}
+
+const { summary = null } = Astro.props;
+const pct = summary ? percent(summary.reporting, summary.stations) : null;
+const windowLabel = summary ? `${summary.reportingWindowHours} hour${summary.reportingWindowHours === 1 ? "" : "s"}` : "";
+const STATUS = 'https://mesonet.climate.umt.edu/status/';
+const HEALTH = 'https://mesonet.climate.umt.edu/status/?mode=health';
+---
+<section class="net band" aria-labelledby="net-title">
+  <div class="wrap net-inner">
+    <h2 id="net-title" class="net-title">Station status</h2>
+
+    {summary ? (
+      <div class="net-body">
+        <dl class="net-figures">
+          <div>
+            <dt>Stations</dt>
+            <dd class="mco-num-display">{count(summary.stations)}</dd>
+          </div>
+          <div>
+            <dt>Reported in the last {windowLabel}</dt>
+            <dd>
+              <span class="mco-num-display">{count(summary.reporting)}</span>
+              {pct != null && <span class="net-pct">{pct}%</span>}
+            </dd>
+          </div>
+          <div>
+            <dt>Operational</dt>
+            <dd class="mco-num-display">{count(summary.health.operational)}</dd>
+          </div>
+          <div>
+            <dt>Partial sensor outage</dt>
+            <dd class="mco-num-display">{count(summary.health.partial)}</dd>
+          </div>
+          <div>
+            <dt>Total outage</dt>
+            <dd class="mco-num-display">{count(summary.health.outage)}</dd>
+          </div>
+        </dl>
+        <p class="net-note">
+          A station with a partial sensor outage is still reporting. At least one of its
+          sensors is not.
+        </p>
+        <p class="stamp">As of <time datetime={isoTime(summary.generatedAt)}>{stampMT(summary.generatedAt)}</time></p>
+      </div>
+    ) : (
+      <p class="mco-empty net-empty">Network figures are not available here yet.</p>
+    )}
+
+    <p class="net-links">
+      <a class="nav-btn site-cta" href={summary ? HEALTH : STATUS}>Open Station Status</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .net-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-6) var(--space-7);
+    padding-block: var(--space-7);
+  }
+  .net-title {
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+  }
+  .net-body { flex: 1 1 32rem; min-width: 0; }
+  .net-figures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5) var(--space-7);
+  }
+  .net-figures dt { font-size: var(--fs-md); color: var(--text-muted); }
+  .net-figures dd { font-size: var(--fs-2xl); }
+  .net-pct {
+    margin-left: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+  }
+  .net-note {
+    margin-top: var(--space-4);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    max-width: 62ch;
+  }
+  .net-body .stamp { margin-top: var(--space-2); }
+  .net-empty { flex: 1 1 20rem; justify-content: flex-start; text-align: left; }
+  .net-links { margin-left: auto; }
+</style>

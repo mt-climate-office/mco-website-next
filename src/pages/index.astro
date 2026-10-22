@@ -1,25 +1,129 @@
 ---
-// Phase 1 placeholder. The homepage proper (live conditions, photo mosaic)
-// is Phase 2. Copy follows docs/VOICE.md.
+// Homepage, direction "A + C" (docs/design/homepage-reference.html): the
+// instrument chassis with the station-camera mosaic as the hero.
+//
+// Data-free layout. Each data component takes typed props
+// (src/components/data/types.ts) and renders its empty state when they are
+// absent, which is what ships until the data layer is wired. Never pass
+// sample data here; the page must not show a made-up figure.
+// Copy follows docs/VOICE.md. Each question's claims are sourced beside it.
 import Base from '../layouts/Base.astro';
+import PhotoMosaic from '../components/data/PhotoMosaic.astro';
+import ConditionsNow from '../components/data/ConditionsNow.astro';
+import NetworkStatusBar from '../components/data/NetworkStatusBar.astro';
+import QuestionCard from '../components/content/QuestionCard.astro';
+import ToolList from '../components/content/ToolList.astro';
+import { DASHBOARD, TOOLS } from '../lib/tools';
 
-const TOOLS = [
-  { name: 'Mesonet Explorer', href: 'https://mesonet.climate.umt.edu/explorer/' },
-  { name: 'Photo Explorer', href: 'https://mesonet.climate.umt.edu/photos/' },
-  { name: 'Station Dashboard', href: 'https://mesonet.climate.umt.edu/dash/next/' },
-  { name: 'Station Status', href: 'https://mesonet.climate.umt.edu/status/' },
-  { name: 'Station Maintenance', href: 'https://mesonet.climate.umt.edu/maintenance/' },
-  { name: 'UMRB Build Status', href: 'https://mesonet.climate.umt.edu/umrb/' },
-  { name: 'Snowpack Explorer', href: 'https://snow.climate.umt.edu/' },
-  { name: 'D³ Drought Data Dashboard (beta)', href: 'https://d3drought.org/' },
+const QUESTIONS = [
+  // mco-drought-dashboard/docs/index.html:175-178 (indices), :836 (15 d to
+  // 730 d, plus water year and year to date); methods.html:373-375 (gridMET,
+  // daily). BETA is the tool's own navbar pill.
+  {
+    question: 'How dry is it?',
+    body: 'SPI, SPEI, EDDI and SVPDI for the contiguous US, computed daily from gridMET. Timescales run from 15 days to two years.',
+    tool: 'D³ Drought Data Dashboard',
+    href: 'https://d3drought.org/',
+    status: 'beta',
+  },
+  // mco-snowpack-explorer/index.html About panel: SNODAS from 30 Sep 2003,
+  // same calendar day, ~1 km grid, HUC 2-8.
+  {
+    question: 'Is the snow where it should be?',
+    body: 'Snow water equivalent compared with the same day in every year since 2003, from NOAA SNODAS. Mapped on a grid of about 1 km or by watershed.',
+    tool: 'Snowpack Explorer',
+    href: 'https://snow.climate.umt.edu/',
+  },
+  // mesonet-explorer/app.js REGISTRY: soil moisture shallow / mid / deep,
+  // GDD and reference ET. Not "four depths": the Explorer groups them in three.
+  {
+    question: 'How wet is the soil?',
+    body: 'Shallow, mid-depth and deep soil moisture at each Mesonet station, with growing degree days and reference ET.',
+    tool: 'Mesonet Explorer',
+    href: 'https://mesonet.climate.umt.edu/explorer/',
+  },
+  // mesonet-dashboard/web/src/ui/charts/resources.ts:63 (gridMET normals),
+  // NWS points/forecast.
+  {
+    question: 'Is this normal for the time of year?',
+    body: 'Daily values at one station plotted against gridMET normals, with the National Weather Service forecast for that spot.',
+    tool: 'Station Dashboard',
+    href: DASHBOARD,
+  },
 ];
 ---
-<Base description="Weather, soil moisture, drought and snowpack data for Montana.">
-  <div class="prose">
-    <h1>Montana Climate Office</h1>
-    <h2>Tools</h2>
-    <ul>
-      {TOOLS.map((t) => <li><a href={t.href}>{t.name}</a></li>)}
-    </ul>
-  </div>
+<Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed>
+  <PhotoMosaic />
+
+  <section id="readings" class="readings" aria-labelledby="readings-title">
+    <div class="wrap readings-inner">
+      <div class="readings-text">
+        <h2 id="readings-title" class="section-title">What the stations are reading</h2>
+        <p class="section-lede">
+          Air temperature, humidity, wind, precipitation, soil moisture and soil temperature.
+          Recent values are provisional.
+        </p>
+        <!--
+          Place search ("find conditions near you") goes here once the kit ships
+          the dashboard's place search on MCO.searchModel / initSearchBox
+          (DECISIONS D9, extraction #2). It sets the station ConditionsNow shows.
+        -->
+      </div>
+      <ConditionsNow />
+      <!--
+        Station map goes here: a lazy MapLibre island via MCO.map.loadMapLibre()
+        below the fold, with an MCO.srTable twin, and no scroll capture
+        (rebuild plan §4.5). Needs worker-src blob: and the unpkg pins in the CSP.
+      -->
+    </div>
+  </section>
+
+  <NetworkStatusBar />
+
+  <section class="section" aria-labelledby="questions-title">
+    <div class="wrap">
+      <h2 id="questions-title" class="section-title">Start with a question</h2>
+      <p class="section-lede">Each one links to the tool that answers it.</p>
+      <div class="card-grid">
+        {QUESTIONS.map((q) => <QuestionCard {...q} />)}
+      </div>
+    </div>
+  </section>
+
+  <!--
+    "Where people usually start" audience cards wait for the /for/ hubs
+    (rebuild plan §4.2, Phase 3); their copy needs sourcing before it ships.
+    News ("From the office") waits for the news collection (Phase 4).
+  -->
+
+  <section class="section" aria-labelledby="tools-title">
+    <div class="wrap">
+      <h2 id="tools-title" class="section-title">Tools</h2>
+      <ToolList tools={TOOLS} />
+    </div>
+  </section>
 </Base>
+
+<style>
+  .readings { border-bottom: 1px solid var(--border); }
+  .readings-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: start;
+    padding-block: var(--space-7);
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+  }
+  #tools-title { margin-bottom: var(--space-6); }
+  @media (max-width: 1060px) {
+    .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 750px) {
+    .readings-inner, .card-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

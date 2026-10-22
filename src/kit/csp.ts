@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { API_ORIGIN } from '../lib/mesonet';
 
 // A meta CSP, written here rather than by Astro's security.csp: the kit's
 // verify gate (tools/verify/head.mjs) matches the exact
@@ -10,6 +11,9 @@ const hash = (body: string) =>
   `'sha256-${createHash('sha256').update(body).digest('base64')}'`;
 
 const JSDELIVR = 'https://cdn.jsdelivr.net';
+// Photo schedules, manifests and frames are read from data2 directly
+// (DECISIONS D6). The photo frames will need it in img-src too.
+const DATA2 = 'https://data2.climate.umt.edu';
 
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
 export function contentSecurityPolicy(inlineScripts: string[]): string {
@@ -19,6 +23,7 @@ export function contentSecurityPolicy(inlineScripts: string[]): string {
     `style-src 'self' ${JSDELIVR}`,
     `font-src ${JSDELIVR}`,
     `img-src 'self' ${JSDELIVR}`,
+    `connect-src ${API_ORIGIN} ${DATA2}`,
     "base-uri 'none'",
     "form-action 'none'",
   ].join('; ');
