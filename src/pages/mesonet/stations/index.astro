@@ -1,0 +1,153 @@
+---
+// Station directory (rebuild plan §4.5 StationDirectory, Phase 3 item 9):
+// every station from /stations/, fully static, one row each. The table is the
+// page and works with JavaScript off; src/scripts/station-filter.ts adds a
+// filter on the kit's search model.
+//
+// Static facts only. Counts come from the fetched rows, never prose.
+import Base from '../../../layouts/Base.astro';
+import { getCatalog, stationPath } from '../../../lib/stations';
+import { calendarDate, count, elevation, isoDate, isoTime, stampMT } from '../../../lib/format';
+import { url } from '../../../lib/paths';
+
+const { stations, fetchedAt } = await getCatalog();
+
+// "165 are HydroMet and 88 are AgriMet", largest network first.
+const byNetwork = new Map<string, number>();
+for (const s of stations) byNetwork.set(s.sub_network, (byNetwork.get(s.sub_network) ?? 0) + 1);
+const networks = [...byNetwork].sort((a, b) => b[1] - a[1])
+  .map(([name, n]) => `${count(n)} ${n === 1 ? 'is' : 'are'} ${name}`);
+const sentence = networks.length > 1
+  ? `${networks.slice(0, -1).join(', ')} and ${networks.at(-1)}`
+  : networks[0] ?? '';
+const networkList = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+
+// Words the filter matches besides the name and id.
+const keywords = (s: (typeof stations)[number]) =>
+  [s.county, s.sub_network, s.nwsli_id, s.mesowest_id].filter(Boolean).join('|');
+---
+<Base short="Mesonet stations"
+      description="Every Montana Mesonet station, with its network, county, elevation and install date.">
+  <h1 class="stations-title">Mesonet stations</h1>
+  <p class="section-lede">
+    {count(stations.length)} stations. {networkList}. Each station's page lists its location
+    and identifiers, with links to its data.
+  </p>
+  <p class="stamp stations-stamp">Station list as of <time datetime={isoTime(fetchedAt)}>{stampMT(fetchedAt)}</time></p>
+
+  {/* Laid out before first paint whenever scripts run (see .station-filter
+      below), so showing it never shifts the table; held invisible until
+      MCO.ready() so it never appears before it works. */}
+  <div class="station-filter" id="station-filter" data-hold>
+    <label class="station-filter-label" for="station-q">Filter by name, ID, county or network</label>
+    <div class="mco-search">
+      <span class="mco-search-icon" aria-hidden="true"></span>
+      <input id="station-q" class="mco-search-input" type="search" autocomplete="off" spellcheck="false"
+             aria-describedby="station-count">
+    </div>
+    <p id="station-count" class="stamp station-count">{count(stations.length)} stations</p>
+  </div>
+
+  <section class="table-scroll" aria-labelledby="stations-caption" tabindex="0">
+    <table class="station-table" id="station-table">
+      <caption id="stations-caption" class="sr-only">Mesonet stations by name ({count(stations.length)})</caption>
+      <thead>
+        <tr>
+          <th scope="col">Station</th>
+          <th scope="col">ID</th>
+          <th scope="col">Network</th>
+          <th scope="col">County</th>
+          <th scope="col" class="is-num">Elevation (ft)</th>
+          <th scope="col">Installed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {stations.map((s) => (
+          <tr data-id={s.station} data-keywords={keywords(s)}>
+            <th scope="row"><a href={url(stationPath(s.station))}>{s.name}</a></th>
+            <td class="is-id">{s.station}</td>
+            <td>{s.sub_network}</td>
+            <td>{s.county}</td>
+            <td class="is-num">{elevation(s.elevation).ft}</td>
+            <td><time datetime={isoDate(s.date_installed)}>{calendarDate(s.date_installed)}</time></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
+</Base>
+
+<script>
+  import '../../../scripts/station-filter';
+</script>
+
+<style is:global>
+  /* Global, not scoped: scoping stamps an attribute on each of the table's
+     ~2,000 elements. Every selector names a class only this page uses. */
+  .stations-title {
+    font-size: calc(var(--fs-2xl) * 1.25);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+  }
+  .stations-stamp { margin-top: var(--space-4); }
+
+  .station-filter { margin-top: var(--space-6); }
+  /* No scripts, no filter: data-theme is only ever set by the kit's
+     anti-flash boot, which runs before first paint. */
+  html:not([data-theme]) .station-filter { display: none; }
+  .station-filter-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+  }
+  .station-count { margin-top: var(--space-2); }
+
+  /* The table scrolls sideways inside its own region on narrow screens, so
+     the page never does. Focusable so keyboard users can scroll it. */
+  .table-scroll {
+    margin-top: var(--space-6);
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+  .station-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-base);
+  }
+  .station-table th,
+  .station-table td {
+    padding: var(--space-2) var(--space-4);
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .station-table tbody tr:last-child > * { border-bottom: 0; }
+  .station-table thead th {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+  }
+  .station-table tbody th { font-weight: var(--fw-medium); }
+  .station-table td.is-id,
+  .station-table td.is-num,
+  .station-table time {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  .station-table .is-num { text-align: right; }
+
+  /* Touch: each station link is a 40px target (HOUSE-STYLE §5.5). */
+  @media (hover: none) {
+    .station-table tbody th a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      min-width: 40px;
+    }
+  }
+</style>

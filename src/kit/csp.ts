@@ -22,7 +22,9 @@ export function contentSecurityPolicy(inlineScripts: string[]): string {
     `script-src 'self' ${JSDELIVR} ${inlineScripts.map(hash).join(' ')}`,
     `style-src 'self' ${JSDELIVR}`,
     `font-src ${JSDELIVR}`,
-    `img-src 'self' ${JSDELIVR}`,
+    // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
+    // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.
+    `img-src 'self' data: ${JSDELIVR}`,
     `connect-src ${API_ORIGIN} ${DATA2}`,
     "base-uri 'none'",
     "form-action 'none'",
