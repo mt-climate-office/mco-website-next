@@ -22,7 +22,8 @@
     "newsletter:preview": "node scripts/newsletter/send.mjs --dry-run --out previews"
   },
   "dependencies": {
-    "astro": "7.3.8"
+    "astro": "7.3.8",
+    "mesonet-compliance": "github:mt-climate-office/mesonet-compliance#v0.1.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

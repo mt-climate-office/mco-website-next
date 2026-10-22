@@ -31,7 +31,6 @@ export interface CspOptions {
    *   - connect-src 'self': fetches the index, fragments and wasm from this
    *     site's own pagefind/ directory.
    * The rest:
-   *   - img-src data: the kit's .mco-search-icon glyph is a data: URI mask.
    *   - form-action 'self': the search form submits to the search page
    *     (GET ?q=), so it works before the script loads.
    */
@@ -46,7 +45,9 @@ export function contentSecurityPolicy(inlineScripts: string[], { search = false 
     `script-src 'self' ${JSDELIVR} ${hashes}${search ? " 'wasm-unsafe-eval'" : ''}`,
     `style-src 'self' ${JSDELIVR}`,
     `font-src ${JSDELIVR}`,
-    `img-src 'self' ${JSDELIVR}${search ? ' data:' : ''}`,
+    // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
+    // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.
+    `img-src 'self' data: ${JSDELIVR}`,
     `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}`,
     "base-uri 'none'",
     `form-action ${search ? "'self'" : "'none'"}`,

@@ -1,0 +1,147 @@
+---
+// One page per station, generated at build time from the shared catalog
+// (src/lib/stations.ts: one fetch per build, not one per page).
+//
+// Static facts from /stations/ only. Not here yet: latest readings (a later
+// island), health (mesonet-compliance, D5), a map (a later MapLibre island),
+// co-located pairs (the API has no field for them).
+import type { GetStaticPaths } from 'astro';
+import Base from '../../../layouts/Base.astro';
+import { getCatalog } from '../../../lib/stations';
+import type { Station } from '../../../lib/mesonet';
+import { calendarDate, elevation, isoDate, isoTime, latLon, stampMT } from '../../../lib/format';
+import { url } from '../../../lib/paths';
+import { DASHBOARD, PHOTO_EXPLORER } from '../../../lib/tools';
+
+export const getStaticPaths = (async () => {
+  const { stations, cameras, fetchedAt } = await getCatalog();
+  return stations.map((station) => ({
+    params: { id: station.station },
+    props: { station, hasCamera: cameras.has(station.station), fetchedAt },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  station: Station;
+  hasCamera: boolean;
+  fetchedAt: number;
+}
+
+const { station: s, hasCamera, fetchedAt } = Astro.props;
+const id = encodeURIComponent(s.station);
+const dashboard = `${DASHBOARD}?s=${id}`;
+const photos = `${PHOTO_EXPLORER}?station=${id}`;
+const elev = elevation(s.elevation);
+// The network is in the title because HydroMet/AgriMet pairs can share a
+// name (five do as of Oct 2026: Absarokee, Havre and others).
+const short = `${s.name} ${s.sub_network} station`;
+
+// Identifiers other systems use for this station, when the API has them.
+const otherIds = [
+  { label: 'NWS location identifier (NWSLI)', value: s.nwsli_id },
+  { label: 'MesoWest ID', value: s.mesowest_id },
+  { label: 'GWIC ID', value: s.gwic_id == null ? null : String(s.gwic_id) },
+].filter((x): x is { label: string; value: string } => Boolean(x.value));
+---
+<Base short={short}
+      description={`${s.name} (${s.station}), a ${s.sub_network} station in ${s.county} County: location, elevation, install date and identifiers.`}>
+  <p class="station-back"><a href={url('mesonet/stations/')}>All stations</a></p>
+
+  <h1 class="page-title">{s.name}</h1>
+  <p class="section-lede">{s.sub_network} station in {s.county} County</p>
+
+  <p class="station-actions">
+    <a class="nav-btn is-primary site-cta" href={dashboard}>Open {s.name} in the Station Dashboard</a>
+    {hasCamera && (
+      <a class="nav-btn site-cta" href={photos}>Photos from {s.name} in the Photo Explorer</a>
+    )}
+  </p>
+
+  <section class="station-facts" aria-labelledby="facts-title">
+    <h2 id="facts-title" class="facts-title">Station details</h2>
+    <dl class="facts">
+      <div>
+        <dt>Station ID</dt>
+        <dd class="is-mono">{s.station}</dd>
+      </div>
+      <div>
+        <dt>Network</dt>
+        <dd>{s.sub_network}</dd>
+      </div>
+      <div>
+        <dt>County</dt>
+        <dd>{s.county}</dd>
+      </div>
+      <div>
+        <dt>Latitude, longitude</dt>
+        <dd class="is-mono">{latLon(s.latitude, s.longitude)}</dd>
+      </div>
+      <div>
+        <dt>Elevation</dt>
+        <dd class="is-mono">{elev.ft} ft ({elev.m} m)</dd>
+      </div>
+      <div>
+        <dt>Installed</dt>
+        <dd class="is-mono"><time datetime={isoDate(s.date_installed)}>{calendarDate(s.date_installed)}</time></dd>
+      </div>
+      {otherIds.map((x) => (
+        <div>
+          <dt>{x.label}</dt>
+          <dd class="is-mono">{x.value}</dd>
+        </div>
+      ))}
+    </dl>
+    <p class="stamp facts-stamp">Station record as of <time datetime={isoTime(fetchedAt)}>{stampMT(fetchedAt)}</time></p>
+  </section>
+</Base>
+
+<style>
+  .station-back { font-size: var(--fs-base); }
+  .page-title {
+    margin-top: var(--space-5);
+    font-size: calc(var(--fs-2xl) * 1.25);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+  }
+  .station-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+  /* kit-override: .nav-btn is nowrap for toolbars; these labels carry a
+     station name and must wrap on a phone rather than overflow. */
+  .station-actions .nav-btn { white-space: normal; flex-shrink: 1; }
+  .station-facts {
+    margin-top: var(--space-7);
+    max-width: 40rem;
+  }
+  .facts-title {
+    font-size: var(--fs-xl);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-semibold);
+  }
+  .facts {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    margin-top: var(--space-4);
+    font-size: var(--fs-base);
+  }
+  .facts > div { display: contents; }
+  .facts dt,
+  .facts dd {
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--border);
+  }
+  .facts dt { padding-right: var(--space-6); color: var(--text-secondary); }
+  .facts dd { color: var(--text-primary); overflow-wrap: anywhere; }
+  .facts .is-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .facts-stamp { margin-top: var(--space-4); }
+
+  @media (max-width: 640px) {
+    .facts { grid-template-columns: minmax(0, 1fr); }
+    .facts dt { padding-bottom: 0; border-bottom: 0; }
+    .facts dd { padding-top: var(--space-1); }
+  }
+</style>

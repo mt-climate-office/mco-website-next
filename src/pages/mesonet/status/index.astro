@@ -1,0 +1,309 @@
+---
+// /mesonet/status/ (rebuild plan §4.3): can I rely on this network?
+//
+// Headline figures come from the mesonet-compliance summary JSON (D5, D10).
+// The table is every station, assessed by the same ruleset imported at the
+// pinned tag (package.json), at build time. Both are build-time snapshots
+// with their own timestamps; src/scripts/status-page.ts refreshes them in the
+// browser and adds sorting, filtering and a CSV of the rows shown. Without
+// JavaScript the full table and the build-time CSV still work.
+//
+// Not here, by decision: any maintenance figure (D4, D15), any UMRB figure.
+// Status and health are always words; colour carries nothing.
+import Base from '../../../layouts/Base.astro';
+import { loadSummary } from '../../../lib/compliance';
+import { count, isoTime, stampMT } from '../../../lib/format';
+import { url } from '../../../lib/paths';
+import {
+  cellText, HEALTH_LABEL, loadStationHealth, stationHref, type Health,
+} from '../../../lib/station-health';
+
+const [summary, table] = await Promise.all([loadSummary(), loadStationHealth()]);
+
+const hours = summary.reporting.threshold_minutes / 60;
+const windowLabel = Number.isInteger(hours) ? `${hours} hour${hours === 1 ? '' : 's'}` : `${summary.reporting.threshold_minutes} minutes`;
+const networks = [...new Set(table.rows.map((r) => r.network).filter(Boolean))].sort();
+const healthKeys = Object.keys(HEALTH_LABEL) as Health[];
+
+const STATUS_TOOL = 'https://mesonet.climate.umt.edu/status/?mode=health';
+const MAINTENANCE_TOOL = 'https://mesonet.climate.umt.edu/maintenance/';
+const RULESET = `https://github.com/mt-climate-office/mesonet-compliance/tree/v${summary.ruleset_version}`;
+
+const FIGURES = [
+  { key: 'operational', label: 'Operational' },
+  { key: 'partial', label: 'Partial sensor outage' },
+  { key: 'outage', label: 'Total outage' },
+] as const;
+---
+<Base short="Station status" description="Whether each Montana Mesonet station is reporting, and which of its sensors are not, with the full station table as CSV.">
+  <h1 class="section-title">Mesonet station status</h1>
+  <p class="section-lede">
+    Whether each Montana Mesonet station is reporting, and which of its sensors are not.
+  </p>
+
+  <section class="st-section" aria-labelledby="st-network">
+    <h2 id="st-network" class="st-h2">The network</h2>
+    <dl class="st-figures">
+      <div>
+        <dt>Stations</dt>
+        <dd><span class="mco-num-display" data-sum="total">{count(summary.stations.total)}</span></dd>
+      </div>
+      <div>
+        <dt>Reported in the last <span data-sum="window">{windowLabel}</span></dt>
+        <dd>
+          <span class="mco-num-display" data-sum="reporting">{count(summary.reporting.reporting)}</span>
+          <span class="st-pct" data-sum="reporting-pct">{summary.reporting.pct}%</span>
+        </dd>
+      </div>
+      {FIGURES.map((f) => (
+        <div>
+          <dt>{f.label}</dt>
+          <dd>
+            <span class="mco-num-display" data-sum={f.key}>{count(summary.health[f.key])}</span>
+            <span class="st-pct" data-sum={`${f.key}-pct`}>{summary.health.pct[f.key]}%</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+    <p class="st-note">
+      A station with a partial sensor outage is still reporting. At least one of its sensors is not.
+    </p>
+    <p class="st-note">
+      Percentages are rounded down, so they can add up to less than 100.
+      Figures come from the <a href={RULESET}>mesonet-compliance ruleset</a>, version <span data-sum="ruleset">{summary.ruleset_version}</span>.
+    </p>
+    <p class="stamp">As of <time data-sum="asof" datetime={isoTime(summary.generated_at)}>{stampMT(summary.generated_at)}</time></p>
+    <ul class="st-links">
+      <li><a class="nav-btn site-cta" href={STATUS_TOOL}>Map view in Station Status</a></li>
+      <li><a class="nav-btn site-cta" href={MAINTENANCE_TOOL}>Visit history in Station Maintenance</a></li>
+    </ul>
+  </section>
+
+  <section class="st-section" aria-labelledby="st-stations">
+    <h2 id="st-stations" class="st-h2">Every station</h2>
+    <p class="stamp">Station data as of <time id="st-asof" datetime={isoTime(table.fetchedAt)}>{stampMT(table.fetchedAt)}</time></p>
+
+    <div class="st-controls" id="st-controls" hidden>
+      <div class="st-field">
+        <label for="st-q">Find a station</label>
+        <input id="st-q" class="st-input" type="text" autocomplete="off" spellcheck="false" aria-describedby="st-q-hint">
+        <span id="st-q-hint" class="st-hint">Name, ID or county</span>
+      </div>
+      <!-- Kit chips, not <select>: WebKit's select draws with inline styles
+           the page CSP blocks. None pressed shows every station. -->
+      <div class="st-field">
+        <span id="st-net-label" class="st-label">Network</span>
+        <div class="mco-chips" id="st-net" role="group" aria-labelledby="st-net-label">
+          {networks.map((n) => <button type="button" class="mco-chip" aria-pressed="false" data-value={n.toLowerCase()}>{n}</button>)}
+        </div>
+      </div>
+      <div class="st-field">
+        <span id="st-health-label" class="st-label">Health</span>
+        <div class="mco-chips" id="st-health" role="group" aria-labelledby="st-health-label">
+          {healthKeys.map((k) => <button type="button" class="mco-chip" aria-pressed="false" data-value={k}>{HEALTH_LABEL[k]}</button>)}
+        </div>
+      </div>
+    </div>
+
+    <div class="st-bar">
+      <p id="st-count" class="st-count">{count(table.rows.length)} stations</p>
+      <a id="st-csv" class="nav-btn" href={url('mesonet/status/stations.csv')} download="mesonet-station-status.csv">Download CSV</a>
+    </div>
+
+    <!-- A labelled, focusable region so the table scrolls sideways by keyboard on a phone. -->
+    <section class="st-scroll" aria-labelledby="st-caption" tabindex="0">
+      <table class="st-table" id="st-table">
+        <caption id="st-caption">Montana Mesonet stations, by name</caption>
+        <thead>
+          <tr>
+            <th scope="col" data-sort="name">Station</th>
+            <th scope="col" data-sort="network">Network</th>
+            <th scope="col" data-sort="status">Status</th>
+            <th scope="col" data-sort="last">Last report</th>
+            <th scope="col" data-sort="health">Health</th>
+            <th scope="col" data-sort="missing">Sensors not reporting</th>
+            <th scope="col" data-sort="county">County</th>
+          </tr>
+        </thead>
+        <tbody id="st-rows">
+          {table.rows.map((r) => {
+            const t = cellText(r);
+            return (
+              <tr
+                data-id={r.id} data-name={r.name} data-network={r.network} data-county={r.county}
+                data-status={r.status} data-ts={r.datetime ?? ''} data-health={r.health}
+                data-missing={JSON.stringify(r.missing)}
+              >
+                <th scope="row"><a href={stationHref(r.id)}>{r.name}</a> <span class="st-id">{r.id}</span></th>
+                <td>{t.network}</td>
+                <td>{t.status}</td>
+                <td>{r.datetime == null ? t.lastReport : <time datetime={isoTime(r.datetime)}>{t.lastReport}</time>}</td>
+                <td class="st-health">{t.health}</td>
+                <td class="st-missing">{t.missing}</td>
+                <td>{t.county}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
+    <p id="st-empty" class="mco-empty st-empty" hidden>No station matches these filters.</p>
+  </section>
+</Base>
+
+<script>
+  import '../../../scripts/status-page';
+</script>
+
+<style is:global>
+  .st-section { margin-top: var(--space-7); }
+  .st-h2 {
+    font-size: var(--fs-xl);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-semibold);
+    margin-bottom: var(--space-4);
+  }
+
+  .st-figures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5) var(--space-7);
+  }
+  .st-figures dt { font-size: var(--fs-md); color: var(--text-muted); }
+  .st-figures dd { font-size: var(--fs-2xl); }
+  .st-pct {
+    margin-left: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+  }
+  .st-note {
+    margin-top: var(--space-4);
+    max-width: 62ch;
+    font-size: var(--fs-base);
+    line-height: var(--lh-body);
+    color: var(--text-secondary);
+  }
+  .st-note + .st-note { margin-top: var(--space-2); }
+  .st-section .stamp { margin-top: var(--space-2); }
+  .st-links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+
+  .st-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--space-4) var(--space-6);
+    margin-top: var(--space-5);
+  }
+  .st-controls[hidden] { display: none; }
+  .st-field { display: flex; flex-direction: column; gap: var(--space-2); }
+  .st-field label, .st-label { font-size: var(--fs-md); font-weight: var(--fw-medium); color: var(--text-secondary); }
+  .st-hint { font-size: var(--fs-sm); color: var(--text-muted); }
+  /* Own field style rather than the kit's .mco-search-input, whose icon is
+     a data: URI mask the page CSP (img-src) does not allow. 40px tall at
+     every width: the touch-target minimum (HOUSE-STYLE §5.5). */
+  .st-input {
+    min-height: 40px;
+    min-width: 12rem;
+    padding: 0 var(--space-3);
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--ctrl-border);
+    border-radius: var(--radius-md);
+    font: inherit;
+    font-size: var(--fs-md);
+  }
+  .st-input:hover { border-color: var(--accent-line); }
+
+  .st-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+  .st-count { font-size: var(--fs-base); color: var(--text-secondary); }
+
+  .st-scroll {
+    margin-top: var(--space-4);
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+  .st-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-base);
+    line-height: var(--lh-tight);
+  }
+  .st-table caption {
+    caption-side: top;
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--fs-md);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+  .st-table th, .st-table td {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+  .st-table tbody tr:last-child > * { border-bottom: 0; }
+  .st-table thead th {
+    font-size: var(--fs-md);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  /* Header sort buttons (added by status-page.ts): the header's own text,
+     full cell height, with the direction shown as a glyph and in aria-sort. */
+  .st-table thead th:has(.st-sort) { padding: 0; }
+  .st-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    min-height: 40px;
+    padding: var(--space-3) var(--space-4);
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .st-sort:hover { background: var(--accent-hover); color: var(--text-primary); }
+  .st-sort-icon { min-width: 1ch; font-size: var(--fs-xs); color: var(--accent-line); }
+  .st-table tbody th { font-weight: var(--fw-medium); min-width: 11rem; }
+  .st-id {
+    display: block;
+    margin-top: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-regular);
+    color: var(--text-muted);
+  }
+  /* Station links reach 40px on touch screens (HOUSE-STYLE §5.5). */
+  @media (hover: none), (max-width: 640px) {
+    .st-table tbody th a { display: inline-flex; align-items: center; min-height: 40px; min-width: 40px; }
+    .st-id { margin-top: 0; }
+  }
+  .st-table td:nth-child(4) { white-space: nowrap; font-family: var(--font-mono); font-size: var(--fs-md); }
+  .st-missing { min-width: 14rem; color: var(--text-secondary); }
+  /* Weight, not colour: a station that is not operational stands out in
+     grayscale and to anyone who cannot tell hues apart (WCAG 1.4.1). */
+  .st-table tr:not([data-health="operational"]) .st-health { font-weight: var(--fw-semibold); }
+  .st-empty { margin-top: var(--space-4); }
+  .st-empty[hidden] { display: none; }
+</style>

@@ -143,7 +143,11 @@ verify.config.mjs       scenarios + probes for the kit's verify harness
 
 Node is pinned in `.nvmrc`. `.npmrc` sets `save-exact`; every package is an
 exact version, and every Action is pinned to a commit SHA with its tag in a
-comment. Runtime dependency: `astro`. Everything else is a devDependency for
+comment. Runtime dependencies: `astro`, and `mesonet-compliance` (the D5
+ruleset, from its git tag; `package-lock.json` records the commit, and Vite
+bundles it into `/mesonet/status/`'s script). Types for the parts the site
+calls are in `src/types/mesonet-compliance.d.ts`; re-check them on a bump.
+Everything else is a devDependency for
 checks: `@astrojs/check`, `typescript`, `@types/node`, `html-validate`,
 `playwright`, `@axe-core/playwright`, `lighthouse`, `chrome-launcher`, and
 `openapi-typescript` for `gen:api`. Its peer range stops at TypeScript 5, so

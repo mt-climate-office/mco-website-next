@@ -13,6 +13,8 @@
 //   D³           mco-drought-dashboard/docs/index.html (BETA pill, indices)
 
 export const DASHBOARD = 'https://mesonet.climate.umt.edu/dash/next/';
+// Opens one station's photos with ?station=<id> (docs/app.js deep link).
+export const PHOTO_EXPLORER = 'https://mesonet.climate.umt.edu/photos/';
 
 export const TOOLS = [
   {
@@ -22,7 +24,7 @@ export const TOOLS = [
   },
   {
     name: 'Photo Explorer',
-    href: 'https://mesonet.climate.umt.edu/photos/',
+    href: PHOTO_EXPLORER,
     description: 'Station camera photos on one map, by date, time and direction.',
   },
   {

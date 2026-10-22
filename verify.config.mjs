@@ -19,10 +19,96 @@ export default {
   scenarios: [
     { name: 'home', query: '', ready: chromeReady },
     { name: 'not-found', query: '404.html', ready: chromeReady },
+    // Station directory with the filter applied from the URL, and one station.
+    { name: 'stations', query: 'mesonet/stations/?q=gallatin',
+      ready: () => !document.documentElement.classList.contains('mco-booting') &&
+        /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
+        document.getElementById('station-count').textContent !== '' },
+    { name: 'station', query: 'mesonet/stations/aceabsar/', ready: chromeReady },
+    // The station table, enhanced (sort buttons in place), and filtered so
+    // the "N of M shown" caption and count are in the axe pass too.
+    {
+      name: 'status',
+      query: 'mesonet/status/',
+      ready: () => !document.documentElement.classList.contains('mco-booting') &&
+        document.querySelectorAll('#st-table thead .st-sort').length === 7,
+    },
+    {
+      name: 'status-filtered',
+      query: 'mesonet/status/?health=partial&sort=last&dir=desc',
+      ready: () => !document.documentElement.classList.contains('mco-booting') &&
+        document.querySelector('#st-table th[aria-sort="descending"]') != null,
+    },
     { name: 'search', query: 'search/', ready: chromeReady },
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
   probes: async ({ open, check }) => {
+    // Station directory: the filter appears with JS, narrows the rows, says
+    // how many match, mirrors ?q=, and clearing it shows every row again.
+    {
+      const { page, close } = await open('mesonet/stations/');
+      const rows = page.locator('#station-table tbody tr');
+      const total = await rows.count();
+      await page.locator('#station-q').fill('absarokee');
+      await page.waitForTimeout(200);
+      const narrowed = await page.evaluate(() => ({
+        shown: [...document.querySelectorAll('#station-table tbody tr')].filter((r) => !r.hidden).map((r) => r.dataset.id),
+        count: document.getElementById('station-count').textContent,
+        q: new URLSearchParams(location.search).get('q'),
+      }));
+      check('stations: filter narrows the table to matching rows',
+        total > 100 && narrowed.shown.includes('aceabsar') && narrowed.shown.length < total, JSON.stringify(narrowed));
+      check('stations: filter states the count and mirrors ?q=',
+        narrowed.count === `${narrowed.shown.length} of ${total} stations` && narrowed.q === 'absarokee', JSON.stringify(narrowed));
+      await page.locator('#station-q').fill('');
+      await page.waitForTimeout(200);
+      const cleared = await page.evaluate(() => ({
+        hidden: document.querySelectorAll('#station-table tbody tr[hidden]').length,
+        q: new URLSearchParams(location.search).has('q'),
+      }));
+      check('stations: clearing the filter shows every row and drops ?q=',
+        cleared.hidden === 0 && !cleared.q, JSON.stringify(cleared));
+      await close();
+    }
+
+    // Station table: sort, filter, URL state, and a CSV of the rows shown.
+    {
+      const { page, close } = await open('mesonet/status/');
+      await page.waitForFunction(() => document.querySelectorAll('#st-table .st-sort').length === 7);
+      const total = await page.locator('#st-rows tr').count();
+      check('status: every station row is in the built page', total > 100, `rows=${total}`);
+
+      await page.locator('#st-table th[data-sort="last"] .st-sort').click();
+      await page.locator('#st-table th[data-sort="last"] .st-sort').click();
+      const sorted = await page.evaluate(() => {
+        const ts = [...document.querySelectorAll('#st-rows tr:not([hidden])')].map((tr) => Number(tr.dataset.ts || 0));
+        return { aria: document.querySelector('#st-table th[data-sort="last"]').getAttribute('aria-sort'),
+          desc: ts.every((t, i) => i === 0 || ts[i - 1] >= t), url: location.search };
+      });
+      check('status: Last report sorts newest first on the second press, with aria-sort',
+        sorted.aria === 'descending' && sorted.desc && /sort=last/.test(sorted.url) && /dir=desc/.test(sorted.url), JSON.stringify(sorted));
+
+      await page.locator('#st-q').fill('zzzz-no-such-station');
+      await page.waitForTimeout(500);
+      const none = await page.evaluate(() => ({
+        shown: document.querySelectorAll('#st-rows tr:not([hidden])').length,
+        empty: !document.getElementById('st-empty').hidden,
+        count: document.getElementById('st-count').textContent,
+      }));
+      check('status: a filter with no match shows the empty line and a zero count',
+        none.shown === 0 && none.empty && /^0 of /.test(none.count), JSON.stringify(none));
+
+      await page.locator('#st-q').fill('');
+      await page.locator('#st-net .mco-chip[data-value="agrimet"]').click();
+      const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#st-csv').click()]);
+      const { readFileSync } = await import('node:fs');
+      const lines = readFileSync(await download.path(), 'utf8').trim().split(/\r\n/);
+      const shown = await page.locator('#st-rows tr:not([hidden])').count();
+      check('status: Download CSV writes exactly the rows shown',
+        lines.length - 1 === shown && lines.slice(1).every((l) => l.includes('"AgriMet"')), `csv=${lines.length - 1} shown=${shown}`);
+      await close();
+    }
+
     // Search: the header link reaches it; typing and Enter lists the
     // homepage, the count is announced, and focus stays in the field.
     {

@@ -9,6 +9,11 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Nightly rebuild so build-time snapshots (stations, network summary) stay
+  # fresh between content changes (rebuild plan §4.5). 09:17 UTC is 03:17 MDT,
+  # 02:17 MST, off the hour.
+  schedule:
+    - cron: '17 9 * * *'
   workflow_dispatch:
 
 permissions:
