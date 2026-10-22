@@ -42,6 +42,8 @@ jobs:
         run: npm run check:kit
       - name: Type check
         run: npm run check
+      - name: Newsletter renderer (fixture post, no network)
+        run: npm run test:newsletter
 
       - run: npm run build
       - name: Built pages (CSP hashes, noindex, canonical, one h1, base path)

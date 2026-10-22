@@ -1,0 +1,146 @@
+# Send news posts by email through Listmonk (DECISIONS D11, D15).
+#
+# A post sends when it is on main, `draft` is not true, `email: pending`, and
+# its date is today or earlier (Mountain time). Whether it was just added or
+# edited later does not matter. After a send the workflow commits
+# `email: sent`. Rules, fields, secrets and variables: docs/newsletter.md.
+#
+# Inert until Phase 4 creates src/content/news/: the push trigger never fires,
+# and a manual run exits with a notice.
+#
+# Live sends also need the repository variable NEWSLETTER_SEND_ENABLED set to
+# 'true'. Until then every run is a dry run that uploads the rendered HTML.
+name: newsletter
+
+on:
+  push:
+    branches: [main]
+    paths: ['src/content/news/**']
+  workflow_dispatch:
+    inputs:
+      post:
+        description: 'One post to render or send, e.g. src/content/news/2026-11-03-october-update.md. Empty: every due post.'
+        required: false
+        type: string
+      dry_run:
+        description: 'Render only. Never contacts Listmonk or changes files.'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# One run at a time, never cancelled mid-send. A queued run starts after the
+# previous one has pushed its `email: sent` commit, and checks out main's tip.
+concurrency:
+  group: newsletter
+  cancel-in-progress: false
+
+env:
+  POST: ${{ inputs.post }}
+
+jobs:
+  newsletter:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write # commit email: sent
+    steps:
+      - id: mode
+        name: Decide dry run or live
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          DRY_INPUT: ${{ inputs.dry_run }}
+          ENABLED: ${{ vars.NEWSLETTER_SEND_ENABLED }}
+        run: |
+          live=false
+          if [ "$EVENT" = push ] || { [ "$EVENT" = workflow_dispatch ] && [ "$DRY_INPUT" = false ]; }; then
+            if [ "$REF" != refs/heads/main ]; then
+              echo "::notice::Live sends run on main only; this is a dry run."
+            elif [ "$ENABLED" != true ]; then
+              echo "::notice::NEWSLETTER_SEND_ENABLED is not 'true'; this is a dry run."
+            else
+              live=true
+            fi
+          fi
+          echo "live=$live" >> "$GITHUB_OUTPUT"
+          echo "Live send: $live"
+
+      # The branch tip, not the event SHA, so a queued run sees flags an
+      # earlier run already flipped.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.ref }}
+          persist-credentials: false
+
+      - id: present
+        name: News collection exists
+        run: |
+          if [ -d src/content/news ] || [ -n "$POST" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::src/content/news/ does not exist yet (Phase 4). Nothing to send."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.present.outputs.run == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: steps.present.outputs.run == 'true'
+        run: npm ci
+
+      - name: Render (dry run)
+        if: steps.present.outputs.run == 'true' && steps.mode.outputs.live != 'true'
+        run: |
+          set -euo pipefail
+          if [ -n "$POST" ]; then
+            node scripts/newsletter/send.mjs --dry-run --out previews --post "$POST"
+          else
+            node scripts/newsletter/send.mjs --dry-run --out previews
+          fi
+      - name: Upload rendered previews
+        if: steps.present.outputs.run == 'true' && steps.mode.outputs.live != 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: newsletter-previews
+          path: previews/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - id: send
+        name: Render and send
+        if: steps.present.outputs.run == 'true' && steps.mode.outputs.live == 'true'
+        env:
+          LISTMONK_API_URL: ${{ secrets.LISTMONK_API_URL }}
+          LISTMONK_API_USER: ${{ secrets.LISTMONK_API_USER }}
+          LISTMONK_API_TOKEN: ${{ secrets.LISTMONK_API_TOKEN }}
+          LISTMONK_LIST_ID: ${{ vars.LISTMONK_LIST_ID || secrets.LISTMONK_LIST_ID }}
+          LISTMONK_TEMPLATE_ID: ${{ vars.LISTMONK_TEMPLATE_ID || secrets.LISTMONK_TEMPLATE_ID }}
+          NEWSLETTER_FROM: ${{ vars.NEWSLETTER_FROM }}
+        run: |
+          set -euo pipefail
+          if [ -n "$POST" ]; then
+            node scripts/newsletter/send.mjs --post "$POST"
+          else
+            node scripts/newsletter/send.mjs
+          fi
+
+      # Runs even when one post failed, so posts that did send are marked.
+      - name: Commit email sent
+        if: ${{ !cancelled() && steps.send.outputs.marked == '1' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git add src/content/news
+          git diff --cached --quiet && exit 0
+          git commit -m 'Mark newsletter sent [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
