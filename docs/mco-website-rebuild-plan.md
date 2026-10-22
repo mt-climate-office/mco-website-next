@@ -4,8 +4,9 @@
 **Owner:** R. Kyle Bocinsky, Montana Climate Office
 **Written:** 21 October 2026
 **Revised:** 22 October 2026, after Phase 0
-**Status:** Phase 1 items 1–3 complete, 22 October 2026; staging live at
-`next.climate.umt.edu`. Item 4 not started.
+**Status:** Phase 1 complete, 22 October 2026; staging live at
+`next.climate.umt.edu`. Phase 2 item 5: homepage layout in place, data-free
+until the compliance summary and kit photo module ship (Phase 1.5).
 
 ## Read these first, in this order
 

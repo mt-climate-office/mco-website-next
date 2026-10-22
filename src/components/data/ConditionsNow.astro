@@ -1,0 +1,70 @@
+---
+// Latest conditions at one station. Data-free: the station is chosen by the
+// place search (kit extraction, DECISIONS D9) or a default, and its record
+// comes from /latest/ via the typed client. The plain-language line comes
+// from the kit's conditions summary (D9) once it exists.
+//
+// Absent `conditions`: says where to get readings now, with no figures.
+import type { StationConditions } from './types';
+import { formatReading, isoTime, stampMT } from '../../lib/format';
+import { DASHBOARD } from '../../lib/tools';
+
+interface Props {
+  conditions?: StationConditions | null;
+}
+
+const { conditions = null } = Astro.props;
+const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
+---
+{conditions ? (
+  <article class="mco-card conditions" aria-labelledby="cond-station">
+    <div class="mco-card-body">
+      <h3 id="cond-station" class="cond-station">{conditions.station.name}</h3>
+      <p class="cond-headline">
+        <span class="cond-headline-label">{conditions.headline.label}</span>
+        <span class="mco-num-display cond-headline-value">
+          {formatReading(conditions.headline.value, conditions.headline.unit, conditions.headline.digits)}
+        </span>
+      </p>
+      {conditions.summary && <p class="cond-summary">{conditions.summary}</p>}
+      {conditions.readings.length > 0 && (
+        <dl class="mco-facts cond-readings">
+          {conditions.readings.map((r) => (
+            <div>
+              <dt>{r.label}</dt>
+              <dd>{formatReading(r.value, r.unit, r.digits)}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <p class="stamp">
+        <time datetime={isoTime(conditions.observedAt)}>{stampMT(conditions.observedAt)}</time>
+        {conditions.provisional && ' · provisional'}
+      </p>
+      <p class="cond-link">
+        <a href={dashFor(conditions.station.id)}>{conditions.station.name} on the Station Dashboard</a>
+      </p>
+    </div>
+  </article>
+) : (
+  <div class="mco-card conditions">
+    <div class="mco-card-body">
+      <p class="cond-empty">
+        Latest readings for any station are on the <a href={DASHBOARD}>Station Dashboard</a>.
+      </p>
+    </div>
+  </div>
+)}
+
+<style>
+  .conditions { max-width: 30rem; }
+  .cond-station { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+  .cond-headline { display: flex; flex-direction: column; margin-top: var(--space-3); }
+  .cond-headline-label { font-size: var(--fs-md); color: var(--text-muted); }
+  .cond-headline-value { font-size: calc(var(--fs-2xl) * 1.25); }
+  .cond-summary { margin-top: var(--space-2); font-size: var(--fs-base); color: var(--text-secondary); }
+  .cond-readings { margin-top: var(--space-4); font-size: var(--fs-base); }
+  .conditions .stamp { margin-top: var(--space-4); }
+  .cond-link { margin-top: var(--space-3); font-size: var(--fs-base); }
+  .cond-empty { font-size: var(--fs-base); color: var(--text-secondary); }
+</style>

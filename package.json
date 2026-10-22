@@ -16,7 +16,8 @@
     "check:built": "node scripts/check-built.mjs",
     "check:html": "html-validate \"dist/**/*.html\"",
     "verify": "node scripts/verify.mjs",
-    "lighthouse": "node scripts/lighthouse.mjs"
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "gen:api": "node scripts/gen-api.mjs"
   },
   "dependencies": {
     "astro": "7.3.8"
@@ -28,7 +29,13 @@
     "chrome-launcher": "1.2.1",
     "html-validate": "11.16.2",
     "lighthouse": "13.5.0",
+    "openapi-typescript": "7.13.0",
     "playwright": "1.64.0",
     "typescript": "6.0.3"
+  },
+  "overrides": {
+    "openapi-typescript": {
+      "typescript": "$typescript"
+    }
   }
 }

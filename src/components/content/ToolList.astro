@@ -1,0 +1,42 @@
+---
+// Every public tool, one click from the homepage (rebuild plan Part 0,
+// success criterion 2). Descriptions say what each tool shows, from the
+// tool itself; no figures that change.
+interface Tool {
+  name: string;
+  href: string;
+  description: string;
+  /** Status the tool itself shows, printed in words. */
+  status?: string;
+}
+
+interface Props {
+  tools: readonly Tool[];
+}
+
+const { tools } = Astro.props;
+---
+<ul class="tool-list">
+  {tools.map((t) => (
+    <li>
+      <a href={t.href}>{t.name}</a>{t.status && <span class="tool-status"> ({t.status})</span>}
+      <p>{t.description}</p>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .tool-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-7);
+    list-style: none;
+  }
+  .tool-list li { padding-top: var(--space-4); border-top: 1px solid var(--border); min-width: 0; }
+  .tool-list a { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+  .tool-status { color: var(--text-secondary); }
+  .tool-list p { margin-top: var(--space-1); font-size: var(--fs-base); color: var(--text-secondary); }
+  @media (max-width: 750px) {
+    .tool-list { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

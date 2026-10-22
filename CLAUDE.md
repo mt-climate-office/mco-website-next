@@ -124,12 +124,15 @@ src/kit/                kit pin + SRI (kit.ts), meta CSP (csp.ts), vendored
 src/layouts/Base.astro  document shell: head per snippets/head.html, skip link,
                         header, <main id="main">, footer, kit core script
 src/components/layout/  Header (kit navbar + compact drawer), Footer
-src/lib/                paths.ts (url(), canonicalUrl()), nav.ts (sections)
+src/lib/                paths.ts (url(), canonicalUrl()), nav.ts (sections),
+                        mesonet.ts (API client) + mesonet.openapi.d.ts
+                        (generated: npm run gen:api, manual, never in CI)
 src/scripts/chrome.ts   theme toggle, drawer, MCO.ready()
 src/styles/site.css     site layer over the kit; tokens only
 src/pages/              routes, robots.txt endpoint, 404
 public/mco-logo.png     navbar badge, vendored from the kit tag
-scripts/                CI checks (paths, kit, built, verify, lighthouse)
+scripts/                CI checks (paths, kit, built, verify, lighthouse),
+                        gen-api.mjs
 verify.config.mjs       scenarios + probes for the kit's verify harness
 .github/workflows/site.yml  verify on every PR/push; deploy on main
 ```
@@ -140,7 +143,9 @@ Node is pinned in `.nvmrc`. `.npmrc` sets `save-exact`; every package is an
 exact version, and every Action is pinned to a commit SHA with its tag in a
 comment. Runtime dependency: `astro`. Everything else is a devDependency for
 checks: `@astrojs/check`, `typescript`, `@types/node`, `html-validate`,
-`playwright`, `@axe-core/playwright`, `lighthouse`, `chrome-launcher`.
+`playwright`, `@axe-core/playwright`, `lighthouse`, `chrome-launcher`, and
+`openapi-typescript` for `gen:api`. Its peer range stops at TypeScript 5, so
+`overrides` in `package.json` points it at ours, as the dashboard does.
 
 ## Build rules
 

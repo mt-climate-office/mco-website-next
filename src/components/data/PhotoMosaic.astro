@@ -1,0 +1,158 @@
+---
+// Homepage hero: the most recent station-camera set as a mosaic, with the
+// page's <h1> over it. Data-free: the photo set arrives as a prop from the
+// data2 schedule and manifests (DECISIONS D6), defaulting to North and the
+// most recent capture, which is always on or after 2026-10-21 (D7).
+//
+// Absent `set`: a neutral, token-coloured grid and copy with no figures.
+// Never fake photographs.
+import type { PhotoDirection, PhotoSet } from './types';
+import { count, isoTime, stampMT } from '../../lib/format';
+
+interface Props {
+  set?: PhotoSet | null;
+  direction?: PhotoDirection;
+}
+
+const { set = null, direction = 'north' } = Astro.props;
+
+// 10 × 3 on wide screens, 5 × 3 below 750px (the extra tiles are hidden).
+const TILE_COUNT = 30;
+const tiles = set?.tiles.slice(0, TILE_COUNT) ?? [];
+const placeholders = set ? [] : Array.from({ length: TILE_COUNT });
+const PHOTO_EXPLORER = 'https://mesonet.climate.umt.edu/photos/';
+---
+<section class="hero" aria-labelledby="hero-title">
+  {tiles.length > 0 ? (
+    <ul class="hero-mosaic" aria-label="Most recent station photos">
+      {tiles.map((t, i) => (
+        <li>
+          <img src={t.src} alt={t.alt} width="400" height="300"
+               loading={i < 10 ? 'eager' : 'lazy'} decoding="async">
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <div class="hero-mosaic is-empty" aria-hidden="true">
+      {placeholders.map(() => <span></span>)}
+    </div>
+  )}
+  <div class="hero-scrim" aria-hidden="true"></div>
+
+  <div class="hero-body">
+    <div class="wrap">
+      <div class="hero-copy">
+        <h1 id="hero-title">Montana, looking {direction}</h1>
+        {set ? (
+          <p class="hero-lede">
+            Cameras on {count(set.cameraCount)} stations photograph north, south, east and
+            west through the day. This set has photos from {count(set.reportedCount)} of them.
+          </p>
+        ) : (
+          <p class="hero-lede">
+            Station cameras photograph north, south, east and west through the day.
+          </p>
+        )}
+        <p class="hero-actions">
+          <a class="nav-btn is-primary site-cta" href={PHOTO_EXPLORER}>Open the Photo Explorer</a>
+          <a class="nav-btn site-cta" href="#readings">See current readings</a>
+        </p>
+        {set && (
+          <p class="stamp">
+            <time datetime={isoTime(set.slotAt)}>{stampMT(set.slotAt)}</time>
+            {' · '}facing {direction} · {count(set.reportedCount)} of {count(set.cameraCount)} cameras
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--
+  Photo controls (date, time, direction) go here, below the hero, once the
+  kit ships MCO.photos + MCO.initPhotoControls (DECISIONS D9, extraction #1).
+  Do not hand-build them in this repo.
+-->
+
+<style>
+  /* Mosaic, scrim and copy share one grid cell, so the hero is as tall as
+     whichever is taller and the copy can never spill out of it. */
+  .hero {
+    display: grid;
+    background: var(--bg-deep);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero > * { grid-area: 1 / 1; min-width: 0; }
+  .hero-mosaic {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    /* Ten 4:3 tiles across, three down. */
+    aspect-ratio: 40 / 9;
+    min-height: 100%;
+    gap: 3px;
+    padding: 3px;
+    list-style: none;
+  }
+  .hero-mosaic > * { min-width: 0; min-height: 0; }
+  .hero-mosaic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--bg-raised);
+  }
+  /* Empty state: plain surface tiles, so nothing reads as a photograph. */
+  .hero-mosaic.is-empty > span {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  /* The copy sits on a near-opaque wash of the page ground, so its contrast
+     never depends on what a photo shows (HOUSE-STYLE §3: legibility never
+     depends on a translucent fill). Solid across the copy column, fading
+     only past it. */
+  .hero-scrim {
+    background: linear-gradient(90deg,
+      color-mix(in srgb, var(--bg-deep) 96%, transparent) 0,
+      color-mix(in srgb, var(--bg-deep) 96%, transparent) min(42rem, 70%),
+      color-mix(in srgb, var(--bg-deep) 40%, transparent) min(60rem, 88%),
+      color-mix(in srgb, var(--bg-deep) 60%, transparent) 100%);
+  }
+  .hero-body {
+    align-self: center;
+    padding-block: var(--space-7);
+  }
+  .hero-copy { max-width: 36rem; }
+  .hero h1 {
+    margin-bottom: var(--space-5);
+    font-size: calc(var(--fs-2xl) * 1.5);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+  }
+  .hero-lede {
+    margin-bottom: var(--space-6);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-body);
+    color: var(--text-secondary);
+    max-width: 48ch;
+  }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .hero .stamp { margin-top: var(--space-5); }
+
+  /* Below 1060 the copy would cover most of the mosaic: stack it below. */
+  @media (max-width: 1060px) {
+    .hero-scrim { display: none; }
+    .hero > .hero-body { grid-area: 2 / 1; }
+  }
+  @media (max-width: 750px) {
+    .hero-mosaic {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      aspect-ratio: 20 / 9;
+    }
+    .hero-mosaic > :nth-child(n + 16) { display: none; }
+    .hero h1 { font-size: var(--fs-2xl); }
+  }
+</style>
