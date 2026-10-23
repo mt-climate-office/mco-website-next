@@ -1,0 +1,65 @@
+---
+// /mesonet/ag_tools/swp/: soil water potential, at the old path.
+// Source: mco-website/_pages/mesonet/tools/mesonet_tools_swp.md. Text and
+// reference unchanged. The MathJax equation set the 1/m exponent where it
+// could read as applying to exp(…); the linear form here puts it on the
+// ratio, as the inverted Fredlund-Xing model and the dashboard's
+// implementation do (mesonet-dashboard web/src/core/ag/compute/soil.ts:
+// ψ = h · (exp(((s − r)/(θ − r))^(1/m)) − e)^(1/n)).
+import Base from '../../../layouts/Base.astro';
+import { url } from '../../../lib/paths';
+import { DASHBOARD } from '../../../lib/tools';
+
+const FX_DOI = 'https://doi.org/10.1139/t94-061';
+---
+<Base short="Soil water potential"
+      description="How the Montana Mesonet estimates soil water potential from measured soil moisture with lab-fitted Fredlund-Xing curves.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Soil water potential</h1>
+    <p>
+      Soil water potential is the amount of pressure that must be applied to the soil to move water
+      through the soil column. In the context of agriculture, it can be thought of as the amount of
+      energy crop roots must exert to obtain water. When the soil water potential approaches zero,
+      it is easy for crops to obtain water. As the potential becomes more and more negative, it
+      becomes increasingly harder for crops to obtain water. At a potential of −1500 kPa, the
+      "wilting point" is reached, and the water in the soil becomes unavailable to plants. Because
+      soil water potential is not a relative measure, it is a more objective measure for assessing
+      crop stress.
+    </p>
+
+    <h2>Water potential curve derivation</h2>
+    <p>
+      Soil water potential varies by soil type, so soil samples are needed for it to be calculated.
+      At select Montana Mesonet stations, soil samples have been collected, allowing for the
+      derivation of soil water potential curves in our lab. In this process, the soil samples are
+      saturated and progressively dried. The potential is then measured at various points in the
+      drying process. With these data points, the Fredlund-Xing (FX) function (Fredlund and Xing
+      1994) is parameterized, which allows soil water content to be calculated from water potential.
+      We then invert the FX equation to solve for soil water potential. This allows us to provide
+      realtime estimates of soil water potential using measured volumetric water content:
+    </p>
+    <p class="eq">
+      <var>SWP</var> = <var>h</var> ×
+      (exp[((<var>s</var> − <var>r</var>) / (<var>VWC</var> − <var>r</var>))<sup>1/<var>m</var></sup>]
+      − exp(1))<sup>1/<var>n</var></sup>
+    </p>
+    <p>
+      where <var>h</var>, <var>s</var>, <var>r</var>, <var>m</var> and <var>n</var> are the
+      parameters fit to the FX model, <var>VWC</var> is soil volumetric water content
+      (m<sup>3</sup>/m<sup>3</sup>), and <var>SWP</var> is soil water potential (kPa).
+    </p>
+
+    <h2>Reference</h2>
+    <p class="refs">
+      Fredlund, D. G., &amp; Xing, A. (1994). Equations for the soil-water characteristic curve.
+      Canadian Geotechnical Journal, 31(4), 521-532. <a href={FX_DOI}>doi:10.1139/t94-061</a>.
+    </p>
+
+    <p class="method-note">
+      Part of the <a href={url('mesonet/ag_tools/')}>agricultural tools</a>.
+      The <a href={`${DASHBOARD}#charts`}>Station Dashboard</a> charts it under Charts, Ag tools,
+      for stations with lab-fitted soil curves.
+    </p>
+  </div>
+</Base>

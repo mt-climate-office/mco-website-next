@@ -1,0 +1,29 @@
+---
+// /mesonet/ag_tools/: the agricultural method pages, at the old path.
+// Source: mco-website/_pages/mesonet/tools/mesonet_tools.md. The Station
+// Dashboard's Ag tools link here (learnMore.ts). The old page's "desktop
+// only" note described the legacy Dash app and is dropped.
+import Base from '../../../layouts/Base.astro';
+import ToolList from '../../../components/content/ToolList.astro';
+import { AG_METHODS } from '../../../lib/methods';
+import { DASHBOARD } from '../../../lib/tools';
+import { url } from '../../../lib/paths';
+---
+<Base short="Agricultural tools"
+      description="How the Station Dashboard's Ag tools compute reference evapotranspiration, feels-like temperature, growing degree days, livestock risk and soil water potential.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <h1 class="section-title">Agricultural tools</h1>
+  <p class="section-lede">
+    The <a href={`${DASHBOARD}#charts`}>Station Dashboard</a> computes these from each station's
+    readings, under Charts, Ag tools. Each page gives the method and its sources.
+  </p>
+
+  <section class="hub-section" aria-labelledby="ag-methods">
+    <h2 id="ag-methods" class="hub-h2">Methods</h2>
+    <ToolList tools={AG_METHODS} />
+  </section>
+
+  <p class="stamp hub-stamp">
+    More on the network: <a href={url('mesonet/')}>Montana Mesonet</a>.
+  </p>
+</Base>

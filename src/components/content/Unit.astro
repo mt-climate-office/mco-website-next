@@ -1,0 +1,20 @@
+---
+// A unit as the API and the QA/QC table spell it ("mS cm^-1", "degF",
+// "percent"), printed with symbols and real superscripts.
+interface Props {
+  /** The unit string; empty or null prints nothing. */
+  u?: string | null;
+}
+
+const NAMES: Record<string, string> = {
+  degC: '°C',
+  degF: '°F',
+  percent: '%',
+  arcdeg: 'degrees',
+};
+
+const raw = (Astro.props.u ?? '').trim();
+// "W m^-2" → ["W m", "-2", ""]: odd entries are exponents.
+const parts = (NAMES[raw] ?? raw).split(/\^(-?\d+)/);
+---
+{parts.map((p, i) => (i % 2 ? <sup>{p.replace('-', '−')}</sup> : p))}

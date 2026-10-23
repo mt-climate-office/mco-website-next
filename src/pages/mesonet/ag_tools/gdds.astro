@@ -1,0 +1,527 @@
+---
+// /mesonet/ag_tools/gdds/: crop growing degree days, at the old path.
+// Source: mco-website/_pages/mesonet/tools/mesonet_tools_gdds.md, adapted
+// with permission from NDAWN. Thresholds, stage tables, quotations and
+// references unchanged. Changed: footnotes became author-year citations with
+// a reference list; the MathJax equations are linear HTML; the example call
+// moved from the legacy API in an iframe to a plain mesonet2 link (same
+// station, dates, element and crop; answered 200 on 23 Oct 2026); spelling
+// fixed in the MCO-written text (minumum, Groth, stessed, Extenstion,
+// physological, minimun); and the wheat temperature rules, whose clauses
+// had slipped between list items, are set out as the barley rules are.
+//
+// Each crop's <h2> keeps the id the old page generated: the Station
+// Dashboard links /mesonet/ag_tools/gdds/#<crop>-growing-degree-days
+// (mesonet-dashboard/web/src/core/ag/view/learnMore.ts).
+import Base from '../../../layouts/Base.astro';
+import { url } from '../../../lib/paths';
+import { DASHBOARD } from '../../../lib/tools';
+import { API_BASE } from '../../../lib/mesonet';
+
+const NDAWN = 'https://ndawn.ndsu.nodak.edu/tools.html';
+const NDAWN_WHEAT = 'https://ndawn.ndsu.nodak.edu/help-wheat-growing-degree-days.html';
+const NDAWN_BARLEY = 'https://ndawn.ndsu.nodak.edu/help-barley-growing-degree-days.html';
+const NDAWN_SUGARBEET = 'https://ndawn.ndsu.nodak.edu/help-sugarbeet-growing-degree-days.html';
+const NDAWN_SUNFLOWER = 'https://ndawn.ndsu.nodak.edu/help-sunflower-growing-degree-days.html';
+const CORN_STATES = 'https://www.corn-states.com/app/uploads/2018/07/corn-growth-stages-and-gdu-requirements.pdf';
+const HEMP_PAPER = 'https://doi.org/10.3390/agronomy11112321';
+const BBCH = 'https://en.wikipedia.org/wiki/BBCH-scale_(leafy_vegetables_forming_heads)';
+const EXAMPLE = `${API_BASE}/derived/daily/?stations=crowagen&start_time=2023-04-01&end_time=2023-07-01&elements=gdd&crop=wheat&type=csv`;
+
+const CROPS = [
+  ['barley', 'Barley'],
+  ['canola', 'Canola'],
+  ['corn', 'Corn'],
+  ['hemp', 'Hemp'],
+  ['sugarbeet', 'Sugarbeet'],
+  ['sunflower', 'Sunflower'],
+  ['wheat', 'Wheat'],
+] as const;
+const cropId = (crop: string) => `${crop}-growing-degree-days`;
+
+// [stage, name, description, GDD]
+const BARLEY = [
+  ['0.5', 'Emergence Date', 'Emergence is defined as the date leaf 1 reaches half of its length (Stage 0.5). The GDD required from planting until emergence depends on planting depth, soil water content, soil temperature, surface residue, and soil type. Predicting emergence is the most uncertain part of this model.', '176'],
+  ['1', 'Leaf 1 (Fully Extended)', 'Leaf 1 is fully developed when the second leaf is just visible in the rolled part of leaf 1.', '245'],
+  ['2', 'Leaf 2 (Fully Extended)', 'Leaf 2 is fully developed when the third leaf is just visible in the rolled part of leaf 2. This is the same concept for leaves 3 through 7.', '384'],
+  ['3', 'Leaf 3 (Tillers Begin To Emerge)', 'Tillering begins at Haun stage 2.0 to 2.5, but tillers are not visible until Haun stage 3.0-3.5.', '523'],
+  ['4', 'Leaf 4 (Fully Extended)', '', '662'],
+  ['5', 'Leaf 5 (Tillering Ends)', '', '801'],
+  ['6', 'Leaf 6 (Fully Extended)', '', '940'],
+  ['7', 'Leaf 7 (Fully Extended)', 'Drought stressed plants may pass directly to stage 9, either because leaf 8 does not grow or because it does not develop.', '1079'],
+  ['8', 'Flag Leaf Emerged (Collar Visible)', 'The flag leaf (Leaf 8) is fully developed when the flag leaf collar is visible. Flag leaf stem elongation begins.', '1218'],
+  ['9', 'Boot Swelling Begins (Flag leaf stem elongated; Awns just peeking out of boot)', 'Awns just peeking out of boot. Flag leaf stem has elongated elevating the flag leaf above the previous leaf. Elongation usually ends with the first signs of boot swelling.', '1357'],
+  ['9.5', 'Mid-Boot (Head half emerged)', "Flowering in barley begins when about 1 inch of the awns are above the flag leaf collar. This is a major difference with spring wheat which doesn't begin flowering until 3 to 4 days after the head has cleared the flag leaf collar.", '1426'],
+  ['10', 'Head Emerged (Boot Complete) (Flowering Complete)', 'Flowering is complete when the head has emerged (cleared the flag leaf collar). Head stem elongation begins.', '1496'],
+  ['11', 'Heading Complete', 'Head stem elongation completed.', '1635'],
+  ['11.5', 'Kernel Watery Ripe', 'Watery ripe means the kernel length and width are established, but little dry matter has been accumulated.', '1745'],
+  ['12', 'Milky Ripe', '', ''],
+  ['13', 'Mealy', '', ''],
+  ['14', 'Kernel Hard', '', ''],
+  ['15', 'Ripe', '', ''],
+];
+
+// [stage, GDD range]
+const CANOLA = [
+  ['Planting', '0'],
+  ['Seedling', '0 - 256'],
+  ['Rosette - 3rd Leaf', '257 - 396'],
+  ['Rosette - 4th Leaf', '297 - 727'],
+  ['Early Bud', '728 - 828'],
+  ['Late Bud', '829 - 932'],
+  ['Early Flower', '933 - 1165'],
+  ['Late Flower', '1166 - 1397'],
+  ['Early Ripening', '1398 - 1634'],
+  ['Late Ripening', '1635 - 1874'],
+  ['Ripe', '>1874'],
+];
+
+// [stage, name, GDD]
+const CORN = [
+  ['VE', 'Emergence', '120'],
+  ['V2', 'Two leaves fully emerged', '200'],
+  ['V3', 'Three leaves fully emerged', '350'],
+  ['V6', 'Six leaves fully emerged', '475'],
+  ['V9', 'Nine leaves fully emerged', '610'],
+  ['V10', 'Ten leaves fully emerged', '740'],
+  ['VT', 'Tasseling', '1135'],
+  ['R2', 'Kernel blister stage', '1660'],
+  ['R4', 'Kernels half grown', '1925'],
+  ['R5', 'Dent Stage', '2450'],
+  ['R6', 'Physiological maturity', '2700'],
+];
+
+// [stage, name, GDD]
+const HEMP = [
+  ['BBCH Stages 0-11', 'Initial Growth', '600'],
+  ['BBCH Stages 12-14', 'First Leaf Pair Forms', '825'],
+  ['BBCH Stages 15-17', 'Leaf Pairs 5-7 Emerge', '1050'],
+  ['BBCH Stages 18-19', 'Leaf Pairs 8-9 Emerge', '1250'],
+  ['BBCH Stage 39', 'Change of Phyllotaxis', '1350'],
+  ['BBCH Stage 51', 'Flower Primordia', '1425'],
+  ['BBCH Stage 59', 'Pistillate flower formation, formed perigonal bract', '1475'],
+  ['BBCH Stage 60', 'Beginning of flowering-style formed', '1550'],
+  ['BBCH Stage 62', 'Spike', '1650'],
+];
+
+// [stage, description, GDD]
+const SUGARBEET = [
+  ['V1 (Emergence)', 'Emergence. Cotyledons emerged and no evidence of first and second leaf initials', '237'],
+  ['V2', 'Two true leaves unrolled and no evidence of three leaf stage. These are the first two leaves that develop simultaneously. At this stage and subsequent stages the cotyledons are no longer counted as leaves.', '572'],
+  ['V3', 'Three true leaves unrolled and no evidence of four leaf stage.', '713'],
+  ['V4', 'Four true leaves unrolled and no evidence of five leaf stage.', '821'],
+  ['V5', 'Five true leaves unrolled and no evidence of six leaf stage.', '913'],
+  ['V6', 'Six true leaves unrolled and no evidence of seven leaf stage.', '993'],
+  ['V7', 'Seven true leaves unrolled and no evidence of eight leaf stage.', '1066'],
+  ['V8', 'Eight true leaves unrolled and no evidence of nine leaf stage.', '1133'],
+  ['V9', 'Nine true leaves unrolled and no evidence of ten leaf stage.', '1195'],
+  ['V10', 'Ten true leaves unrolled and no evidence of eleventh leaf stage.', '1253'],
+];
+
+// [stage, GDD]
+const SUNFLOWER = [
+  ['VE', '206'], ['V1', '241'], ['V2', '276'], ['V3', '311'], ['V4', '347'], ['V5', '382'],
+  ['V6', '417'], ['V7', '452'], ['V8', '487'], ['V9', '522'], ['V10', '557'], ['V11', '592'],
+  ['V12', '627'], ['V13', '662'], ['V14', '697'], ['V15', '732'], ['V16', '767'], ['V17', '802'],
+  ['V18', '837'], ['V19', '872'], ['V20', '908'], ['R1', '1048'], ['R2', '1188'], ['R3', '1328'],
+  ['R4', '1469'], ['R5.1', '1609'], ['R5.5', '1749'], ['R6', '1889'], ['R7', '2030'], ['R8', '2170'],
+  ['R9', '2310'],
+];
+
+// [stage, name, description, GDD]
+const WHEAT = [
+  ['0.5', 'Emergence Date', 'Emergence is defined here as the date leaf 1 reaches half of its length (Stage 0.5). The GDD required from planting until emergence depends on planting depth, soil water, soil temperature, surface residue, and soil type. Predicting emergence is the most uncertain part of this model.', '180'],
+  ['1', 'Leaf 1 fully extended', 'Leaf 1 is fully developed when the second leaf is visible in the rolled part of leaf 1.', '252'],
+  ['2', 'Leaf 2 fully extended', 'Leaf 2 is fully developed when the third leaf is visible in the rolled part of leaf 2. This is the same concept for leaves 2 through 7.', '395'],
+  ['3', 'Leaf 3 (Tillers Begin To Emerge)', 'Tillering begins at a Haun stage of 2.0 to 2.5, but tillers are not visible until Haun stage of 3.0-3.5', '538'],
+  ['4', 'Leaf 4', 'Leaf 4 fully extended', '681'],
+  ['5', 'Leaf 5 (Tillering ends)', 'Cool, moist weather, and abundant N fertilizer will extend tillering period', '824'],
+  ['6', 'Leaf 6 (Tillering ends)', 'Cool, moist weather, and abundant N fertilizer will extend tillering period', '967'],
+  ['7', 'Leaf 7 fully extended.', 'Severe drought stressed plants may pass directly to stage 9.', '1110'],
+  ['7.5', 'Flag Leaf Visible', '', '1181'],
+  ['8', 'Flag Leaf Emerged', 'The flag leaf (Leaf 8) is fully developed when the flag leaf collar is visible', '1255'],
+  ['9', 'Boot Swelling Begins', 'Flag leaf stem elongates elevating the flag leaf above the previous leaf. This usually ends with the first signs of boot swelling.', '1396'],
+  ['10', 'Boot Completed', 'Complete when awns become visible at the flag leaf collar.', '1539'],
+  ['10.2', 'Heading Begins', 'Heading begins when the head begins to emerge through the flag leaf collar.', '1567'],
+  ['11', 'Headed (Head Extension Begins)', 'Heading is complete when the head has completely cleared the collar and head extension begins. Head extension refers to continued growth of the stem which raises the head about the flag leaf. Head extension is usually complete when flowering begins.', '1682'],
+  ['11.4', 'Flowering Begins', 'Flowering or anthesis begins about in the middle of the head, and simultaneously progresses toward the top and the bottom of the head.', '1739'],
+  ['11.6', 'Flowering Completed', 'Most tillers (T0, T1, T2 tillers) flower within a few days of the main stem. Later-emerging tillers flower later, and are the most common source of green nuisance heads at swathing time.', '1768'],
+  ['12', 'Kernel Watery Ripe', 'During watery ripe stage the kernel length and width are established, but little dry matter is accumulated.', '1825'],
+  ['13', 'Early Milk', 'A white, milk-like fluid can be squeezed from the kernel', ''],
+  ['14', 'Early Dough', 'During the dough stages, kernel water content continues to decrease as more and more dry matter is accumulated.', ''],
+  ['14.5', 'Soft Dough', '', ''],
+  ['15', 'Hard Dough', 'By the end of the hard dough stage, the kernel reaches physiological maturity. Reductions in yield after this stage result from harvest losses and/or environmental injuries such as sprouting and hail.', ''],
+  ['15.4', 'Swathing can begin', '', ''],
+  ['15.6', 'Physiological Maturity', 'The kernel is hard, but can still be dented with a thumbnail. The plant is completely yellow. Swathing is still necessary.', ''],
+  ['16', 'Ripe (Kernel Hard)', 'Kernel is dry, brittle, and hard. It can no longer be dented with thumbnail and, if crushed, it splits into pieces.', ''],
+  ['16.4', 'Direct Combining', 'Water content is low enough for direct (straight) combining', ''],
+];
+---
+<Base short="Growing degree days"
+      description="How the Montana Mesonet computes crop growing degree days, with thresholds and growth stages for barley, canola, corn, hemp, sugarbeet, sunflower and wheat.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Crop growing degree days</h1>
+    <p>
+      The following text, tables and growing degree day thresholds are adapted with permission from
+      the North Dakota Agricultural Weather Network (NDAWN), unless otherwise noted. The following
+      information on growing degree days is also available on the <a href={NDAWN}>NDAWN tools
+      page</a>.
+    </p>
+    <img src={url('images/mesonet/ndawn-logo.webp')} width="1041" height="293"
+         alt="NDAWN, North Dakota Agricultural Weather Network" class="gdd-logo">
+
+    <nav aria-label="Crops on this page">
+      <p>Crops on this page:</p>
+      <ul>
+        {CROPS.map(([crop, name]) => <li><a href={`#${cropId(crop)}`}>{name}</a></li>)}
+      </ul>
+    </nav>
+
+    <h2 id="overview-of-growing-degree-days">Overview of growing degree days</h2>
+    <p>
+      For most plants, phenological development is strongly related to the accumulation of heat or
+      temperature units above a threshold or base temperature below which little growth occurs. This
+      lower threshold temperature varies with plant species. In some plants there is also an upper
+      threshold temperature above which little or no growth occurs. Although temperature is the most
+      important factor controlling the rate of plant development, other factors such as water and
+      light availability and daylight length may modify its effects.
+    </p>
+    <p>
+      The most common temperature index used to estimate plant development is growing degree days
+      (GDD) which are calculated from the daily maximum and minimum air temperature. Growing degree
+      days have proven useful for scientists, crop consultants, and producers who use them to
+      predict plant development rate and growth stage. In certain crops this information is used to
+      help plan crop management decisions such as irrigation or pesticide application timing, and
+      for scheduling harvest.
+    </p>
+    <p>
+      Daily GDDs are calculated as follows. If there are low or high cutoff temperature thresholds
+      for a given crop, the daily minimum (<var>T<sub>min</sub></var>) and maximum
+      (<var>T<sub>max</sub></var>) temperature are clipped to that range. For example, if the low
+      cutoff temperature is 35 °F, the high cutoff is 80 °F, <var>T<sub>min</sub></var> is 32 °F,
+      and <var>T<sub>max</sub></var> is 82 °F, <var>T<sub>min</sub></var> and
+      <var>T<sub>max</sub></var> would be set to 35 °F and 80 °F, respectively. Once the values are
+      adjusted to the proper range, the daily average temperature (<var>T<sub>avg</sub></var>) is
+      calculated from the clipped daily <var>T<sub>min</sub></var> and <var>T<sub>max</sub></var>:
+    </p>
+    <p class="eq">
+      <var>T<sub>avg</sub></var> = (<var>T<sub>min</sub></var> + <var>T<sub>max</sub></var>) / 2
+    </p>
+    <p>
+      Finally, the daily total GDD units are calculated by subtracting the minimum temperature
+      threshold from <var>T<sub>avg</sub></var>:
+    </p>
+    <p class="eq">GDDs = <var>T<sub>avg</sub></var> − minimum threshold</p>
+    <p>
+      As the growing season progresses, GDDs are typically summed to help predict and monitor
+      different crop growth stages.
+    </p>
+
+    <h3 id="calculating-growth-stage">Calculating growth stage</h3>
+    <p><strong>This section's text is adapted from the NDAWN <a href={NDAWN_WHEAT}>wheat GDD help page</a>.</strong></p>
+    <p>
+      Daily GDD's calculated using the above conditions are accumulated for each day following
+      planting to determine the current estimated Haun growth stage. The main uncertainty in this
+      calculation occurs during the period from planting to emergence because of planting depth and
+      varying seedbed conditions that affect soil temperature, especially soil water content,
+      surface residue, and soil type. For the same planting depth and under the same climatic
+      conditions, emergence in seedbeds with surface residue will be delayed by 1 to 2 days. Despite
+      this uncertainty, growth stages are calculated based on planting date because it is more
+      readily available in producers records.
+    </p>
+    <p>
+      When planted at 1.5 inches depth in a bare (no surface residue) moist soil, it takes an
+      accumulation of between 180 and 250 GDD (°F) beginning with the day after planting until
+      emergence occurs, depending on the crop. Emergence by this criteria means plants are visible
+      in the row (you can see the rows), and the first leaf is equal to about one half of its
+      eventual full length. By this criteria emergence is defined as Haun stage 0.5.
+    </p>
+    <p>
+      The Haun growth stage scale (Haun 1973) is far more precise than other commonly used scales.
+      The Haun scale assigns consecutive numbers to main stem leaves in the order in which they
+      appear. When the first leaf is fully developed, the plant is at stage 1, and so on through
+      stage 8. Each leaf is fully developed when the next leaf is visible in the rolled part of the
+      leaf. For example, leaf 2 is fully developed when the third leaf is visible in the rolled part
+      of leaf 1.
+    </p>
+    <p>
+      The number assigned to each stage can be further subdivided into fractional sub-stages to
+      provide more information. Fractional leaf stages are determined by comparing the length of the
+      developing leaf to the preceding leaf. For example, if leaf 3 is one-third as long as leaf 2
+      then the Haun growth stage is 2.3, and if leaf 3 is one-half as long as leaf 2 it is
+      designated stage 2.5. The same type of system is also used to designate sub-stages in the
+      growth units following stage 8.
+    </p>
+    <p>
+      While not all crops listed below use the Haun scale to track growth stages, other methods are
+      similar in that they track the emergence of leaf numbers as the plants grow.
+    </p>
+
+    <h3 id="example-mesonet-api-call">Get the data</h3>
+    <p>
+      Daily cumulative GDDs are available both through the dashboard and the Montana Mesonet API, as
+      the <code>gdd</code> element with a <code>crop</code>. For example,
+      <a href={EXAMPLE}>daily wheat GDDs at Crow Agency E (<code>crowagen</code>), 1 April to
+      1 July 2023, as CSV</a>.
+    </p>
+
+    <h2 id={cropId('barley')}>Barley growing degree days</h2>
+    <p><strong>This section's text is adapted from the NDAWN <a href={NDAWN_BARLEY}>barley GDD help page</a>.</strong></p>
+    <p>
+      Growth stages of barley can be determined by visual inspection any time, but an alternate
+      method based on air temperature is available to estimate the current growth stage without
+      going to the field. For most plants, phenological development from seeding to maturity is
+      related to the accumulation of heat or temperature units above a threshold or base temperature
+      below which no growth occurs. The lower threshold temperature varies with plant species. Bauer
+      et al. (1992) showed that barley development could be estimated using this method.
+    </p>
+    <h3 id="barley-growing-degree-day-calculation">Barley growing degree day calculation</h3>
+    <p>
+      Temperature or heat units are called growing degree days (GDD) and are calculated by
+      subtracting the lower threshold (base) temperature from the average daily air temperature.
+      Although the lower growth limit for barley is about 42 °F, Bauer et al. (1992) found better
+      correlation between accumulated GDD and barley growth stage by defining the lower threshold
+      temperature as 32 °F (0 °C). This also makes conversion between Celsius and Fahrenheit GDD's
+      much easier. Average daily air temperature is calculated by averaging the daily maximum and
+      minimum air temperatures.
+    </p>
+    <p>
+      Several additional constraints on maximum and minimum temperature were introduced to eliminate
+      very low or very high temperatures that retard or prevent growth of wheat (Bauer, Fanning et
+      al. 1984; Bauer, Frank and Black 1984). We have included those same temperature restrictions
+      in the GDD calculations for barley because it's so similar to wheat. They are:
+    </p>
+    <ol>
+      <li>If daily Max or daily Min Temp &lt; 32 °F (0 °C) it's set equal to 32 °F (0 °C).</li>
+      <li>Prior to Haun stage 2.0, (384 GDD accumulated since planting); If daily Max Temp &gt; 70 °F (21 °C) then it's set equal to 70 °F (21 °C).</li>
+      <li>After Haun stage 2.0; If daily Max Temp &gt; 95 °F (35 °C) it's set equal to 95 °F (35 °C).</li>
+    </ol>
+    <p>Using these criteria, growing degree days can be mapped to Haun growth stages in the table below.</p>
+    <section class="method-table-wrap" aria-labelledby="t-barley" tabindex="0">
+      <table class="method-table">
+        <caption id="t-barley">Barley Haun growth stages and the GDD (°F) required to reach them</caption>
+        <thead><tr><th scope="col">Stage</th><th scope="col">Stage name</th><th scope="col">Stage description</th><th scope="col" class="is-num">Accumulated GDDs required</th></tr></thead>
+        <tbody>
+          {BARLEY.map(([stage, name, desc, gdd]) => (
+            <tr><th scope="row">{stage}</th><td>{name}</td><td>{desc}</td><td class="is-num">{gdd}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+
+    <h2 id={cropId('canola')}>Canola growing degree days</h2>
+    <p>
+      Below 41 °F, canola's growth is restricted, so we set it as the minimum base temperature and
+      we do not define an upper temperature threshold. Relative to other crops on this page, the
+      growth stages for canola are not well defined. As such, the table below gives a range of GDD
+      values that each stage falls within.
+    </p>
+    <section class="method-table-wrap" aria-labelledby="t-canola" tabindex="0">
+      <table class="method-table">
+        <caption id="t-canola">Canola growth stages and the range of GDD (°F) each falls within</caption>
+        <thead><tr><th scope="col">Stage</th><th scope="col" class="is-num">Accumulated GDDs required</th></tr></thead>
+        <tbody>
+          {CANOLA.map(([stage, gdd]) => <tr><th scope="row">{stage}</th><td class="is-num">{gdd}</td></tr>)}
+        </tbody>
+      </table>
+    </section>
+
+    <h2 id={cropId('corn')}>Corn growing degree days</h2>
+    <p>
+      While it varies, many corn varieties have low temperature threshold of 50 °F and a high
+      temperature threshold of 86 °F. The corn growth stages in the table below are derived from
+      Abendroth et al. (2011) and Neild and Newman (1990). It should be noted that these growth
+      stages may not be applicable to some of the corn varieties grown in Montana, but they are
+      included here for reference.
+    </p>
+    <section class="method-table-wrap" aria-labelledby="t-corn" tabindex="0">
+      <table class="method-table">
+        <caption id="t-corn">Corn growth stages and the GDD (°F) required to reach them</caption>
+        <thead><tr><th scope="col">Stage</th><th scope="col">Stage name</th><th scope="col" class="is-num">Accumulated GDDs required</th></tr></thead>
+        <tbody>
+          {CORN.map(([stage, name, gdd]) => <tr><th scope="row">{stage}</th><td>{name}</td><td class="is-num">{gdd}</td></tr>)}
+        </tbody>
+      </table>
+    </section>
+    <p class="method-note">
+      Growth stage descriptions are taken from Corn States,
+      <a href={CORN_STATES}>Corn growth stages and GDU requirements (PDF)</a>.
+    </p>
+
+    <h2 id={cropId('hemp')}>Hemp growing degree days</h2>
+    <p>
+      Hemp has a low temperature threshold of 34 °F and effectively no high temperature threshold.
+      There are relatively few studies defining hemp GDDs, and none that we could find specific to
+      Montana. These hemp growth stages should be used as an initial reference when assessing hemp
+      growth. Unlike other crops defined in this section, it should be noted that the study cited
+      below uses the <a href={BBCH}>BBCH scale</a> for defining hemp growth stages.
+    </p>
+    <section class="method-table-wrap" aria-labelledby="t-hemp" tabindex="0">
+      <table class="method-table">
+        <caption id="t-hemp">Hemp BBCH growth stages and the GDD (°F) required to reach them</caption>
+        <thead><tr><th scope="col">Stage</th><th scope="col">Stage name</th><th scope="col" class="is-num">Accumulated GDDs required</th></tr></thead>
+        <tbody>
+          {HEMP.map(([stage, name, gdd]) => <tr><th scope="row">{stage}</th><td>{name}</td><td class="is-num">{gdd}</td></tr>)}
+        </tbody>
+      </table>
+    </section>
+    <p class="method-note">
+      Growth stages adapted from figure 2 of the study in <a href={HEMP_PAPER}>Agronomy 11(11):
+      2321 (doi:10.3390/agronomy11112321)</a>.
+    </p>
+
+    <h2 id={cropId('sugarbeet')}>Sugarbeet growing degree days</h2>
+    <p><strong>This section's text is adapted from the NDAWN <a href={NDAWN_SUGARBEET}>sugarbeet GDD help page</a>.</strong></p>
+    <p>
+      Holen (1998), and Holen and Dexter (1997) showed that a lower threshold (base) temperature for
+      sugarbeet development of 34 °F (1.1 °C) provided the best statistical results. They also found
+      that no upper threshold was needed. However, their research was done during three relatively
+      cool growing seasons, 1991-1993, when few high temperatures occurred. The average daily
+      temperature exceeded 90 °F on 11 days in 1991, but in 1992 and 1993, the maximum temperature
+      never reached 90 °F. This explains why the inclusion of a 90 °F maximum limit did not improve
+      their model performance. However, others have reported that an upper limit of 86 °F (30 °C)
+      will provide better results. A base temperature of 34 °F and an upper threshold temperature of
+      86 °F are used by the MCO.
+    </p>
+    <h3 id="sugarbeet-leaf-growth-characteristics">Sugarbeet leaf growth characteristics (reprinted from Holen and Dexter)</h3>
+    <p>
+      Sugarbeet emerges from the soil with a pair of cotyledonary leaves. These leaves serve as a
+      temporary source of food reserves for the developing seeding. The next leaves to emerge from
+      the crown are the first two true leaves. Although these leaves appear as a pair and seem to be
+      oppositely arranged, they are alternate and one of the leaves is developmentally behind the
+      other. Stage separation between the first and second true leaves does not occur. Thereafter,
+      all leaves emerge from the crown in an alternate pattern and are arranged in a 5/13
+      phyllotaxus. Phyllotaxus is a term used by botanists to describe the pattern of leaf emergence
+      of a plant. A 5/13 arrangement means the leaves emerge from 13 vertical ranks around the crown
+      and there are five turns around the crown as you follow leaf emergence before another leaf
+      emerges in the same vertical rank.
+    </p>
+    <p>
+      Reasonable leaf stage predictions from GDD require that leaf stages of sugarbeet plants be
+      correctly and uniformly identified. Staging sugarbeet is not difficult but a uniform system
+      for designating stages has not been proposed in the sugarbeet growing regions of the United
+      States. Sugarbeet is a unique crop as it is a biennial plant grown as an annual for its
+      sucrose reserves. In the first year of growth it remains in a vegetative state and produces an
+      indeterminate number of leaves. Under Belgium conditions (110 day growing season) sugarbeet
+      produced an average of 40 leaves and under full canopy maintained an average of 25 leaves with
+      new leaves replacing ones that died. Fortunately, it isn't necessary or even useful to
+      precisely know the sugarbeet leaf number beyond the eight- to ten-leaf stage when herbicide
+      applications usually end because management decisions will not be improved by knowing crop
+      leaf stage later in the season.
+    </p>
+    <h3 id="proposed-sugarbeet-leaf-stage-system">Proposed sugarbeet leaf stage system (reprinted from Holen and Dexter)</h3>
+    <p>
+      The following table is a proposed staging system for sugarbeet up to the nine-leaf stage. This
+      staging method designates the leaf stages as vegetative stages V1.0 through V9.0. Leaves are
+      counted when the leaf blade is fully unrolled. This system also uses decimal fractions of each
+      leaf stage to allow better separation of leaf stages and increased accuracy of GDD
+      predictions. The decimal fractions are used to represent the percentage or amount of the next
+      emerging leaf that has unrolled. For example, if the plant has three fully unrolled leaves and
+      the fourth leaf is approximately 60 percent unrolled the stage is V3.6. At later leaf stages,
+      when several unrolled leaf initials may be present, use the most advanced leaf in the
+      estimate. This staging method has at least one major deficiency. As crop development
+      progresses beyond the V2.0 leaf stage, two or more developing leaf initials always are
+      present. This means true V3.0 to V9.0 stages do not exist. For example, as the fifth-leaf
+      fully unrolls, the sixth leaf initial is present and the earliest V5 stage is V5.1 or V5.2.
+    </p>
+    <p>
+      The division of each leaf stage into decimal fractions allows for more accurate predictions of
+      plant development. For example, if a plant is correctly staged at V2.5 but you ignore the
+      decimal fraction and call it a two-leaf plant or V2.0 there are 70 GDD of development not
+      taken into account (141 GDD from V2.0 to V3.0 versus 70 GDD from V2.5 to V3.0).
+    </p>
+    <section class="method-table-wrap" aria-labelledby="t-sugarbeet" tabindex="0">
+      <table class="method-table">
+        <caption id="t-sugarbeet">Sugarbeet leaf stages and the GDD (°F) required to reach them</caption>
+        <thead><tr><th scope="col">Stage</th><th scope="col">Stage description</th><th scope="col" class="is-num">Accumulated GDDs required</th></tr></thead>
+        <tbody>
+          {SUGARBEET.map(([stage, desc, gdd]) => <tr><th scope="row">{stage}</th><td>{desc}</td><td class="is-num">{gdd}</td></tr>)}
+        </tbody>
+      </table>
+    </section>
+
+    <h2 id={cropId('sunflower')}>Sunflower growing degree days</h2>
+    <p>We define a low temperature threshold of 44 °F, with no upper temperature threshold.</p>
+    <h3 id="sunflower-growth-stages">Sunflower growth stages</h3>
+    <p><strong>This section's text is adapted from the NDAWN <a href={NDAWN_SUNFLOWER}>sunflower GDD help page</a>.</strong></p>
+    <p>
+      The time from planting to emergence varies somewhat because of variations in planting depth
+      and seedbed conditions that affect soil temperature, soil water content, surface residue, and
+      soil type. Because of this variation the number of GDD required from planting until emergence
+      is not constant which causes variation in estimated growth stages. Despite this uncertainty,
+      growth stages on NDAWN are calculated based on planting date rather than emergence because
+      planting date is more readily available in producers records.
+    </p>
+    <p>
+      The relationship between sunflower development and GDD is displayed in the table below.
+      Growing degree days are accumulated beginning with the day after planting (Schneiter and
+      Miller 1981). VE represents emergence. "The hypocotyl arch and cotyledons have emerged from
+      the soil surface, and the first true leaf blade is less than 4 cm in length" (Schneiter and
+      Miller 1981). V1, V2, V3 - V20 represent the number of true leaves at least 4 cm in length.
+      "The criterion of not counting a leaf blade until it has attained a length of 4 cm does not
+      represent a distinct physiological stage of leaf development. It is simply a guideline to
+      eliminate some of the confusion which can occur as a result of the very small leaflets which
+      surround the terminal bud" (Schneiter and Miller 1981).
+    </p>
+    <section class="method-table-wrap" aria-labelledby="t-sunflower" tabindex="0">
+      <table class="method-table">
+        <caption id="t-sunflower">Sunflower growth stages and the GDD (°F) required to reach them</caption>
+        <thead><tr><th scope="col">Stage</th><th scope="col" class="is-num">Accumulated GDDs required</th></tr></thead>
+        <tbody>
+          {SUNFLOWER.map(([stage, gdd]) => <tr><th scope="row">{stage}</th><td class="is-num">{gdd}</td></tr>)}
+        </tbody>
+      </table>
+    </section>
+
+    <h2 id={cropId('wheat')}>Wheat growing degree days</h2>
+    <p><strong>This section's text is adapted from the NDAWN <a href={NDAWN_WHEAT}>wheat GDD help page</a>.</strong></p>
+    <p>
+      Although the lower growth limit for wheat is about 42 °F, Bauer found better correlation in the
+      GDD predictions by defining the lower threshold temperature as 32 °F (0 °C). This also makes
+      conversion to °Celsius GDD's much easier. We set an upper threshold temperature of 95 °F.
+      Several additional constraints on maximum and minimum temperature were introduced to eliminate
+      very low and high temperatures that prevent or retard growth (Bauer, Fanning et al. 1984;
+      Bauer, Frank and Black 1984). They are:
+    </p>
+    <ol>
+      <li>If daily Max or Min Temp &lt; 32 °F (0 °C) it's set equal to 32 °F (0 °C).</li>
+      <li>Prior to Haun stage 2.0 (395 GDD accumulated since planting): if daily Max Temp &gt; 70 °F (21 °C) then it's set equal to 70 °F (21 °C).</li>
+      <li>After Haun stage 2.0: if daily Max Temp &gt; 95 °F (35 °C) it's set equal to 95 °F (35 °C).</li>
+    </ol>
+    <section class="method-table-wrap" aria-labelledby="t-wheat" tabindex="0">
+      <table class="method-table">
+        <caption id="t-wheat">Wheat Haun growth stages and the GDD (°F) required to reach them</caption>
+        <thead><tr><th scope="col">Stage</th><th scope="col">Stage name</th><th scope="col">Stage description</th><th scope="col" class="is-num">Accumulated GDDs required</th></tr></thead>
+        <tbody>
+          {WHEAT.map(([stage, name, desc, gdd]) => (
+            <tr><th scope="row">{stage}</th><td>{name}</td><td>{desc}</td><td class="is-num">{gdd}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+
+    <h2 id="references">References</h2>
+    <ul class="refs">
+      <li>Abendroth, L.J., Elmore, R.W., Boyer, M.J., and Marlay, S.R. 2011. Corn growth and development. PMR 1009. Iowa State University Extension.</li>
+      <li>Bauer, A., A. L. Black, A. B. Frank, and E. H. Vasey. 1992. Agronomic Characteristics of Spring Barley in the Northern Great Plains. North Dakota State University Agricultural Experiment Station Bulletin No. 523, 47 pp.</li>
+      <li>Bauer, A., C. Fanning, J.W. Enz, and C.V. Eberlein. 1984. Use of growing-degree days to determine spring wheat growth stages. North Dakota Coop. Ext. Ser. EB-37. Fargo, ND.</li>
+      <li>Bauer, A., A.B. Frank, and A.L. Black. 1984. Estimation of spring wheat leaf growth rates and anthesis from air temperature. Agronomy Journal 76:829-835.</li>
+      <li>Haun, J. R. 1973. Visual quantification of wheat development. Agron. J. 65: 116-119.</li>
+      <li>Holen, Carlyle D. 1998. A Growing Degree Day Equation For Predicting Early Sugarbeet Leaf Stages. Ph.D. Dissertation, Plant Sciences Dept., North Dakota State University, Fargo.</li>
+      <li>Holen, Carlyle D. and Alan G. Dexter. 1997. A Growing Degree Day Equation For Early Sugarbeet Leaf Stages. Published in the 1996 Sugarbeet Research and Extension Reports, Vol 27: pages 152-157. Sugarbeet Research and Extension Board of Minnesota and North Dakota.</li>
+      <li>Neild, R.E. and Newman, J.E. 1990. Growing season characteristics and requirements in the Corn Belt. National Corn Handbook, Purdue University, Cooperative Extension Service, West Lafayette, IN.</li>
+      <li>Schneiter and Miller. 1981. Description of Sunflower Growth Stages. Crop Science 11: 635-638.</li>
+    </ul>
+
+    <p class="method-note">
+      Part of the <a href={url('mesonet/ag_tools/')}>agricultural tools</a>.
+      The <a href={`${DASHBOARD}#charts`}>Station Dashboard</a> charts GDDs for each station and
+      crop under Charts, Ag tools.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .gdd-logo { max-width: 16rem; }
+</style>

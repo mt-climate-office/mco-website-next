@@ -1,0 +1,20 @@
+description_short,base_units,range_min,range_max,step_size,persistence_delta,flag_min,flag_max,shared_sensor
+Air Temperature ,degC,-80,60,10,0.1,NA,NA,NA
+Atmospheric Pressure,kPa,60,110,10,0.001,NA,NA,NA
+Bulk EC ,mS cm^-1,0,6,0.5,0,NA,NA,NA
+Enclosure Door Status,,0,1,1,0,0,0,NA
+Gust Speed ,m s^-1,0,100,80,0.1,NA,NA,wind_spd
+Max Precip Rate,mm hr^-1,0,3000,125,0,NA,NA,ppt
+Pluviometer Fill Level,mm,0,1800,25,0,NA,NA,NA
+Pore EC ,mS cm^-1,0,6,0.5,0,NA,NA,NA
+Precipitation,mm,0,500,25,0,NA,NA,ppt_max_rate
+Rel. Permittivity ,,1,100,0.5,0,NA,NA,NA
+Relative Humidity,percent,0,100,20,0.1,NA,NA,NA
+Snow Depth,cm,0,950,10,0,NA,NA,snow_depth_q
+Snow Depth Quality,,0,600,600,0,1,300,NA
+Soil Temperature ,degC,-40,60,5,0,NA,NA,NA
+Soil VWC ,percent,0,100,2.5,0,NA,NA,NA
+Solar Radiation,W m^-2,0,2000,800,0.1,NA,NA,NA
+Wind Direction ,arcdeg,0,360,360,0.1,NA,NA,wind_dir_sd
+Wind Direction SD ,arcdeg,0,180,90,0.1,NA,NA,wind_dir
+Wind Speed ,m s^-1,0,100,40,0.1,NA,NA,windgust

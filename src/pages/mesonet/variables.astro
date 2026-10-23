@@ -1,0 +1,86 @@
+---
+// /mesonet/variables/: what the stations measure, at the old path. Both
+// Station Dashboards link it (docs/cutover-inbound-links.md).
+// Source: mco-website/_pages/mesonet/mesonet_variables.md.
+//
+// The sampling paragraph is the old page's method text. The old page's
+// table of variables was typed by hand; the API knows the element list, so
+// the table here is read from /elements/ at build time (DECISIONS: data the
+// API knows is never typed). A failed fetch fails the build, so the last
+// deploy stays live. The old table's per-variable notes on averages and
+// totals are kept as one paragraph.
+import Base from '../../layouts/Base.astro';
+import Unit from '../../components/content/Unit.astro';
+import { API_BASE, buildSnapshot, getElements } from '../../lib/mesonet';
+import { count, isoTime, stampMT } from '../../lib/format';
+import { url } from '../../lib/paths';
+
+const { rows, fetchedAt } = await buildSnapshot('/elements/', () => getElements());
+const order = (n: number | null) => (n == null ? Number.POSITIVE_INFINITY : n);
+const elements = [...rows].sort((a, b) =>
+  order(a.sort_order) - order(b.sort_order) || a.element.localeCompare(b.element, 'en'));
+
+const EXAMPLE_STATION = 'acebozem';
+const STATION_ELEMENTS = `${API_BASE}/elements/${EXAMPLE_STATION}/`;
+---
+<Base short="Variables measured"
+      description="The variables Montana Mesonet stations measure, how often they are read, and the units the API reports them in.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Variables measured at Montana Mesonet stations</h1>
+    <p>
+      Variables measured and the measurement interval differ between the AgriMet and HydroMet
+      networks. AgriMet stations take a reading every 10 seconds; these readings are averaged (or
+      totalled for precipitation) in the 15-minute data that is reported by the MCO. The HydroMet
+      stations take readings every 3 seconds, with the readings being averaged (or totalled for
+      precipitation) in the 5-minute data that is reported by the MCO (except for precipitation, soil
+      data, and snow depth, which are read every 1, 5, and 5 minutes, respectively).
+    </p>
+    <p>
+      Most values are the average over the reporting period. Precipitation is the total since the
+      last report. Maximum precipitation rate and wind gust speed are the highest values in the
+      reporting period. Soil readings are taken at several depths.
+    </p>
+    <p>
+      To see exactly which variables are measured at a given station, ask the API's
+      <code>elements</code> endpoint for that station, for example
+      <a href={STATION_ELEMENTS}>the elements measured at Bozeman (<code>{EXAMPLE_STATION}</code>)</a>.
+      The <a href={url('mesonet/stations/')}>station list</a> has every station's ID.
+    </p>
+
+    <h2>Elements</h2>
+    <p class="stamp">
+      {count(elements.length)} elements, from the API's element list as of
+      <time datetime={isoTime(fetchedAt)}>{stampMT(fetchedAt)}</time>.
+    </p>
+    <section class="method-table-wrap" aria-labelledby="t-elements" tabindex="0">
+      <table class="method-table">
+        <caption id="t-elements">Elements reported by Montana Mesonet stations, with their units</caption>
+        <thead>
+          <tr>
+            <th scope="col">Element</th>
+            <th scope="col">Description</th>
+            <th scope="col">US units</th>
+            <th scope="col">Metric units</th>
+            <th scope="col">API name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {elements.map((e) => (
+            <tr>
+              <th scope="row">{e.description_short}</th>
+              <td>{e.description}</td>
+              <td><Unit u={e.us_units} /></td>
+              <td><Unit u={e.base_units} /></td>
+              <td class="is-code">{e.element}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+    <p class="method-note">
+      Readings that fail a check are flagged; <a href={url('mesonet/qaqc/')}>quality control</a> has
+      the tests and their thresholds.
+    </p>
+  </div>
+</Base>

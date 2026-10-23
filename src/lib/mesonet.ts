@@ -100,6 +100,10 @@ export const getStations = (params: StationsParams = {}, signal?: AbortSignal) =
 export const getLatest = (params: LatestParams = {}, signal?: AbortSignal) =>
   get<LatestRow>('latest/', { ...params, wide: true }, signal);
 
+/** The element catalog: one row per element the network reports, no station. */
+export const getElements = (params: ElementsParams = {}, signal?: AbortSignal) =>
+  get<Omit<ElementRow, 'station'>>('elements/', params, signal);
+
 /** Expected elements for every active public station, in one response. */
 export const getElementsAll = (params: ElementsParams = {}, signal?: AbortSignal) =>
   get<ElementRow>('elements/', { ...params, all: true }, signal);
