@@ -5,10 +5,18 @@
 // MCO News list existing.
 import { kit } from '../../kit/kit';
 import { url } from '../../lib/paths';
+import { NAV } from '../../lib/nav';
 
 const year = new Date().getFullYear();
 ---
 <footer class="mco-footer site-footer">
+  <nav class="site-footer-nav" aria-label="Footer">
+    <ul>
+      {NAV.map((n) => <li><a href={url(n.path)}>{n.label}</a></li>)}
+      <li><a href={url('search/')}>Search</a></li>
+      <li><a href={url('accessibility/')}>Accessibility</a></li>
+    </ul>
+  </nav>
   <img class="mco-wordmark is-on-dark" src={kit('assets/mco-wordmark-on-dark.svg')}
        alt="Montana Climate Office" width="130" height="48">
   <img class="mco-wordmark is-on-light" src={kit('assets/mco-wordmark-on-light.svg')}
@@ -17,6 +25,5 @@ const year = new Date().getFullYear();
     <p>W.A. Franke College of Forestry &amp; Conservation<br>University of Montana, Missoula, MT 59812</p>
     <p><a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a></p>
   </address>
-  <p><a href={url('accessibility/')}>Accessibility</a></p>
   <p>© {year} Montana Climate Office, University of Montana</p>
 </footer>
