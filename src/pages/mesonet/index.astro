@@ -13,6 +13,7 @@ import { getCatalog } from '../../lib/stations';
 import { count, isoTime, stampMT } from '../../lib/format';
 import { tools } from '../../lib/hubs';
 import { url } from '../../lib/paths';
+import { MESONET_METHODS } from '../../lib/methods';
 
 const [summary, catalog] = await Promise.all([loadSummary(), getCatalog()]);
 
@@ -68,6 +69,11 @@ const PAGES = [
     <ToolList tools={PAGES} />
   </section>
 
+  <section class="hub-section" aria-labelledby="mesonet-methods">
+    <h2 id="mesonet-methods" class="hub-h2">Methods</h2>
+    <ToolList tools={MESONET_METHODS} />
+  </section>
+
   <section class="hub-section" aria-labelledby="mesonet-networks">
     <h2 id="mesonet-networks" class="hub-h2">Two networks</h2>
     {/* Purposes and sensors: mco-website/_pages/mesonet/mesonet.md, "Mesonet
@@ -106,7 +112,8 @@ const PAGES = [
     <p>
       Mesonet data are free. The Montana Mesonet API serves station metadata, the latest readings
       and historical observations as JSON or CSV. Its <a href={API_DOCS}>interactive documentation</a> lists
-      every endpoint.
+      every endpoint. GIS software can read the latest observations through
+      the <a href={url('mesonet/wfs/')}>OGC API</a>.
     </p>
     <p>
       Recent readings are provisional. Values can change as quality checks and backfilling run.
