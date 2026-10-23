@@ -5,7 +5,9 @@
 //   - every inline <script> of any type is hashed in the page's CSP (head.mjs
 //     only looks at classic scripts and the import map, and Astro can inline
 //     a bundled module)
-//   - noindex on every page unless the build is the production host
+//   - noindex on every page unless the build is the production host; old-URL
+//     redirect pages (src/lib/redirects.mjs) are noindex always, and their
+//     refresh and canonical name the same target
 //   - the canonical URL is on the production host (404.html: none, always noindex)
 //   - exactly one <h1>
 //   - every internal href/src sits under the base path
@@ -45,13 +47,23 @@ for (const file of pages(dist)) {
   }
 
   const notFound = rel === '404.html';
+  const refresh = html.match(/<meta http-equiv="refresh" content="0; url=([^"]*)">/)?.[1];
   const noindex = /<meta name="robots" content="noindex, nofollow">/.test(html);
-  if (indexable && noindex && !notFound) fail('noindex on a production build');
-  if ((!indexable || notFound) && !noindex) fail('missing noindex');
+  if (indexable && noindex && !notFound && !refresh) fail('noindex on a production build');
+  if ((!indexable || notFound || refresh) && !noindex) fail('missing noindex');
 
   const canonical = html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
   if (notFound && canonical) fail(`a not-found page has a canonical: ${canonical}`);
-  if (!notFound && !canonical?.startsWith(CANONICAL)) fail(`canonical not on the production host: ${canonical}`);
+  if (refresh) {
+    // Internal target: under the base path, canonical at its production URL
+    // (no fragment). External target: refresh and canonical are one URL.
+    const external = /^https?:/.test(refresh);
+    if (!external && !refresh.startsWith(base)) fail(`redirect outside the base path ${base}: ${refresh}`);
+    const target = external ? refresh : new URL(refresh.slice(base.length).split('#')[0], CANONICAL).href;
+    if (canonical !== target) fail(`redirect canonical ${canonical} is not its target ${target}`);
+  } else if (!notFound && !canonical?.startsWith(CANONICAL)) {
+    fail(`canonical not on the production host: ${canonical}`);
+  }
 
   const h1s = (html.match(/<h1[\s>]/g) || []).length;
   if (h1s !== 1) fail(`${h1s} <h1> elements`);

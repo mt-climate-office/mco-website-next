@@ -21,7 +21,8 @@
     "test:newsletter": "node --test \"scripts/newsletter/test/*.test.mjs\"",
     "newsletter:preview": "node scripts/newsletter/send.mjs --dry-run --out previews",
     "gen:cms": "node scripts/generate-pages-yml.mjs",
-    "check:cms": "node scripts/generate-pages-yml.mjs --check"
+    "check:cms": "node scripts/generate-pages-yml.mjs --check",
+    "check:redirects": "node scripts/check-redirects.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "0.4.3",
