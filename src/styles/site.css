@@ -468,4 +468,6 @@ html:not([data-theme]) .pub-filters { display: none; }
   .org-name a,
   .org-text a,
   .person-links a { display: inline-block; min-height: 40px; padding-block: var(--space-2); }
+  /* A one-word back link ("About") is narrower than the 40 px target. */
+  .pub-back a { min-width: 44px; }
 }
