@@ -359,3 +359,26 @@ the protection, tier it.
 - **Remove it** when the kit's photo controls offer a time control that is
   not a native `<select>` (for example the segmented buttons already used for
   direction). Raise that at the kit's next photos change.
+
+---
+
+## D19 — Morning-after decisions
+
+**Decided 23 October 2026.**
+
+- **`bozmtest` stays public.** "Bozeman Test" is a real station in
+  `/stations/`; the website shows it like any other.
+- **Search Escape order follows the kit** everywhere. The dashboard drops its
+  local shim (close-and-restore, then clear).
+- **CI:** the website's full tier runs Chromium and WebKit as a parallel
+  matrix; the kit's verify harness retries a failed scenario once, so a
+  transient network error does not fail a deploy (kit PATCH).
+- **Tools move to the current kit together:** Explorer, Photo Explorer,
+  Status, Maintenance, UMRB, Snowpack, Air Quality and the dashboard, each
+  verified and merged when green.
+- **Next builds, in parallel:** the plain-language conditions summary (kit
+  extraction #3, D9), the publications portal (rebuild plan §4.7), and the
+  Phase 5 redirect map.
+- **Camera North view:** left as is; the homepage hero keeps North.
+- **MCO News:** the owner runs the bootstrap script; the footer signup is
+  wired once the list's UUID exists.
