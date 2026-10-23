@@ -33,9 +33,13 @@ interface Props {
       and the basemap need (csp.ts). The map scripts themselves load only
       when the map nears the viewport. Only the homepage does. */
   map?: boolean;
+  /** The page has place search (the homepage conditions card): it loads the
+      kit's places/mco-places.js after core, and its CSP lets that fetch its
+      gazetteer from the pinned tag (csp.ts). Only the homepage does. */
+  places?: boolean;
 }
 
-const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false } = Astro.props;
+const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false, places = false } = Astro.props;
 const { searchable = indexable } = Astro.props;
 const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
 const FAMILY_SHORT = 'MCO';
@@ -45,7 +49,7 @@ const title = short ? `${short} · ${FAMILY_SHORT}` : FAMILY_LONG;
 const cardTitle = short ? `${short} · ${FAMILY_LONG}` : FAMILY_LONG;
 const canonical = canonicalUrl(Astro.url.pathname);
 const ogImage = kit('assets/og-card.png');
-const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, photos, map });
+const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, photos, map, places });
 ---
 <!doctype html>
 <html lang="en">
@@ -101,6 +105,10 @@ const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [anti
   {photos && (
     <script is:inline src={kit('photos/mco-photos.js')}
             integrity={KIT_SRI['photos/mco-photos.js']} crossorigin="anonymous"></script>
+  )}
+  {places && (
+    <script is:inline src={kit('places/mco-places.js')}
+            integrity={KIT_SRI['places/mco-places.js']} crossorigin="anonymous"></script>
   )}
   <script>
     import '../scripts/chrome';

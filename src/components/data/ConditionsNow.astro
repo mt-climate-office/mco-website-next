@@ -1,12 +1,24 @@
 ---
-// Latest conditions at one station. Data-free: the station is chosen by the
-// place search (kit extraction, DECISIONS D9) or a default, and its record
-// comes from /latest/ via the typed client. The plain-language line comes
-// from the kit's conditions summary (D9) once it exists.
+// Latest conditions at one station, found by place search.
 //
-// Absent `conditions`: says where to get readings now, with no figures.
+// With JavaScript, src/scripts/conditions-now.ts wires the search field to
+// the kit's place search (MCO.places.initPlaceSearch, DECISIONS D9
+// extraction #2): a picked station, a picked place (its nearest station) or
+// Near me fills the card from mesonet2 /latest/ through the typed client.
+// The pick is kept in ?s=<id> and in mco-website-conditions, so a shared
+// link or a return visit opens on the same station. The rules for which
+// readings show are src/lib/conditions.ts.
+//
+// Without JavaScript the search is not shown at all (it would not work), and
+// the card says where to get readings now, with no figures. The plain-language
+// line (`summary`) waits for the kit's conditions summary (D9 extraction #3).
+//
+// `conditions`, when given, renders the same markup filled at build time.
+// The homepage passes none: it never shows a made-up or stale figure here.
 import type { StationConditions } from './types';
 import { formatReading, isoTime, stampMT } from '../../lib/format';
+import { url } from '../../lib/paths';
+import { stationPath } from '../../lib/stations';
 import { DASHBOARD } from '../../lib/tools';
 
 interface Props {
@@ -16,55 +28,121 @@ interface Props {
 const { conditions = null } = Astro.props;
 const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
 ---
-{conditions ? (
-  <article class="mco-card conditions" aria-labelledby="cond-station">
-    <div class="mco-card-body">
-      <h3 id="cond-station" class="cond-station">{conditions.station.name}</h3>
+<div class="mco-card conditions" id="cond"
+     data-station-base={url(stationPath('__ID__'))} data-dashboard={DASHBOARD}>
+  <div class="mco-card-body">
+    {/* Laid out from first paint whenever scripts run, so it never shifts
+        the card; held invisible until MCO.ready() (the kit's data-hold). */}
+    <div class="cond-search" id="cond-search" data-hold>
+      <label class="cond-label" for="cond-q">Find conditions near you</label>
+      <p class="cond-hint" id="cond-hint">A town, county, reservation, ZIP code or station name.</p>
+      <div class="cond-row">
+        <div class="mco-search cond-field">
+          <span class="mco-search-icon" aria-hidden="true"></span>
+          <input id="cond-q" class="mco-search-input" type="search" aria-describedby="cond-hint">
+          <div class="mco-search-list" id="cond-list" hidden></div>
+        </div>
+        <button type="button" class="nav-btn cond-near" id="cond-near">Near me</button>
+      </div>
+      <p class="cond-msg" id="cond-msg" hidden></p>
+    </div>
+
+    <p class="cond-empty" id="cond-empty" hidden={conditions != null}>
+      Latest readings for any station are on the <a href={DASHBOARD}>Station Dashboard</a>.
+    </p>
+
+    <article class="cond-result" id="cond-result" aria-labelledby="cond-station" hidden={conditions == null}>
+      <h3 id="cond-station" class="cond-station" tabindex="-1">{conditions?.station.name ?? 'Station'}</h3>
+      <p class="cond-from" id="cond-from" hidden></p>
       <p class="cond-headline">
-        <span class="cond-headline-label">{conditions.headline.label}</span>
-        <span class="mco-num-display cond-headline-value">
-          {formatReading(conditions.headline.value, conditions.headline.unit, conditions.headline.digits)}
+        <span class="cond-headline-label" id="cond-headline-label">{conditions?.headline.label}</span>
+        <span class="mco-num-display cond-headline-value" id="cond-headline-value">
+          {conditions && formatReading(conditions.headline.value, conditions.headline.unit, conditions.headline.digits)}
         </span>
       </p>
-      {conditions.summary && <p class="cond-summary">{conditions.summary}</p>}
-      {conditions.readings.length > 0 && (
-        <dl class="mco-facts cond-readings">
-          {conditions.readings.map((r) => (
-            <div>
-              <dt>{r.label}</dt>
-              <dd>{formatReading(r.value, r.unit, r.digits)}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-      <p class="stamp">
-        <time datetime={isoTime(conditions.observedAt)}>{stampMT(conditions.observedAt)}</time>
-        {conditions.provisional && ' · provisional'}
+      {conditions?.summary && <p class="cond-summary">{conditions.summary}</p>}
+      <dl class="mco-facts cond-readings" id="cond-readings">
+        {conditions?.readings.map((r) => (
+          <div>
+            <dt>{r.label}</dt>
+            <dd>{formatReading(r.value, r.unit, r.digits)}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="stamp cond-stamp" id="cond-stamp">
+        {conditions && <time datetime={isoTime(conditions.observedAt)}>{stampMT(conditions.observedAt)}</time>}
+        {conditions?.provisional && ' · Provisional'}
       </p>
-      <p class="cond-link">
-        <a href={dashFor(conditions.station.id)}>{conditions.station.name} on the Station Dashboard</a>
-      </p>
-    </div>
-  </article>
-) : (
-  <div class="mco-card conditions">
-    <div class="mco-card-body">
-      <p class="cond-empty">
-        Latest readings for any station are on the <a href={DASHBOARD}>Station Dashboard</a>.
-      </p>
-    </div>
+      <ul class="cond-links">
+        <li><a id="cond-page" href={conditions ? url(stationPath(conditions.station.id)) : undefined}>
+          <span class="cond-link-name">{conditions?.station.name}</span> station page</a></li>
+        <li><a id="cond-dash" href={conditions ? dashFor(conditions.station.id) : undefined}>
+          <span class="cond-link-name">{conditions?.station.name}</span> on the Station Dashboard</a></li>
+      </ul>
+      <div class="cond-near-list" id="cond-near-list" hidden>
+        <p class="cond-near-title" id="cond-near-title"></p>
+        <ul aria-labelledby="cond-near-title" id="cond-near-rows"></ul>
+      </div>
+    </article>
   </div>
-)}
+</div>
+
+<script>
+  import '../../scripts/conditions-now';
+</script>
 
 <style>
   .conditions { max-width: 30rem; }
+
+  /* No scripts, no search: data-theme is only ever set by the kit's
+     anti-flash boot, which runs before first paint. */
+  :global(html:not([data-theme])) .cond-search { display: none; }
+  .cond-search { margin-bottom: var(--space-5); }
+  .cond-label { display: block; font-size: var(--fs-lg); font-weight: var(--fw-semibold); color: var(--text-primary); }
+  .cond-hint { margin-top: var(--space-1); font-size: var(--fs-base); color: var(--text-secondary); }
+  .cond-row { display: flex; gap: var(--space-3); margin-top: var(--space-3); }
+  .cond-field { flex: 1; min-width: 0; display: flex; }
+  /* kit-override: in the card the field fills the row and is a 40px target
+     on every pointer, not only on touch (the kit's .mco-search-input is a
+     220px, 32px toolbar field). */
+  .cond-field :global(.mco-search-input) { width: 100%; min-height: 40px; font-size: var(--fs-base); }
+  .cond-field :global(.mco-search-list) { max-width: min(360px, calc(100vw - 2rem)); }
+  /* kit-override: 40px like the field beside it. */
+  .cond-near { min-height: 40px; font-size: var(--fs-base); }
+  .cond-msg { margin-top: var(--space-3); font-size: var(--fs-base); color: var(--text-secondary); }
+
+  .cond-empty { font-size: var(--fs-base); color: var(--text-secondary); }
+
   .cond-station { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+  .cond-station:focus { outline: none; }
+  .cond-station:focus-visible { outline: 2px solid var(--accent-line); outline-offset: 2px; }
+  .cond-from { margin-top: var(--space-1); font-size: var(--fs-base); color: var(--text-secondary); }
   .cond-headline { display: flex; flex-direction: column; margin-top: var(--space-3); }
   .cond-headline-label { font-size: var(--fs-md); color: var(--text-muted); }
-  .cond-headline-value { font-size: calc(var(--fs-2xl) * 1.25); }
+  /* One line tall even while loading, so filling it never moves the card. */
+  .cond-headline-value { font-size: calc(var(--fs-2xl) * 1.25); min-height: 1.2em; line-height: 1.2; }
   .cond-summary { margin-top: var(--space-2); font-size: var(--fs-base); color: var(--text-secondary); }
-  .cond-readings { margin-top: var(--space-4); font-size: var(--fs-base); }
-  .conditions .stamp { margin-top: var(--space-4); }
-  .cond-link { margin-top: var(--space-3); font-size: var(--fs-base); }
-  .cond-empty { font-size: var(--fs-base); color: var(--text-secondary); }
+  /* Room for three readings from the start, the most the card shows. */
+  .cond-readings { margin-top: var(--space-4); font-size: var(--fs-base); min-height: calc(3 * 1.6em + 2 * 0.15rem); align-content: start; }
+  .cond-stamp { margin-top: var(--space-4); min-height: 1.6em; }
+  .cond-links { list-style: none; margin-top: var(--space-3); padding: 0; font-size: var(--fs-base); }
+  .cond-links li + li { margin-top: var(--space-2); }
+
+  .cond-near-list { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+  .cond-near-title { font-size: var(--fs-base); color: var(--text-secondary); }
+  .cond-near-list ul { list-style: none; margin-top: var(--space-2); padding: 0; display: grid; gap: var(--space-2); }
+  /* kit-override: a full-width row of the list, 40px tall, name left and
+     distance right; colours and the pressed state stay the kit's. */
+  .cond-near-list :global(.nav-btn) {
+    width: 100%; min-height: 40px; justify-content: space-between;
+    font-size: var(--fs-base); white-space: normal; text-align: left;
+  }
+  .cond-near-list :global(.cond-dist) { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
+
+  @media (hover: none) {
+    /* A 40px target: one 1.6-line of text, padded to 40px. Inline-block,
+       not flex, so the name and the words after it stay one underlined run. */
+    .cond-links a { display: inline-block; line-height: 1.6; padding-block: calc((40px - 1.6em) / 2); }
+    .cond-links li + li { margin-top: 0; }
+  }
 </style>
