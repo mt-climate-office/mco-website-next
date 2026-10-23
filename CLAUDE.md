@@ -195,14 +195,19 @@ half of `npm run build`. It indexes only `<main data-pagefind-body>`, which
   (`csp.ts`, `photos`).
 - **noindex is automatic.** Only a deploy whose Pages origin is the production
   host is indexable. At cutover, set `EXPECT_INDEXABLE: '1'` in the deploy
-  job in the same change that moves the domain.
+  job in the same change that moves the domain. The production build also
+  writes `sitemap.xml` (`src/lib/sitemap.mjs`, after the redirects move:
+  every built page without noindex, at its canonical) and `robots.txt` names
+  it; other builds have no sitemap. `check:built` checks robots and sitemap
+  in both modes. Runbook: `docs/cutover-checklist.md`.
 - **Old URLs (Phase 5).** `src/data/redirects.json` maps every old Jekyll
   URL: 200 same path, 301 a redirect page at the old path (meta refresh,
   canonical at the target, noindex; rendered through `Base.astro`, moved into
   place after the build by `src/lib/redirects.mjs`), 410 no page so Pages
   answers 404. A new page at an old path must change its entry to 200.
   `check:redirects` runs after a build; `--strict` fails on any `todo` and
-  must pass at cutover.
+  must pass at cutover. `--live` re-reads the old site's sitemap; once the
+  host serves this site's sitemap it says so and skips.
 - **Kit bump:** change `KIT_VERSION` and the hashes in `src/kit/kit.ts`
   (theme, core, photos), re-vendor `src/kit/anti-flash.inline.js` and
   `public/mco-logo.png` from the new tag, then `npm run check:kit`. The build
@@ -218,6 +223,9 @@ npm run check:paths && npm run check:kit && npm run check
 BASE_PATH=/verify-base/ npm run build
 BASE_PATH=/verify-base/ npm run check:built && npm run check:html
 BASE_PATH=/verify-base/ npm run check:redirects
+# Production dry run (as the deploy builds it after cutover)
+SITE_ORIGIN=https://climate.umt.edu BASE_PATH=/ npm run build
+EXPECT_INDEXABLE=1 BASE_PATH=/ npm run check:built
 KIT_DIR=<mco-web-style checkout at the pinned tag> BASE_PATH=/verify-base/ npm run verify
 BASE_PATH=/verify-base/ npm run lighthouse
 ```
