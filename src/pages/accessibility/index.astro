@@ -1,0 +1,91 @@
+---
+// /accessibility/ (rebuild plan Part 5: "Ship a real /accessibility/
+// statement"). Each claim names the code or decision that makes it true.
+// Keep it true: when a claim stops holding, change the page in the same PR.
+import Base from '../../layouts/Base.astro';
+---
+<Base short="Accessibility"
+      description="The accessibility standard this site is built to, what it does to meet it, its known limits, and how to report a problem.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Accessibility</h1>
+
+    {/* University of Montana policy, WCAG 2.1 AA: rebuild plan Part 5;
+        CLAUDE.md. */}
+    <p>
+      This site is built to meet the Web Content Accessibility Guidelines (WCAG) 2.1 at Level AA,
+      the standard University of Montana policy sets for its web content.
+      If something here does not work for you, <a href="#report">tell us</a>.
+    </p>
+
+    <h2>What the site does</h2>
+    <ul>
+      {/* src/layouts/Base.astro: .mco-skip-link to <main id="main">. */}
+      <li>Every page starts with a link that skips to the main content.</li>
+      {/* Header theme button, MCO.initThemeToggle({ cycle: true }); theme
+          contract in CLAUDE.md: URL, then saved choice, then OS setting. */}
+      <li>
+        The button in the header switches between dark, light and high contrast themes.
+        The site starts in your system's light or dark setting and remembers your choice.
+      </li>
+      {/* Kit :focus-visible ring (HOUSE-STYLE §5.4); keyboard checks in the
+          kit verify harness, run in CI (verify.config.mjs). */}
+      <li>Links and controls work from the keyboard, with a visible focus outline.</li>
+      {/* src/scripts/photo-hero.ts and src/scripts/search.ts, MCO.announce. */}
+      <li>
+        When part of a page changes in place, such as the station photos on the homepage or
+        search results, screen readers hear what changed.
+      </li>
+      {/* src/pages/mesonet/{stations,status}/index.astro: <caption>, scope. */}
+      <li>Station data is in HTML tables with captions and header cells.</li>
+      {/* Status words: src/pages/mesonet/status/index.astro ("Status and
+          health are always words; colour carries nothing"). Underlined
+          links: src/styles/site.css. */}
+      <li>
+        Colour never carries meaning alone. Station status is always written in words,
+        and links are underlined.
+      </li>
+      {/* PhotoMosaic alt text "Looking <direction> from <station>". */}
+      <li>Station photos have text alternatives naming the station and the direction the camera faces.</li>
+      {/* Kit reduced-motion rules (HOUSE-STYLE §5.3). */}
+      <li>The site follows your system's reduced motion setting.</li>
+    </ul>
+
+    <h2>How it is tested</h2>
+    {/* DECISIONS D17: axe on every PR in all three themes at both widths;
+        Lighthouse accessibility budget 100; deploy needs the checks to pass.
+        scripts/check-built.mjs (one h1). */}
+    <p>
+      Every change to the site is checked with the axe accessibility engine in all three themes,
+      at desktop and phone widths, and with Lighthouse. A change that fails does not deploy.
+    </p>
+
+    <h2>Known limitations</h2>
+    <ul>
+      {/* Tools are separate repos and hosts: phase-0-report §3.1. */}
+      <li>
+        The Mesonet tools, the Station Dashboard and the Snowpack Explorer are separate sites.
+        They use the same design system and themes. Each site keeps its own theme setting, so a
+        theme chosen here does not carry over to them.
+      </li>
+      {/* phase-0-report §3.2: D³ has no h1, main, header or footer; checked
+          live again 22 Oct 2026 (no <h1>, no <main>). */}
+      <li>
+        The D³ Drought Data Dashboard is a separate site with its own design. It does not yet have a
+        main heading or page landmarks, so it is harder to move around with a screen reader.
+      </li>
+      {/* sustainable-fsa.com/lfp-explorer: Sustainable FSA's own design
+          system (phase-0-report §3.2). */}
+      <li>The LFP Explorer is part of the Sustainable FSA project and follows that site's design.</li>
+      <li>Photo descriptions name the station and direction but do not describe the scene.</li>
+    </ul>
+
+    <h2 id="report">Report a problem</h2>
+    {/* The footer contact (rebuild plan Phase 1 item 3). */}
+    <p>
+      Email <a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a>.
+      Include the page address and what you were trying to do. If you need information from this
+      site in another format, ask at the same address.
+    </p>
+  </div>
+</Base>

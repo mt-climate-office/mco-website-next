@@ -28,6 +28,8 @@ const ALL_PAGES = [
   { name: 'station', path: 'mesonet/stations/aceabsar/' },
   { name: 'status', path: 'mesonet/status/' },
   { name: 'search', path: 'search/' },
+  { name: 'drought', path: 'drought/' },
+  { name: 'accessibility', path: 'accessibility/' },
   { name: 'news', path: 'news/' },
 ];
 const MIN = { accessibility: 1, performance: 0.9 };

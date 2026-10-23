@@ -170,6 +170,13 @@ main a:not([class]) {
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 .site-footer { padding-block: var(--space-7); }
+/* Footer links sit on consecutive lines: each is a 24 px target so
+   neighbours never overlap (WCAG 2.5.8, Lighthouse target-size), and 40 px
+   on touch screens (HOUSE-STYLE §5.5). */
+.site-footer a { display: inline-flex; align-items: center; min-height: 24px; }
+@media (hover: none) {
+  .site-footer a { min-height: 40px; }
+}
 
 /* ── Site search (src/pages/search.astro) ───────────────────────────────── */
 .site-search { max-width: 48rem; }
@@ -243,4 +250,54 @@ main a:not([class]) {
   gap: var(--space-3) var(--space-5);
   margin-top: var(--space-3);
   list-style: none;
+}
+
+/* ── Section hubs (src/pages/{conditions,drought,mesonet,research}/) ────── */
+.hub-section { margin-top: var(--space-7); }
+.hub-h2 {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-tight);
+  font-weight: var(--fw-semibold);
+}
+.hub-h2 + * { margin-top: var(--space-5); }
+.hub-section > p,
+.hub-section > dl { max-width: 68ch; font-size: var(--fs-lg); line-height: var(--lh-body); }
+.hub-section > p + p { margin-top: var(--space-3); }
+.hub-section > p { color: var(--text-secondary); }
+/* Question cards: four across, two at the kit's 1060, one at 750. */
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+@media (max-width: 1060px) {
+  .hub-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 750px) {
+  .hub-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.hub-stamp { margin-top: var(--space-3); }
+/* A citation or address to copy: mono, on the raised-from-ground surface. */
+.hub-section > p.hub-cite {
+  max-width: 68ch;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* Publications (/research/): the title is the link (WCAG 2.4.4). */
+.pub-list { list-style: none; max-width: 68ch; }
+.pub-list li + li { margin-top: var(--space-5); }
+.pub-title { font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); }
+.pub-meta {
+  margin-top: var(--space-1);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
 }
