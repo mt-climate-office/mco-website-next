@@ -11,7 +11,7 @@
 
 import type { PhotoDirection, PhotoSet, PhotoTile } from '../components/data/types';
 
-// ── The parts of MCO.photos this site calls (mco-web-style v0.15.x) ────────
+// ── The parts of MCO.photos this site calls (mco-web-style v0.15+) ────────
 
 export interface PhotoFrame {
   token: string;
