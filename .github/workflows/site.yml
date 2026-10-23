@@ -1,14 +1,16 @@
 # Build, verify, and deploy to GitHub Pages.
 #
-# verify runs on every pull request and push. deploy runs on main only, after
-# verify passes. Actions are pinned to commit SHAs; npm packages are pinned
-# exactly in package-lock.json.
+# build and verify run on every pull request and push. deploy runs on main
+# only, after both pass. Actions are pinned to commit SHAs; npm packages are
+# pinned exactly in package-lock.json.
 #
-# Tiers (DECISIONS D17). Pull requests: every cheap gate, the kit harness in
-# Chromium only (axe still runs in all three themes at both widths), and
-# Lighthouse on the homepage, one run. Push to main, the nightly schedule and
-# a manual run: the full set, Chromium and WebKit, Lighthouse on every page at
-# three runs, before deploy. The scripts default to the full set locally.
+# Tiers (DECISIONS D17, D19). build runs every cheap gate once and uploads
+# dist/. verify is a matrix over browser engines, one job each, in parallel,
+# all testing that one build. Pull requests: Chromium only (axe still runs in
+# all three themes at both widths), and Lighthouse on the homepage. Push to
+# main, the nightly schedule and a manual run: Chromium and WebKit, and
+# Lighthouse on every page, before deploy. Lighthouse runs in the Chromium job
+# only, at three runs per page. The scripts default to the full set locally.
 name: site
 
 on:
@@ -29,22 +31,14 @@ env:
   ASTRO_TELEMETRY_DISABLED: '1'
 
 jobs:
-  verify:
-    name: Build and verify
+  build:
+    name: Build and cheap gates
     runs-on: ubuntu-24.04
-    # The full tier (main, nightly) ran 30 min on 2026-10-23: the harness in
-    # Chromium and WebKit takes ~25 of it. PRs (Chromium) take ~10.
-    timeout-minutes: 50
+    timeout-minutes: 15
     env:
       # A base path no deploy uses, so any link that ignores the base path
       # 404s in the browser pass. The deploy base comes from configure-pages.
       BASE_PATH: /verify-base/
-      # D17 tiers, read by scripts/verify.mjs and scripts/lighthouse.mjs.
-      VERIFY_ENGINES: ${{ github.event_name == 'pull_request' && 'chromium' || 'chromium,webkit' }}
-      LH_PAGES: ${{ github.event_name == 'pull_request' && 'home' || 'all' }}
-      # Three runs even on PRs: a single run scored the homepage 89 against a
-      # median of 96, so one run is noise, not signal. Only the page set narrows.
-      LH_RUNS: '3'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -72,6 +66,51 @@ jobs:
       - name: HTML validity
         run: npm run check:html
 
+      # The verify build, at /verify-base/, for the engine jobs. Never
+      # deployed: deploy builds its own from configure-pages.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: verify-dist
+          path: dist
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
+
+  verify:
+    name: Verify (${{ matrix.engine }})
+    needs: build
+    runs-on: ubuntu-24.04
+    # One engine per job. Installs are minutes on a cold apt mirror; the
+    # harness is the rest, and Lighthouse adds ~3 to the Chromium job.
+    timeout-minutes: 25
+    strategy:
+      # Let both engines report; deploy needs both regardless.
+      fail-fast: false
+      matrix:
+        engine: ${{ fromJSON(github.event_name == 'pull_request' && '["chromium"]' || '["chromium","webkit"]') }}
+    env:
+      BASE_PATH: /verify-base/
+      # Read by scripts/verify.mjs: one engine per job.
+      VERIFY_ENGINES: ${{ matrix.engine }}
+      # Read by scripts/lighthouse.mjs.
+      LH_PAGES: ${{ github.event_name == 'pull_request' && 'home' || 'all' }}
+      # Three runs even on PRs: a single run scored the homepage 89 against a
+      # median of 96, so one run is noise, not signal. Only the page set narrows.
+      LH_RUNS: '3'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: verify-dist
+          path: dist
+
       # The kit's verify harness, at the tag this site pins.
       - id: kit
         run: echo "version=$(node -p "require('fs').readFileSync('src/kit/kit.ts','utf8').match(/KIT_VERSION = '([^']+)'/)[1]")" >> "$GITHUB_OUTPUT"
@@ -82,49 +121,45 @@ jobs:
           path: .kit
           persist-credentials: false
 
-      # Browsers and their apt .debs: cached per runner image, Playwright
-      # version and engine set, and installed in two timed steps so a hung
+      # The browser and its apt .debs: cached per runner image, Playwright
+      # version and engine, and installed in two timed steps so a hung
       # download or apt mirror fails fast under a name that says which. The
       # .debs are the slow half on a bad mirror (the kit's canary measured
       # 117 MB at 104 kB/s), so apt's archive directory is pointed into the
       # cache, as the kit's .github/actions/playwright does. Lighthouse uses
       # Playwright's Chromium too.
       - id: pw
-        name: Playwright version and engines
+        name: Playwright version
         run: |
-          # Cache keys cannot contain commas, so the key uses "chromium-webkit".
           {
             echo "version=$(node -p "require('./package-lock.json').packages['node_modules/playwright'].version")"
-            echo "engines=${VERIFY_ENGINES//,/ }"
-            echo "engines_key=${VERIFY_ENGINES//,/-}"
             echo "image=${ImageOS:-unknown}-${ImageVersion:-unknown}"
           } >> "$GITHUB_OUTPUT"
           mkdir -p "$HOME/.cache/apt-archives/partial"
           echo "Dir::Cache::Archives \"$HOME/.cache/apt-archives/\";" | sudo tee /etc/apt/apt.conf.d/99-playwright-cache > /dev/null
-      - name: Restore Playwright browsers and apt packages
+      - name: Restore Playwright browser and apt packages
         id: pwcache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cache/ms-playwright
             ~/.cache/apt-archives
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.image }}-${{ steps.pw.outputs.version }}-${{ steps.pw.outputs.engines_key }}
-          # A PR can start from main's full cache; install adds nothing it has.
-          restore-keys: |
-            playwright-${{ runner.os }}-${{ steps.pw.outputs.image }}-${{ steps.pw.outputs.version }}-
-      - name: Install browsers (${{ steps.pw.outputs.engines }})
+          # One engine per key, so the key never holds a comma. A PR shares
+          # main's cache for the same engine.
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.image }}-${{ steps.pw.outputs.version }}-${{ matrix.engine }}
+      - name: Install browser (${{ matrix.engine }})
         timeout-minutes: 5
-        run: npx playwright install ${{ steps.pw.outputs.engines }}
+        run: npx playwright install ${{ matrix.engine }}
       - name: Install browser system dependencies (apt)
-        # 8 min once the apt cache is warm; 25 on a miss, so a slow mirror can
+        # 8 min once the apt cache is warm; 15 on a miss, so a slow mirror can
         # finish once and warm it (the cache is saved only after a full install).
-        timeout-minutes: ${{ steps.pwcache.outputs.cache-hit == 'true' && 8 || 25 }}
+        timeout-minutes: ${{ steps.pwcache.outputs.cache-hit == 'true' && 8 || 15 }}
         run: |
-          npx playwright install-deps ${{ steps.pw.outputs.engines }}
+          npx playwright install-deps ${{ matrix.engine }}
           sudo chmod -R a+rX "$HOME/.cache/apt-archives"
       # Saved right after the install, not in a post step, so a later check
       # failure still leaves a warm cache for the rerun.
-      - name: Save Playwright browsers and apt packages
+      - name: Save Playwright browser and apt packages
         if: steps.pwcache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -133,17 +168,20 @@ jobs:
             ~/.cache/apt-archives
           key: ${{ steps.pwcache.outputs.cache-primary-key }}
 
-      - name: Kit gates (head, lint-css, axe × 3 themes × 2 widths, keyboard; ${{ env.VERIFY_ENGINES }})
+      - name: Kit gates (head, lint-css, axe × 3 themes × 2 widths, keyboard; ${{ matrix.engine }})
         run: npm run verify
         env:
           KIT_DIR: .kit
       - name: Lighthouse budgets (accessibility 100, performance ≥ 90 mobile, homepage JS < 150 KB; ${{ env.LH_PAGES }} × ${{ env.LH_RUNS }})
+        if: matrix.engine == 'chromium'
         run: npm run lighthouse
 
   deploy:
     name: Deploy to GitHub Pages
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: verify
+    # Every engine must pass. deploy builds its own dist/ for the production
+    # origin and base path; the verify artifact is built at /verify-base/.
+    needs: [build, verify]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
