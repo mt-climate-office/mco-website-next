@@ -12,7 +12,7 @@
 //
 // LH_PAGES narrows the pages (comma-separated names from PAGES, or "all") and
 // LH_RUNS sets the runs per page. Defaults are the full set: every page, 3
-// runs. Pull requests use LH_PAGES=home LH_RUNS=1 (D17); budgets are the same.
+// runs. Pull requests use LH_PAGES=home, still 3 runs (D17); budgets are the same.
 //
 // Uses Playwright's pinned Chromium, so CI downloads one browser, not two.
 import { createServer } from 'node:http';

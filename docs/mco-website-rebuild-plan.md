@@ -1217,6 +1217,9 @@ Cutover is a checklist, not a step. In this order:
     else — org repos, Mesonet tool footers, partner emails, slides, reports.
     The subdomain is being retired, not redirected, so every one of these
     breaks. Anything found needs a real destination first.
+    **Org repos done, 23 Oct 2026:** `docs/cutover-inbound-links.md`. No
+    repo links the staging host; links to the production host are checked
+    against the redirect map there. Re-run before cutover.
 16. Move the custom domain `climate.umt.edu` to `mco-website-next` in its
     Pages settings (the deploy picks the new origin up from
     `configure-pages`). Settle the repo-rename
@@ -1229,6 +1232,11 @@ Cutover is a checklist, not a step. In this order:
 18. Submit the sitemap. Confirm canonical tags point at `climate.umt.edu`.
 19. Redirect map from every old URL. Do not break inbound links from NOAA,
     DNRC, NIDIS or published papers — inventory them first.
+    **Built, 23 Oct 2026:** `src/data/redirects.json` covers every URL in the
+    old sitemap, every `_pages` permalink and the old short links; the build
+    writes a redirect page at each old path, and `npm run check:redirects`
+    gates it. Entries with a `todo` are stand-ins until content is migrated;
+    `npm run check:redirects -- --strict` must pass at cutover.
 20. Resolve `umt.edu/climate` versus `climate.umt.edu`: canonical tags, or
     retire one.
 21. Full axe + Lighthouse pass. Manual keyboard and screen-reader pass on the

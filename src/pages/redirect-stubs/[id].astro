@@ -1,0 +1,50 @@
+---
+// One redirect page per status-301 entry in src/data/redirects.json. Rendered
+// here, then moved to the old path after the build (src/lib/redirects.mjs),
+// so nothing is ever served from /redirect-stubs/.
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import { canonicalUrl, url } from '../../lib/paths';
+import { NAV } from '../../lib/nav';
+import { getNews } from '../../lib/news-posts';
+import { newsPath } from '../../lib/news';
+import { isExternal, stubId, stubs } from '../../lib/redirects.mjs';
+
+export const getStaticPaths = (async () =>
+  stubs().map((r) => ({ params: { id: stubId(r.from) }, props: { to: r.to as string } }))) satisfies GetStaticPaths;
+
+const { to } = Astro.props;
+
+// Link text names the destination: a news post by its title, a section by
+// its nav label, anything else by its address.
+const posts = await getNews();
+const PAGES: Record<string, string> = {
+  '': 'Montana Climate Office homepage',
+  'mesonet/stations/': 'Mesonet station directory',
+  'mesonet/status/': 'Mesonet network status',
+  ...Object.fromEntries(NAV.map((n) => [n.path, n.label])),
+  'about/': 'About the Montana Climate Office',
+  'mesonet/': 'Montana Mesonet',
+  ...Object.fromEntries(posts.map((p) => [newsPath(p.slug), p.data.title])),
+};
+
+let href: string;
+let canonical: string;
+let label: string;
+if (isExternal(to)) {
+  href = canonical = to;
+  const u = new URL(to);
+  label = (u.host + u.pathname).replace(/\/$/, '');
+} else {
+  const [path, hash = ''] = to.replace(/^\//, '').split('#');
+  href = url(path) + (hash ? `#${hash}` : '');
+  canonical = canonicalUrl(url(path));
+  label = PAGES[path] ?? canonical;
+}
+---
+<Base short="Page moved" description={`This address is no longer used. Go to ${label}.`} indexable={false} redirect={{ href, canonical }}>
+  <div class="prose">
+    <h1>This page moved</h1>
+    <p>This address is no longer used. Go to <a href={href}>{label}</a>.</p>
+  </div>
+</Base>

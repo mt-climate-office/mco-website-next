@@ -23,7 +23,8 @@
     "gen:cms": "node scripts/generate-pages-yml.mjs",
     "check:cms": "node scripts/generate-pages-yml.mjs --check",
     "publications:refresh": "node scripts/publications-refresh.mjs",
-    "check:publications": "node scripts/publications-refresh.mjs --check"
+    "check:publications": "node scripts/publications-refresh.mjs --check",
+    "check:redirects": "node scripts/check-redirects.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "0.4.3",

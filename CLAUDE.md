@@ -196,6 +196,13 @@ half of `npm run build`. It indexes only `<main data-pagefind-body>`, which
 - **noindex is automatic.** Only a deploy whose Pages origin is the production
   host is indexable. At cutover, set `EXPECT_INDEXABLE: '1'` in the deploy
   job in the same change that moves the domain.
+- **Old URLs (Phase 5).** `src/data/redirects.json` maps every old Jekyll
+  URL: 200 same path, 301 a redirect page at the old path (meta refresh,
+  canonical at the target, noindex; rendered through `Base.astro`, moved into
+  place after the build by `src/lib/redirects.mjs`), 410 no page so Pages
+  answers 404. A new page at an old path must change its entry to 200.
+  `check:redirects` runs after a build; `--strict` fails on any `todo` and
+  must pass at cutover.
 - **Kit bump:** change `KIT_VERSION` and the hashes in `src/kit/kit.ts`
   (theme, core, photos), re-vendor `src/kit/anti-flash.inline.js` and
   `public/mco-logo.png` from the new tag, then `npm run check:kit`. The build
@@ -210,6 +217,7 @@ npm run dev
 npm run check:paths && npm run check:kit && npm run check
 BASE_PATH=/verify-base/ npm run build
 BASE_PATH=/verify-base/ npm run check:built && npm run check:html
+BASE_PATH=/verify-base/ npm run check:redirects
 KIT_DIR=<mco-web-style checkout at the pinned tag> BASE_PATH=/verify-base/ npm run verify
 BASE_PATH=/verify-base/ npm run lighthouse
 ```
@@ -217,4 +225,6 @@ BASE_PATH=/verify-base/ npm run lighthouse
 Locally `verify` and `lighthouse` run the full set. CI tiers them (D17):
 PRs run `VERIFY_ENGINES=chromium LH_PAGES=home` (still 3 runs); push to main,
 the nightly schedule and manual runs use Chromium and WebKit and every page
-at 3 runs before deploy. Axe runs on every PR either way.
+at 3 runs before deploy. Axe runs on every PR either way. In CI, `build`
+runs the cheap gates once and each engine verifies that `dist/` in its own
+parallel job (D19); deploy still builds its own.
