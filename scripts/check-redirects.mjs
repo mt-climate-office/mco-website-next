@@ -16,7 +16,8 @@
 // Flags:
 //   --strict  also fail while any entry carries a `todo` (run at cutover)
 //   --live    also fetch the old site's sitemap.xml and require every URL in
-//             it to be covered (useful until cutover; needs the network)
+//             it to be covered (useful until cutover; needs the network).
+//             Once the host serves this site's sitemap, it says so and skips.
 //
 // Usage: BASE_PATH=/verify-base/ node scripts/check-redirects.mjs [dist]
 import { existsSync, readFileSync } from 'node:fs';
@@ -24,6 +25,7 @@ import { join } from 'node:path';
 import { REDIRECTS, EXTERNAL_HOSTS, fileFor, isExternal } from '../src/lib/redirects.mjs';
 import { TOOLS, DASHBOARD, PHOTO_EXPLORER } from '../src/lib/tools.ts';
 import sitemap from '../src/data/legacy-sitemap.json' with { type: 'json' };
+import { SITEMAP_MARKER } from '../src/lib/sitemap.mjs';
 
 const args = process.argv.slice(2);
 const strict = args.includes('--strict');
@@ -71,9 +73,14 @@ let oldPaths = sitemap.paths;
 if (live) {
   const { CANONICAL_ORIGIN } = await import('../astro.config.mjs');
   const res = await fetch(new URL('sitemap.xml', CANONICAL_ORIGIN + '/'), { signal: AbortSignal.timeout(30_000) });
+  const body = res.ok ? await res.text() : '';
   if (!res.ok) fail(`live sitemap: HTTP ${res.status}`);
-  else {
-    const livePaths = [...(await res.text()).matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => new URL(m[1].replace(/&amp;/g, '&')).pathname);
+  else if (body.includes(SITEMAP_MARKER)) {
+    // After cutover the host serves this site's own sitemap, whose URLs are
+    // new pages, not old ones. The snapshot in legacy-sitemap.json stands.
+    console.log('check-redirects: --live skipped, the production host now serves this site (legacy-sitemap.json still checked)');
+  } else {
+    const livePaths = [...body.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => new URL(m[1].replace(/&amp;/g, '&')).pathname);
     oldPaths = [...new Set([...oldPaths, ...livePaths])];
   }
 }

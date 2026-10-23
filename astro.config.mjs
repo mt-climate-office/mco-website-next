@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import { satteri } from '@astrojs/markdown-satteri';
 import { sitePathsPlugin } from './src/lib/markdown-site-paths.mjs';
 import { legacyRedirects } from './src/lib/redirects.mjs';
+import { sitemap } from './src/lib/sitemap.mjs';
 
 // The production host. Canonical URLs point here whatever host a build is
 // deployed to (DECISIONS D2). This file is the only place a host is written;
@@ -28,8 +29,10 @@ export default defineConfig({
   base,
   trailingSlash: 'always',
   // Old Jekyll URLs: redirect pages moved to their exact old paths after the
-  // build (Phase 5 step 19; src/data/redirects.json).
-  integrations: [legacyRedirects()],
+  // build (Phase 5 step 19; src/data/redirects.json). Then sitemap.xml, on
+  // the production build only, from the pages that ended up indexable
+  // (Phase 5 step 18; src/lib/sitemap.mjs). Order matters: redirects first.
+  integrations: [legacyRedirects(), sitemap({ indexable, origin: CANONICAL_ORIGIN })],
   build: {
     format: 'directory',
     // Every stylesheet is a file, so the CSP needs no style hashes and no

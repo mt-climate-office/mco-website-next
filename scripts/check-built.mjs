@@ -11,10 +11,14 @@
 //   - the canonical URL is on the production host (404.html: none, always noindex)
 //   - exactly one <h1>
 //   - every internal href/src sits under the base path
+//   - robots.txt and sitemap.xml agree with the mode: a production build
+//     allows crawling, names the sitemap, and the sitemap lists exactly the
+//     indexable pages' canonicals; any other build disallows everything and
+//     has no sitemap
 //
 // Usage: node scripts/check-built.mjs [dist] — reads BASE_PATH like the build.
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const dist = process.argv[2] || 'dist';
@@ -32,6 +36,7 @@ function* pages(dir) {
 
 const failures = [];
 let count = 0;
+const indexableCanonicals = new Set();
 for (const file of pages(dist)) {
   count++;
   const rel = relative(dist, file);
@@ -64,6 +69,7 @@ for (const file of pages(dist)) {
   } else if (!notFound && !canonical?.startsWith(CANONICAL)) {
     fail(`canonical not on the production host: ${canonical}`);
   }
+  if (!noindex && canonical) indexableCanonicals.add(canonical);
 
   const h1s = (html.match(/<h1[\s>]/g) || []).length;
   if (h1s !== 1) fail(`${h1s} <h1> elements`);
@@ -74,8 +80,27 @@ for (const file of pages(dist)) {
 }
 
 if (!count) failures.push(`no pages in ${dist}`);
+
+// robots.txt and sitemap.xml (src/pages/robots.txt.ts, src/lib/sitemap.mjs).
+const robots = existsSync(join(dist, 'robots.txt')) ? readFileSync(join(dist, 'robots.txt'), 'utf8') : null;
+const sitemapFile = join(dist, 'sitemap.xml');
+if (robots === null) failures.push('robots.txt: missing');
+if (indexable) {
+  const sitemapUrl = new URL('sitemap.xml', CANONICAL).href;
+  if (robots !== null && (!/^Allow: \/$/m.test(robots) || /^Disallow: \/$/m.test(robots))) failures.push('robots.txt: a production build must allow crawling');
+  if (robots !== null && !robots.split('\n').includes(`Sitemap: ${sitemapUrl}`)) failures.push(`robots.txt: does not name ${sitemapUrl}`);
+  if (!existsSync(sitemapFile)) failures.push('sitemap.xml: missing on a production build');
+  else {
+    const locs = new Set([...readFileSync(sitemapFile, 'utf8').matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]));
+    for (const u of indexableCanonicals) if (!locs.has(u)) failures.push(`sitemap.xml: indexable page missing: ${u}`);
+    for (const u of locs) if (!indexableCanonicals.has(u)) failures.push(`sitemap.xml: lists a URL that is not an indexable page: ${u}`);
+  }
+} else {
+  if (robots !== null && !/^Disallow: \/$/m.test(robots)) failures.push('robots.txt: a non-production build must disallow everything');
+  if (existsSync(sitemapFile)) failures.push('sitemap.xml: present on a non-production build (DECISIONS D2)');
+}
 if (failures.length) {
   console.error(`check-built: ${failures.length} problem(s)\n  ` + failures.join('\n  '));
   process.exit(1);
 }
-console.log(`check-built: ${count} page(s) ok (base ${base}, ${indexable ? 'indexable' : 'noindex'})`);
+console.log(`check-built: ${count} page(s) ok (base ${base}, ${indexable ? `indexable, sitemap ${indexableCanonicals.size} URL(s)` : 'noindex, no sitemap'})`);
