@@ -1,0 +1,42 @@
+---
+// News: every published post in src/content/news/, newest first. Posts are
+// written in Pages CMS (DECISIONS D13, D14). No pagination yet; add it when
+// the list passes about 30 posts.
+import Base from '../../layouts/Base.astro';
+import { getNews, SHOW_DRAFTS } from '../../lib/news-posts';
+import { newsDate, newsPath } from '../../lib/news';
+import { url } from '../../lib/paths';
+
+const posts = await getNews();
+---
+<Base short="News"
+      description="Montana Drought & Climate updates, event reports and announcements from the Montana Climate Office.">
+  <h1 class="section-title">News</h1>
+  <p class="section-lede">
+    Montana Drought &amp; Climate updates, event reports and announcements, newest first.
+    Follow them in a feed reader with the <a href={url('news/rss.xml')}>news RSS feed</a>.
+  </p>
+
+  {posts.length === 0 ? (
+    <p class="news-empty">No posts yet.</p>
+  ) : (
+    <ul class="news-list">
+      {posts.map(({ data, slug, category }) => {
+        const d = newsDate(data.date);
+        return (
+          <li class="news-item">
+            <article aria-labelledby={`post-${slug}`}>
+              <h2 class="news-item-title" id={`post-${slug}`}>
+                <a href={url(newsPath(slug))}>{data.title}</a>
+              </h2>
+              <p class="stamp news-meta">
+                <time datetime={d.iso}>{d.label}</time> · {category}{SHOW_DRAFTS && data.draft && ' · Draft'}
+              </p>
+              <p class="news-item-summary">{data.summary}</p>
+            </article>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+</Base>

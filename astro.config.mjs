@@ -1,5 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { satteri } from '@astrojs/markdown-satteri';
+import { sitePathsPlugin } from './src/lib/markdown-site-paths.mjs';
 
 // The production host. Canonical URLs point here whatever host a build is
 // deployed to (DECISIONS D2). This file is the only place a host is written;
@@ -29,6 +31,16 @@ export default defineConfig({
     // Every stylesheet is a file, so the CSP needs no style hashes and no
     // 'unsafe-inline' (src/kit/csp.ts).
     inlineStylesheets: 'never',
+  },
+  markdown: {
+    // Content collections write root-relative paths (/images/news/...,
+    // /news/<slug>/); this puts them under the base path and sizes images.
+    // Sätteri is Astro's default processor; it is named here only to add
+    // the plugin. @astrojs/markdown-satteri is pinned to the version astro
+    // itself pins: keep the two in step when bumping astro.
+    processor: satteri({
+      hastPlugins: [sitePathsPlugin({ base, publicDir: new URL('./public/', import.meta.url) })],
+    }),
   },
   vite: {
     // Astro inlines small bundled scripts as unhashed <script type="module">,

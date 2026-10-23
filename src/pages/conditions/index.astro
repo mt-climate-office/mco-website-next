@@ -1,0 +1,55 @@
+---
+// /conditions/ (rebuild plan §4.2): hub for the tools that show what it is
+// doing now, at the stations. Questions and their sources: src/lib/hubs.ts.
+// Copy follows docs/VOICE.md; no figures that change.
+import Base from '../../layouts/Base.astro';
+import QuestionCard from '../../components/content/QuestionCard.astro';
+import ToolList from '../../components/content/ToolList.astro';
+import { CONDITIONS_QUESTIONS } from '../../lib/hubs';
+import { url } from '../../lib/paths';
+
+// Descriptions of this site's own pages, from each page's own description
+// (src/pages/mesonet/{stations,status}/index.astro).
+const PAGES = [
+  {
+    name: 'Mesonet stations',
+    href: url('mesonet/stations/'),
+    description: 'Every station, with its network, county, elevation and install date. Each station page links to its data.',
+  },
+  {
+    name: 'Station status',
+    href: url('mesonet/status/'),
+    description: 'Whether each station is reporting, and which of its sensors are not.',
+  },
+];
+---
+<Base short="Conditions"
+      description="Current readings, soil moisture, station photos and forecasts from the Montana Mesonet.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <h1 class="section-title">Conditions</h1>
+  <p class="section-lede">
+    Readings and photos from Montana Mesonet stations. Recent readings are provisional and can change.
+  </p>
+  {/* Provisional: /latest/ rows carry provisional: true (rebuild plan §1.3);
+      mco-website/_pages/mesonet_citation.md (data subject to change with
+      backfilling and QA/QC). */}
+
+  <section class="hub-section" aria-labelledby="conditions-questions">
+    <h2 id="conditions-questions" class="hub-h2">Start with a question</h2>
+    <div class="hub-grid">
+      {CONDITIONS_QUESTIONS.map((q) => <QuestionCard {...q} />)}
+    </div>
+  </section>
+
+  <section class="hub-section" aria-labelledby="conditions-pages">
+    <h2 id="conditions-pages" class="hub-h2">Stations on this site</h2>
+    <ToolList tools={PAGES} />
+  </section>
+
+  <section class="hub-section" aria-labelledby="conditions-more">
+    <h2 id="conditions-more" class="hub-h2">Drought and snowpack</h2>
+    <p>
+      Drought indices and snowpack percentiles are on the <a href={url('drought/')}>Drought</a> page.
+    </p>
+  </section>
+</Base>

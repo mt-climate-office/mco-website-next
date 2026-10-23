@@ -31,6 +31,9 @@ const ALL_PAGES = [
   { name: 'station', path: 'mesonet/stations/aceabsar/' },
   { name: 'status', path: 'mesonet/status/' },
   { name: 'search', path: 'search/' },
+  { name: 'drought', path: 'drought/' },
+  { name: 'accessibility', path: 'accessibility/' },
+  { name: 'news', path: 'news/' },
 ];
 const MIN = { accessibility: 1, performance: 0.9 };
 
@@ -47,6 +50,7 @@ console.log(`lighthouse: ${PAGES.map((p) => p.name).join(', ')} × ${RUNS} run(s
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
   '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain',
+  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif',
 };
 
 // Text is served gzipped, as GitHub Pages serves it, so page weight and the

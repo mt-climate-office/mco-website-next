@@ -1,0 +1,43 @@
+---
+// /drought/ (rebuild plan §4.2, §4.8): the drought tools overlap and are easy
+// to confuse, so each leads with the question it answers, and D³ keeps the
+// beta label it shows itself. Questions and their sources: src/lib/hubs.ts.
+//
+// Not here, pending the owner (rebuild plan Part 7 Q12): the two HHP layers
+// D³ marks "In Review".
+import Base from '../../layouts/Base.astro';
+import QuestionCard from '../../components/content/QuestionCard.astro';
+import { DROUGHT_QUESTIONS } from '../../lib/hubs';
+import { url } from '../../lib/paths';
+---
+<Base short="Drought"
+      description="Drought indices, snowpack percentiles and livestock forage eligibility, each by the question it answers.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <h1 class="section-title">Drought</h1>
+  <p class="section-lede">
+    Each tool here answers a different question about drought. Pick the question closest to yours.
+  </p>
+
+  <section class="hub-section" aria-labelledby="drought-questions">
+    <h2 id="drought-questions" class="hub-h2">Questions and the tools that answer them</h2>
+    <div class="hub-grid">
+      {DROUGHT_QUESTIONS.map((q) => <QuestionCard {...q} />)}
+    </div>
+  </section>
+
+  <section class="hub-section" aria-labelledby="drought-moved">
+    <h2 id="drought-moved" class="hub-h2">The Upper Missouri drought dashboard</h2>
+    {/* drought.climate.umt.edu serves a "has moved" page that redirects to
+        d3drought.org (fetched 22 Oct 2026). */}
+    <p>
+      The office's earlier drought dashboard at drought.climate.umt.edu now sends visitors to the <a href="https://d3drought.org/">D³ Drought Data Dashboard</a>.
+    </p>
+  </section>
+
+  <section class="hub-section" aria-labelledby="drought-stations">
+    <h2 id="drought-stations" class="hub-h2">Station readings</h2>
+    <p>
+      Soil moisture at each Mesonet station is on the <a href={url('conditions/')}>Conditions</a> page.
+    </p>
+  </section>
+</Base>

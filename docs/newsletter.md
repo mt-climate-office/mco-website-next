@@ -13,12 +13,13 @@ News posts go out by email through Listmonk at `lists.climate.umt.edu`
 | `scripts/newsletter/test/` | `npm run test:newsletter`, run in the site workflow |
 | `src/lib/news.ts` | `newsSlug()` and `newsPath()`, the one definition of a post URL |
 
-## Status: inert until Phase 4
+## Status: dry runs only until launch
 
-`src/content/news/` does not exist yet. The workflow triggers only on pushes
-to `main` that touch it, and a manual run exits with a notice. Live sends
-also need the repository variable `NEWSLETTER_SEND_ENABLED` set to `true`;
-without it every run is a dry run.
+`src/content/news/` exists from Phase 4, with the migrated Jekyll posts. None
+of them carries `email:`, so none is ever due. The workflow triggers on
+pushes to `main` that touch the directory. Live sends also need the
+repository variable `NEWSLETTER_SEND_ENABLED` set to `true`; without it every
+run is a dry run.
 
 Leave it unset until launch. Before cutover, a post's URL on
 `climate.umt.edu` is still the Jekyll site, so the email's links would 404.
@@ -95,18 +96,20 @@ must call `newsSlug()` and `newsPath()` from `src/lib/news.ts` so the site
 and the email agree. Email links resolve against `CANONICAL_ORIGIN`, which
 is exported from `astro.config.mjs`; no host is written anywhere else.
 
-### Images: an assumption to confirm in Phase 4
+### Images
 
-The renderer assumes post images are **root-relative paths to files in
-`public/`**, such as `/images/news/2026-10-dillon.jpg`, which is how Pages
-CMS writes media when `.pages.yml` sets `media.output` to a public path. It
-makes them absolute against the production origin.
+Post images are **root-relative paths to files in `public/images/news/`**,
+such as `/images/news/2026-10-dillon.jpg`. Pages CMS writes them that way
+(`.pages.yml` `media.input` is `public/images/news`, `media.output` is
+`/images/news`); migrated posts keep theirs in `public/images/news/<slug>/`.
+The renderer makes them absolute against the production origin. On the site,
+`src/lib/markdown-site-paths.mjs` puts them under the base path, adds width
+and height, and fails the build if the file is missing. An 800px copy named
+`<name>-800w.<ext>` beside an image, if present, becomes its `srcset`.
 
-Images colocated with the post and processed by `astro:assets` get hashed
-`/_astro/` URLs at build time, which a script reading the Markdown cannot
-know. If Phase 4 chooses that, the renderer has to read the built page
-instead. A relative path in a post fails the render with an error rather
-than guessing.
+They are not colocated with the post or processed by `astro:assets`, whose
+hashed `/_astro/` URLs a script reading the Markdown cannot know. A relative
+path in a post fails the render with an error rather than guessing.
 
 ## Secrets and variables
 

@@ -1,0 +1,50 @@
+---
+// /about/ (rebuild plan §4.2). The one page where the office may describe
+// itself (VOICE rule 6), kept to facts with a source each. Staff, partners
+// and funders arrive with the content collections (Phase 4).
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/paths';
+---
+<Base short="About"
+      description="The Montana Climate Office at the University of Montana: what it is, and how to reach it.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>About the Montana Climate Office</h1>
+
+    {/* Designation: mco-website/_pages/about/about.md ("In 2006 Governor
+        Schweitzer designated the Montana Climate Office, at the University
+        of Montana, as the official state climate office"). */}
+    <p>
+      The Montana Climate Office is Montana's official state climate office.
+      Governor Schweitzer designated it in 2006.
+    </p>
+
+    {/* College and town: the site footer, owner decision of 22 Oct 2026
+        (rebuild plan Phase 1 item 3; DECISIONS D15 postal address). */}
+    <p>
+      The office is part of the W.A. Franke College of Forestry &amp; Conservation at the
+      University of Montana, in Missoula.
+    </p>
+
+    {/* Operates the Mesonet: mco-website/index.md ("stations that the MCO
+        operates across Montana"). The tools: src/lib/tools.ts, repos under
+        mt-climate-office (phase-0-report §3). */}
+    <p>
+      It runs the Montana Mesonet and builds the data tools linked from
+      the <a href={url('conditions/')}>Conditions</a>, <a href={url('drought/')}>Drought</a>
+      and <a href={url('mesonet/')}>Mesonet</a> pages.
+    </p>
+
+    <h2>Contact</h2>
+    {/* Address and email: the site footer (rebuild plan Phase 1 item 3). */}
+    <p>
+      Email <a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a>.
+    </p>
+    <address>
+      Montana Climate Office<br>
+      W.A. Franke College of Forestry &amp; Conservation<br>
+      University of Montana<br>
+      Missoula, MT 59812
+    </address>
+  </div>
+</Base>

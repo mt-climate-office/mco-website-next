@@ -30,6 +30,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const bar = $('photo-controls');
 const mosaic = $<HTMLUListElement>('hero-mosaic');
 if (bar && mosaic && typeof MCO !== 'undefined' && MCO.photos) void init(bar, mosaic);
+else if (bar) bar.hidden = true; // No kit photo module: drop the reserved space.
 
 async function init(bar: HTMLElement, mosaic: HTMLUListElement) {
   const P = MCO.photos;
@@ -42,7 +43,8 @@ async function init(bar: HTMLElement, mosaic: HTMLUListElement) {
   try {
     schedule = await P.load();
   } catch {
-    return; // The build-time set stays, controls stay hidden.
+    bar.hidden = true; // The build-time set stays; the controls go.
+    return;
   }
 
   let controls: PhotoControls | null = null;
@@ -103,7 +105,7 @@ async function init(bar: HTMLElement, mosaic: HTMLUListElement) {
       void show(change.rolls);
     },
   });
-  bar.hidden = false;
+  bar.classList.remove('is-pending');
 
   const st = controls.state();
   const same = st.date === built.date && st.time === built.time && st.view === built.view;

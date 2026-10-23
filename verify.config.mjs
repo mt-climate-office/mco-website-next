@@ -75,7 +75,18 @@ export default {
       ready: () => !document.documentElement.classList.contains('mco-booting') &&
         document.querySelector('#st-table th[aria-sort="descending"]') != null,
     },
+    // News: the list, and the longest migrated post (17 figures, captions,
+    // h2–h5), so axe sees content images and the reading layer.
+    { name: 'news', query: 'news/', ready: chromeReady },
+    { name: 'news-post', query: 'news/mtdrought-and-climate-2026-march/', ready: chromeReady },
     { name: 'search', query: 'search/', ready: chromeReady },
+    // Section hubs and the accessibility statement (static pages).
+    { name: 'conditions', query: 'conditions/', ready: chromeReady },
+    { name: 'drought', query: 'drought/', ready: chromeReady },
+    { name: 'mesonet', query: 'mesonet/', ready: chromeReady },
+    { name: 'research', query: 'research/', ready: chromeReady },
+    { name: 'about', query: 'about/', ready: chromeReady },
+    { name: 'accessibility', query: 'accessibility/', ready: chromeReady },
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
   probes: async ({ open, check }) => {
