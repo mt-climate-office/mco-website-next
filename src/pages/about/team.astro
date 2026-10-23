@@ -1,0 +1,77 @@
+---
+// /about/team/, at the old site's path (rebuild plan §4.2, §4.6). Current
+// people from the people collection, grouped and ordered as their entries
+// say. Names, titles and bios are as the old page had them
+// (mco-website/_data/team.yml), with only punctuation fixed.
+//
+// The old page grouped no one (its gallery listed team.yml in order); the
+// groups here come from each person's position.
+//
+// Personal email and GitHub links are in the data but not shown: the old team
+// page did not publish them, and doing so is the owner's decision (raised
+// 23 Oct 2026). Set SHOW_PERSONAL_CONTACT to true once decided. ORCID and
+// website links are public scholarly profiles and are shown.
+const SHOW_PERSONAL_CONTACT = false;
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getTeam } from '../../lib/people';
+import { contentImage } from '../../lib/content-image';
+import { url } from '../../lib/paths';
+
+const groups = await Promise.all((await getTeam()).map(async (g) => ({
+  ...g,
+  people: await Promise.all(g.people.map(async (p) => ({
+    ...p,
+    Content: (await render(p.entry)).Content,
+    img: p.photo ? contentImage(p.photo, p.entry.filePath ?? p.id) : null,
+  }))),
+})));
+---
+<Base short="Team"
+      description="Staff, students and affiliates of the Montana Climate Office, with their roles.">
+  <!-- Page copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). Names, titles and bios are as the old team page had them. -->
+  <p class="pub-back"><a href={url('about/')}>About</a></p>
+  <h1 class="section-title pub-page-title">Team</h1>
+  <p class="section-lede">
+    Staff, students and affiliates of the Montana Climate Office. To reach the office as a whole, email{' '}
+    <a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a>.
+  </p>
+
+  {groups.map((g) => (
+    <section class="hub-section" aria-labelledby={`team-${g.key}`}>
+      <h2 id={`team-${g.key}`} class="hub-h2">{g.label}</h2>
+      <ul class="people-grid">
+        {g.people.map((p) => (
+          <li class="person" id={p.id}>
+            {p.img && (
+              <img class="person-photo" src={p.img.src} alt={p.photoAlt} width={p.img.width} height={p.img.height}
+                   loading="lazy" decoding="async">
+            )}
+            <div class="person-head">
+              <h3 class="person-name">{p.name}</h3>
+              <p class="person-role">{p.role}</p>
+            </div>
+            <div class="person-bio"><p.Content /></div>
+            {((SHOW_PERSONAL_CONTACT && (p.email || p.github)) || p.orcid || p.website) && (
+              <ul class="person-links" aria-label={`Contact and profiles for ${p.name}`}>
+                {SHOW_PERSONAL_CONTACT && p.email && <li><a href={`mailto:${p.email}`}>{p.email}</a></li>}
+                {p.orcid && <li><a href={`https://orcid.org/${p.orcid}`}>ORCID<span class="sr-only"> iD of {p.name}</span></a></li>}
+                {SHOW_PERSONAL_CONTACT && p.github && <li><a href={p.github}>GitHub<span class="sr-only"> profile of {p.name}</span></a></li>}
+                {p.website && <li><a href={p.website}>Website<span class="sr-only"> of {p.name}</span></a></li>}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  <section class="hub-section" aria-labelledby="team-more">
+    <h2 id="team-more" class="hub-h2">More about the office</h2>
+    <ul class="pub-list">
+      <li><p class="pub-title"><a href={url('projects/')}>Projects</a></p></li>
+      <li><p class="pub-title"><a href={url('about/partnerships/')}>Partners and sponsors</a></p></li>
+      <li><p class="pub-title"><a href={url('about/')}>About the Montana Climate Office</a></p></li>
+    </ul>
+  </section>
+</Base>

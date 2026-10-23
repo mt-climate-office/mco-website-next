@@ -1,7 +1,7 @@
 ---
 // /about/ (rebuild plan §4.2). The one page where the office may describe
 // itself (VOICE rule 6), kept to facts with a source each. Staff, partners
-// and funders arrive with the content collections (Phase 4).
+// and projects have their own pages, from the content collections.
 import Base from '../../layouts/Base.astro';
 import { url } from '../../lib/paths';
 ---
@@ -34,6 +34,13 @@ import { url } from '../../lib/paths';
       the <a href={url('conditions/')}>Conditions</a>, <a href={url('drought/')}>Drought</a>
       and <a href={url('mesonet/')}>Mesonet</a> pages.
     </p>
+
+    <h2>People, partners and projects</h2>
+    <ul>
+      <li><a href={url('about/team/')}>Team</a>: staff, students and affiliates, with their roles.</li>
+      <li><a href={url('about/partnerships/')}>Partners and sponsors</a>: the organizations the office works with and is funded by.</li>
+      <li><a href={url('projects/')}>Projects</a>: research and data projects, with their partners and publications.</li>
+    </ul>
 
     <h2>Contact</h2>
     {/* Address and email: the site footer (rebuild plan Phase 1 item 3). */}

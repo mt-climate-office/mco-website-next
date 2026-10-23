@@ -110,6 +110,13 @@ export default {
     { name: 'ag-gdds', query: 'mesonet/ag_tools/gdds/', ready: chromeReady },
     { name: 'qaqc', query: 'mesonet/qaqc/', ready: chromeReady },
     { name: 'about', query: 'about/', ready: chromeReady },
+    // People, partners and projects: the team page (photos, a person with
+    // none, contact links), the partners page, the project list, and a
+    // project with a body, partners and a tagged publication.
+    { name: 'team', query: 'about/team/', ready: chromeReady },
+    { name: 'partners', query: 'about/partnerships/', ready: chromeReady },
+    { name: 'projects', query: 'projects/', ready: chromeReady },
+    { name: 'project', query: 'projects/mdc/', ready: chromeReady },
     { name: 'accessibility', query: 'accessibility/', ready: chromeReady },
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],

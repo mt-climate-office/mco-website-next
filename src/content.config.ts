@@ -20,4 +20,22 @@ const publications = defineCollection({
   schema: toZod(collectionDefs.publications),
 });
 
-export const collections = { news, publications };
+// The team page, partners and projects (rebuild plan §4.6). References
+// between them (publication → project, project → partner) are slugs, checked
+// at build by src/lib/projects.ts.
+const people = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: './src/content/people' }),
+  schema: toZod(collectionDefs.people),
+});
+
+const partners = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: './src/content/partners' }),
+  schema: toZod(collectionDefs.partners),
+});
+
+const projects = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: './src/content/projects' }),
+  schema: toZod(collectionDefs.projects),
+});
+
+export const collections = { news, publications, people, partners, projects };

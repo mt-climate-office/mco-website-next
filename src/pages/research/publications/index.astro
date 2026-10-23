@@ -9,10 +9,13 @@
 // Crossref cache (src/lib/publications.ts); counts come from the list.
 import Base from '../../../layouts/Base.astro';
 import { authorList, facetValue, getPublications, publicationPath, TYPE_LABEL } from '../../../lib/publications';
+import { projectsBySlug } from '../../../lib/projects';
 import { count } from '../../../lib/format';
 import { url } from '../../../lib/paths';
 
 const pubs = await getPublications();
+// A publication names its projects by slug; the chip shows the project's short name.
+const projectBySlug = await projectsBySlug();
 const total = pubs.length;
 const noun = (n: number) => (n === 1 ? 'publication' : 'publications');
 const registries = [...new Set(pubs.map((p) => (p.source === 'datacite' ? 'DataCite' : 'Crossref')))].sort().join(' and ');
@@ -21,7 +24,7 @@ const registries = [...new Set(pubs.map((p) => (p.source === 'datacite' ? 'DataC
 const uniq = (pairs: [string, string][]) => [...new Map(pairs).entries()];
 const years = uniq(pubs.map((p) => [String(p.year), String(p.year)]));
 const types = uniq(pubs.map((p) => [p.type, TYPE_LABEL[p.type]]));
-const projects = uniq(pubs.flatMap((p) => p.projects.map((x): [string, string] => [facetValue(x), x])))
+const projects = uniq(pubs.flatMap((p) => p.projects.map((x): [string, string] => [x, projectBySlug.get(x)!.label])))
   .sort((a, b) => a[1].localeCompare(b[1]));
 const topics = uniq(pubs.flatMap((p) => p.topics.map((x): [string, string] => [facetValue(x), x])))
   .sort((a, b) => a[1].localeCompare(b[1]));
@@ -74,7 +77,7 @@ const groups = [
       <li class="pub-item"
           data-year={p.year}
           data-type={p.type}
-          data-project={p.projects.map(facetValue).join(' ')}
+          data-project={p.projects.join(' ')}
           data-topic={p.topics.map(facetValue).join(' ')}>
         <h2 class="pub-item-title"><a href={url(publicationPath(p.slug))}>{p.title}</a></h2>
         <p class="pub-meta">{authorList(p.authors, 6)}.</p>

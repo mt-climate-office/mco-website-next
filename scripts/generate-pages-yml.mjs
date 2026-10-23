@@ -37,13 +37,17 @@ const STATIC_CONFIG = {
   },
   // Uploads land in public/, so the site serves them as they are and the
   // newsletter renderer can make their root-relative paths absolute
-  // (docs/newsletter.md, Images). Migrated posts keep theirs under
-  // public/images/news/<slug>/.
-  media: {
-    input: 'public/images/news',
-    output: '/images/news',
+  // (docs/newsletter.md, Images). One named source per collection with
+  // images; each image field names its own (options.media in _fields.ts).
+  // News comes first: rich-text uploads in a post body use the first source.
+  // Migrated posts keep theirs under public/images/news/<slug>/.
+  media: ['news', 'people', 'partners', 'projects'].map((name) => ({
+    name,
+    label: name[0].toUpperCase() + name.slice(1),
+    input: `public/images/${name}`,
+    output: `/images/${name}`,
     extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-  },
+  })),
 };
 
 function toField(cms) {

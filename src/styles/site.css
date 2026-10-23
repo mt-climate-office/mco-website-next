@@ -471,3 +471,66 @@ html:not([data-theme]) .pub-filters { display: none; }
   .pub-article-foot a { display: inline-block; min-height: 40px; padding-block: var(--space-2); }
 }
 .hub-section > p.pub-all { margin-top: var(--space-6); }
+
+/* ── Team (src/pages/about/team.astro) ──────────────────────────────────── */
+/* Cards: three across, two at the kit's 1060, one at 640. */
+.people-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+@media (max-width: 1060px) {
+  .people-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .people-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.person {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-areas: "photo head" "bio bio" "links links";
+  align-items: center;
+  gap: var(--space-4) var(--space-5);
+  align-content: start;
+}
+.person-photo {
+  grid-area: photo;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+/* No photo: the name takes the whole row. */
+.person-head { grid-area: head; }
+.person:not(:has(.person-photo)) .person-head { grid-column: 1 / -1; }
+.person-name { font-size: var(--fs-lg); line-height: var(--lh-tight); font-weight: var(--fw-semibold); }
+.person-role { margin-top: var(--space-1); font-size: var(--fs-base); line-height: var(--lh-body); color: var(--text-secondary); }
+.person-bio { grid-area: bio; font-size: var(--fs-base); line-height: var(--lh-body); }
+.person-bio > * + * { margin-top: var(--space-3); }
+.person-links { grid-area: links; list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-size: var(--fs-base); overflow-wrap: anywhere; }
+
+/* ── Partners and projects (src/pages/about/partnerships.astro, projects/) ─ */
+.org-list { list-style: none; max-width: 68ch; }
+.org-list > li + li { margin-top: var(--space-5); }
+.hub-section > p + .org-list { margin-top: var(--space-5); }
+.org-name { font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); }
+.org-logo { display: inline-block; vertical-align: middle; max-height: 32px; width: auto; margin-right: var(--space-3); }
+.org-text {
+  margin-top: var(--space-1);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+.project-status { margin-top: var(--space-3); }
+.project-hero { display: block; margin-top: var(--space-6); max-width: 100%; height: auto; border-radius: var(--radius-md); }
+.project-body { margin-top: var(--space-6); }
+@media (hover: none) {
+  .org-name a,
+  .org-text a,
+  .person-links a { display: inline-block; min-height: 40px; padding-block: var(--space-2); }
+  /* A one-word back link ("About") is narrower than the 40 px target. */
+  .pub-back a { min-width: 44px; }
+}
