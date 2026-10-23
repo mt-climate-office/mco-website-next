@@ -8,8 +8,13 @@ const STAMP = new Intl.DateTimeFormat('en-US', {
   timeZone: TZ, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
 });
 
-/** "Oct 21, 3:00 PM MDT" */
-export const stampMT = (ms: number): string => STAMP.format(new Date(ms));
+/** "Oct 21, 3:00 PM MDT", in every engine. Assembled from parts: WebKit's
+    Intl writes "Oct 21 at 3:00 PM MDT" where Node and Chromium write a
+    comma, so the same timestamp read differently after a client refresh. */
+export const stampMT = (ms: number): string => {
+  const p = Object.fromEntries(STAMP.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return `${p.month} ${p.day}, ${p.hour}:${p.minute} ${p.dayPeriod} ${p.timeZoneName}`;
+};
 
 /** ISO string for a <time datetime>. */
 export const isoTime = (ms: number): string => new Date(ms).toISOString();

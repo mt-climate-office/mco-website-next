@@ -4,6 +4,10 @@
 
 /* The kit resets margins and ships no page layout: a document page needs
    one. Footer at the bottom of short pages. */
+/* Page gutter: 16 px on a phone, growing to 32 px, so text never sits
+   against the window edge on a laptop. Built from kit spacing tokens. */
+:root { --gutter: clamp(var(--space-5), 4vw, var(--space-7)); }
+
 body {
   min-height: 100dvh;
   display: flex;
@@ -14,7 +18,7 @@ main {
   width: 100%;
   max-width: 72rem;
   margin-inline: auto;
-  padding: var(--space-7) max(var(--space-5), env(safe-area-inset-right)) var(--space-7) max(var(--space-5), env(safe-area-inset-left));
+  padding: var(--space-7) max(var(--gutter), env(safe-area-inset-right)) var(--space-7) max(var(--gutter), env(safe-area-inset-left));
 }
 
 /* Full-bleed pages (Base fullBleed): bands run edge to edge and each one
@@ -24,7 +28,7 @@ main.is-full-bleed { max-width: none; padding: 0; }
   width: 100%;
   max-width: 72rem;
   margin-inline: auto;
-  padding-inline: max(var(--space-5), env(safe-area-inset-right)) max(var(--space-5), env(safe-area-inset-left));
+  padding-inline: max(var(--gutter), env(safe-area-inset-right)) max(var(--gutter), env(safe-area-inset-left));
 }
 /* A band on the raised-from-ground surface, ruled top and bottom. */
 .band { background: var(--bg-surface); border-bottom: 1px solid var(--border); }
@@ -176,6 +180,19 @@ main a:not([class]) {
 .site-footer a { display: inline-flex; align-items: center; min-height: 24px; }
 @media (hover: none) {
   .site-footer a { min-height: 40px; }
+  /* Short section names ("News") would be narrower than the target. */
+  .site-footer-nav a { min-width: 40px; justify-content: center; }
+}
+/* Section links: one wrapping row, the same six as the header plus the
+   accessibility statement. */
+.site-footer-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-5);
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
 }
 
 /* ── Site search (src/pages/search.astro) ───────────────────────────────── */
