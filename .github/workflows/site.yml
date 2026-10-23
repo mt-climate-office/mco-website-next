@@ -32,7 +32,9 @@ jobs:
   verify:
     name: Build and verify
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # The full tier (main, nightly) ran 30 min on 2026-10-23: the harness in
+    # Chromium and WebKit takes ~25 of it. PRs (Chromium) take ~10.
+    timeout-minutes: 50
     env:
       # A base path no deploy uses, so any link that ignores the base path
       # 404s in the browser pass. The deploy base comes from configure-pages.
