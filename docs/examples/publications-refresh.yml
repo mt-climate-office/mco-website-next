@@ -1,0 +1,67 @@
+# DRAFT — NOT ACTIVE. This file sits outside .github/workflows/ on purpose,
+# so GitHub never runs it. To turn it on, review it with whoever owns CI, then
+# move it to .github/workflows/publications-refresh.yml in its own change.
+#
+# What it does: refreshes src/data/publications.json (the Crossref cache the
+# publications portal builds from; scripts/publications-refresh.mjs) when
+# someone adds or edits a DOI in the CMS, and weekly in case a registry record
+# changed. If the cache changed, it commits it to main and starts the site
+# workflow, because a push made with GITHUB_TOKEN does not trigger other
+# workflows by itself.
+#
+# Until it is on, a new DOI appears on the site only after someone runs
+# `npm run publications:refresh` and commits the result. The build leaves out
+# a DOI with no cached record (with a warning), and
+# `npm run check:publications` fails on it.
+#
+# Open questions for the CI owner:
+#   - Direct push to main assumes branch protection allows the Actions bot.
+#     If it does not, open a pull request instead (gh pr create).
+#   - Should site.yml run `npm run check:publications`? It fails a pull
+#     request that lists a DOI without refreshing the cache.
+
+name: publications-refresh
+
+on:
+  push:
+    branches: [main]
+    paths: ['src/content/publications/**']
+  schedule:
+    - cron: '17 13 * * 1'   # Mondays 13:17 UTC; off the hour, as Crossref asks
+  workflow_dispatch:
+
+permissions:
+  contents: write   # commit the refreshed cache
+  actions: write    # start site.yml after committing
+
+concurrency:
+  group: publications-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Refresh the Crossref cache
+        run: npm run publications:refresh
+      - name: Commit and deploy if it changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- src/data/publications.json; then
+            echo "No change to src/data/publications.json"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/data/publications.json
+          git commit -m 'Publications: refresh Crossref cache'
+          git push
+          gh workflow run site.yml --ref main

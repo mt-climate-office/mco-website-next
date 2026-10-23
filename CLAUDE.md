@@ -86,8 +86,18 @@ an error string. **Never let an embedded map capture page scroll.**
 ## Content (D13, D14)
 
 Built for **news** (the public archive, migrated from the Jekyll site;
-`/news/`, `/news/<slug>/`, `/news/rss.xml`). Pages, people, projects and
-publications are TODOs in `_fields.ts`.
+`/news/`, `/news/<slug>/`, `/news/rss.xml`) and **publications**
+(`/research/publications/`, one page per item, `.bib` and CSL-JSON
+downloads). Pages, people and projects are TODOs in `_fields.ts`.
+
+Publications are DOI-driven (plan §4.7): each `src/content/publications/*.md`
+holds a DOI plus what only a person decides (featured, projects, topics,
+pdf, note). Title, authors, venue, year, type, abstract and licence come from
+`src/data/publications.json`, written by `npm run publications:refresh`
+(Crossref, DataCite fallback) and committed. **The build never calls
+Crossref**; a DOI with no cached record is left out with a warning, and
+`npm run check:publications` fails on it. The scheduled refresh is a draft
+in `docs/examples/publications-refresh.yml`, not active.
 
 Collections in `src/content/`, Zod schema in `src/content.config.ts`.
 One field definition in `src/content/_fields.ts` emits both the Zod schema and

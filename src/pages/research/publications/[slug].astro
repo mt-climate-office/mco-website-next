@@ -1,0 +1,102 @@
+---
+// One publication at /research/publications/<slug>/ (rebuild plan §4.7):
+// title, authors, venue, the DOI, the abstract when the registry has one, a
+// reference to copy, and this item's BibTeX and CSL-JSON. Every link says
+// where it goes (WCAG 2.4.4). Projects and topics link to the filtered list.
+import Base from '../../../layouts/Base.astro';
+import {
+  authorList, facetValue, getPublications, licenseLabel, reference, TYPE_LABEL, type Publication,
+} from '../../../lib/publications';
+import { url } from '../../../lib/paths';
+
+export async function getStaticPaths() {
+  const pubs = await getPublications();
+  return pubs.map((p) => ({ params: { slug: p.slug }, props: { p } }));
+}
+
+interface Props { p: Publication }
+const { p } = Astro.props;
+// The tab title is "<Short> · MCO" within 70 characters (as news posts do);
+// the h1 is always the full title.
+const MAX_SHORT = 70 - ' · MCO'.length;
+const short = p.title.length <= MAX_SHORT
+  ? p.title
+  : p.title.slice(0, MAX_SHORT).replace(/\s+\S*$/, '').replace(/[\s:;,.–—-]+$/, '') + '…';
+const kind = TYPE_LABEL[p.type].toLowerCase();
+const licence = licenseLabel(p.license);
+const registry = p.source === 'datacite' ? 'DataCite' : 'Crossref';
+// "Nature Communications, volume 13, issue 1, article 2715"
+const rest = [p.volume && `volume ${p.volume}`, p.issue && `issue ${p.issue}`,
+  p.articleNumber ? `article ${p.articleNumber}` : p.page && `pages ${p.page.replace(/-/g, '–')}`,
+  p.version && `version ${p.version}`]
+  .filter(Boolean).map((x) => `, ${x}`).join('');
+const description = `${authorList(p.authors, 3)}. ${p.container ?? p.publisher ?? TYPE_LABEL[p.type]}, ${p.year}.`;
+const filterLink = (key: string, value: string) => url(`research/publications/?${key}=${encodeURIComponent(facetValue(value))}`);
+---
+<Base short={short} description={description}>
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <article class="pub-article" aria-labelledby="pub-title">
+    <header class="pub-article-head">
+      <p class="pub-back"><a href={url('research/publications/')}>Publications</a></p>
+      <h1 class="pub-article-title" id="pub-title">{p.title}</h1>
+      <p class="pub-authors">{authorList(p.authors)}</p>
+      <p class="pub-meta">
+        {p.container ? <cite>{p.container}</cite> : (p.publisher ?? TYPE_LABEL[p.type])}{rest}, {p.year}.
+        {' '}{TYPE_LABEL[p.type]}.
+      </p>
+    </header>
+
+    <ul class="pub-actions">
+      <li><a class="nav-btn site-cta" href={p.url}>Read the {kind} at the publisher</a></li>
+      {p.pdf && <li><a class="nav-btn site-cta" href={p.pdf}>PDF of the {kind}</a></li>}
+    </ul>
+
+    <dl class="pub-facts">
+      <dt>DOI</dt>
+      <dd><a href={p.url}>{p.doi}</a></dd>
+      <dt>Access</dt>
+      <dd>
+        {p.openAccess === 'yes'
+          ? <>Open access{licence && <>, under <a href={p.license}>{licence}</a></>}</>
+          : `${registry} records no open licence for this ${kind}. Follow the DOI to the publisher's page.`}
+      </dd>
+      {p.projects.length > 0 && (
+        <dt>{p.projects.length === 1 ? 'Project' : 'Projects'}</dt>
+        <dd>
+          <ul class="pub-inline">
+            {p.projects.map((x) => <li><a href={filterLink('project', x)}>{x} publications</a></li>)}
+          </ul>
+        </dd>
+      )}
+      {p.topics.length > 0 && (
+        <dt>{p.topics.length === 1 ? 'Topic' : 'Topics'}</dt>
+        <dd>
+          <ul class="pub-inline">
+            {p.topics.map((x) => <li><a href={filterLink('topic', x)}>{x} publications</a></li>)}
+          </ul>
+        </dd>
+      )}
+    </dl>
+
+    {p.note && <p class="pub-note">{p.note}</p>}
+
+    <section class="pub-section" aria-labelledby="pub-abstract">
+      <h2 id="pub-abstract" class="hub-h2">Abstract</h2>
+      {p.abstract
+        ? <div class="prose pub-abstract">{p.abstract.map((para) => <p>{para}</p>)}</div>
+        : <p class="pub-missing">{registry} has no abstract for this {kind}.</p>}
+      {p.abstract && <p class="stamp pub-source">Abstract as {registry} records it, retrieved <time datetime={p.retrieved}>{p.retrieved}</time>.</p>}
+    </section>
+
+    <section class="pub-section" aria-labelledby="pub-cite">
+      <h2 id="pub-cite" class="hub-h2">Cite this {kind}</h2>
+      <p class="pub-cite">{reference(p)}</p>
+      <ul class="pub-downloads">
+        <li><a class="nav-btn" href={url(`research/publications/${p.slug}.bib`)} download={`${p.slug}.bib`}>BibTeX for this {kind}</a></li>
+        <li><a class="nav-btn" href={url(`research/publications/${p.slug}.json`)} download={`${p.slug}.json`}>CSL-JSON for this {kind}</a></li>
+      </ul>
+    </section>
+
+    <p class="pub-article-foot"><a href={url('research/publications/')}>All publications</a></p>
+  </article>
+</Base>

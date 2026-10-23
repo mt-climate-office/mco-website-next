@@ -12,4 +12,12 @@ const news = defineCollection({
   schema: toZod(collectionDefs.news),
 });
 
-export const collections = { news };
+// The publications portal's DOI list (rebuild plan §4.7). Each file holds a
+// DOI and the fields only a person can supply; the metadata comes from the
+// committed Crossref cache (src/data/publications.json, src/lib/publications.ts).
+const publications = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: './src/content/publications' }),
+  schema: toZod(collectionDefs.publications),
+});
+
+export const collections = { news, publications };
