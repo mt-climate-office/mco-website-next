@@ -5,8 +5,13 @@
 // (mco-website/_data/team.yml), with only punctuation fixed.
 //
 // The old page grouped no one (its gallery listed team.yml in order); the
-// groups here come from each person's position. Contact links come from the
-// same file, where the old site showed them in news posts' author sidebars.
+// groups here come from each person's position.
+//
+// Personal email and GitHub links are in the data but not shown: the old team
+// page did not publish them, and doing so is the owner's decision (raised
+// 23 Oct 2026). Set SHOW_PERSONAL_CONTACT to true once decided. ORCID and
+// website links are public scholarly profiles and are shown.
+const SHOW_PERSONAL_CONTACT = false;
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { getTeam } from '../../lib/people';
@@ -23,7 +28,7 @@ const groups = await Promise.all((await getTeam()).map(async (g) => ({
 })));
 ---
 <Base short="Team"
-      description="Staff, students and affiliates of the Montana Climate Office, with their roles and how to reach them.">
+      description="Staff, students and affiliates of the Montana Climate Office, with their roles.">
   <!-- Page copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). Names, titles and bios are as the old team page had them. -->
   <p class="pub-back"><a href={url('about/')}>About</a></p>
   <h1 class="section-title pub-page-title">Team</h1>
@@ -47,11 +52,11 @@ const groups = await Promise.all((await getTeam()).map(async (g) => ({
               <p class="person-role">{p.role}</p>
             </div>
             <div class="person-bio"><p.Content /></div>
-            {(p.email || p.orcid || p.github || p.website) && (
+            {((SHOW_PERSONAL_CONTACT && (p.email || p.github)) || p.orcid || p.website) && (
               <ul class="person-links" aria-label={`Contact and profiles for ${p.name}`}>
-                {p.email && <li><a href={`mailto:${p.email}`}>{p.email}</a></li>}
+                {SHOW_PERSONAL_CONTACT && p.email && <li><a href={`mailto:${p.email}`}>{p.email}</a></li>}
                 {p.orcid && <li><a href={`https://orcid.org/${p.orcid}`}>ORCID<span class="sr-only"> iD of {p.name}</span></a></li>}
-                {p.github && <li><a href={p.github}>GitHub<span class="sr-only"> profile of {p.name}</span></a></li>}
+                {SHOW_PERSONAL_CONTACT && p.github && <li><a href={p.github}>GitHub<span class="sr-only"> profile of {p.name}</span></a></li>}
                 {p.website && <li><a href={p.website}>Website<span class="sr-only"> of {p.name}</span></a></li>}
               </ul>
             )}
