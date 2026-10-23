@@ -3,7 +3,7 @@
 // built site. The tools are the kit's, at the pinned tag; Playwright and axe
 // are this repo's pinned devDependencies, passed in through VERIFY_MODULES.
 //
-//   KIT_DIR=../mco-web-style-v0.16.1 BASE_PATH=/verify-base/ node scripts/verify.mjs
+//   KIT_DIR=../mco-web-style-v0.17.0 BASE_PATH=/verify-base/ node scripts/verify.mjs
 //
 // KIT_DIR is a checkout of mco-web-style at the KIT_VERSION tag. dist/ must
 // have been built with the same BASE_PATH.

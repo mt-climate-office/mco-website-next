@@ -1,7 +1,7 @@
 // Homepage conditions card: the kit's place search over the Mesonet
 // stations, filling ConditionsNow.astro from /latest/.
 //
-//   - One field, MCO.places.initPlaceSearch (kit 0.16.x): stations first,
+//   - One field, MCO.places.initPlaceSearch (kit 0.16 and later): stations first,
 //     places (county, reservation, tribe, town, ZIP code) under them while
 //     typing. The kit owns the combobox, its keys (Esc closes and restores,
 //     then clears), the gazetteer and the result-count announcements.
@@ -11,8 +11,15 @@
 //     answers with stations); pressing one moves the card to it.
 //   - Near me asks for a position only on a press. A refusal or failure is
 //     said in words beside the button, with the way forward.
-//   - The card is announced once per fill (MCO.announce). Focus stays where
-//     the visitor was: the field, or the station button they pressed.
+//   - Under the temperature, the kit's conditions line (MCO.summary, kit
+//     0.17.x): "Partly cloudy tonight, calm, no precipitation in 3 days."
+//     It reuses the /latest/ row the card already has and adds the hourly
+//     rows, /derived/ppt/ (HydroMet only) and the NWS forecast; any part
+//     that fails is left out, and with nothing known the line is hidden.
+//   - The card is announced once per fill (MCO.announce), with the line in
+//     it when it arrives within SUMMARY_WAIT_MS; a later line is shown, not
+//     announced. Focus stays where the visitor was: the field, or the
+//     station button they pressed.
 //   - URL state (HOUSE-STYLE §4): ?s=<id> is written on a pick, merged with
 //     the page's other params, and read once at boot, validated against the
 //     catalog; then mco-website-conditions in localStorage; else the empty
@@ -27,6 +34,7 @@ import { toConditions, updatedAgo } from '../lib/conditions';
 import { formatReading, isoTime, stampMT } from '../lib/format';
 import type { StationConditions } from '../components/data/types';
 import type { McoPlaces, NearStation, Place, PlaceSearch, PlaceStations } from '../types/mco-places';
+import type { McoSummary } from '../types/mco-summary';
 
 declare const MCO: any;
 
@@ -35,6 +43,8 @@ const PARAM = 's';
 /** Stations listed under a place or Near me, the picked one included. */
 const LIST_MAX = 5;
 const TICK_MS = 60_000;
+/** How long the announcement waits for the conditions line. */
+const SUMMARY_WAIT_MS = 4_000;
 const ID_RE = /^[a-z0-9_]{1,32}$/;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
@@ -43,6 +53,7 @@ const card = $('cond');
 const input = $<HTMLInputElement>('cond-q');
 const listbox = $('cond-list');
 const places: McoPlaces | undefined = typeof MCO !== 'undefined' ? MCO.places : undefined;
+const summaries: McoSummary | undefined = typeof MCO !== 'undefined' ? MCO.summary : undefined;
 
 if (card && input && listbox && places) init(card, input, listbox, places);
 else $('cond-search')?.setAttribute('hidden', ''); // No kit place search: no dead field.
@@ -59,6 +70,7 @@ function init(card: HTMLElement, input: HTMLInputElement, listbox: HTMLElement, 
     station: $('cond-station')!,
     from: $('cond-from')!,
     label: $('cond-headline-label')!,
+    summary: $('cond-summary')!,
     value: $('cond-headline-value')!,
     readings: $('cond-readings')!,
     stamp: $('cond-stamp')!,
@@ -229,6 +241,9 @@ function init(card: HTMLElement, input: HTMLInputElement, listbox: HTMLElement, 
     el.label.textContent = 'Air temperature';
     el.value.textContent = '';
     el.readings.replaceChildren();
+    // Held open (two empty lines) while the line is on its way.
+    el.summary.textContent = '';
+    el.summary.hidden = !summaries;
     el.stamp.textContent = 'Loading the latest readings.';
     el.page.href = stationHref(st.station);
     el.dash.href = dashHref(st.station);
@@ -254,13 +269,28 @@ function init(card: HTMLElement, input: HTMLInputElement, listbox: HTMLElement, 
     el.result.removeAttribute('aria-busy');
   }
 
-  /** One sentence for the screen reader: the station, where, the headline, the time. */
-  function sentence(c: StationConditions): string {
+  /** The conditions line ('' hides it). */
+  function renderSummary(text: string) {
+    el.summary.textContent = text;
+    el.summary.hidden = !text;
+  }
+
+  /** The kit's conditions line for `st`, from the /latest/ row the card has; '' when nothing is known. */
+  function summaryFor(st: Station, row: Record<string, unknown>): Promise<string> {
+    if (!summaries) return Promise.resolve('');
+    return summaries.forStation({
+      station: st.station, lat: st.latitude, lon: st.longitude,
+      derivedPpt: st.sub_network === 'HydroMet', latest: row, units: 'us',
+    }).then((r) => r.text, () => '');
+  }
+
+  /** One sentence for the screen reader: the station, where, the headline, the line, the time. */
+  function sentence(c: StationConditions, line: string | null): string {
     const where = el.from.textContent ? `, ${el.from.textContent}` : '';
     const temp = c.headline.value == null ? 'No air temperature in the latest report'
       : `${c.headline.label} ${formatReading(c.headline.value, c.headline.unit, c.headline.digits)}`;
     const [ago, prov] = stampText(c);
-    return `${c.station.name}${where}. ${temp}. ${ago}${prov ? ', provisional' : ''}.`;
+    return `${c.station.name}${where}. ${temp}. ${line ? `${line} ` : ''}${ago}${prov ? ', provisional' : ''}.`;
   }
 
   function writeState(id: string) {
@@ -294,10 +324,17 @@ function init(card: HTMLElement, input: HTMLInputElement, listbox: HTMLElement, 
       if (!row) throw new Error('no row');
       const c = toConditions(row, { id, name: st.name });
       renderConditions(c);
-      if (announce) say(sentence(c));
+      const line = summaryFor(st, row as Record<string, unknown>);
+      void line.then((text) => { if (mine === seq) renderSummary(text); });
+      if (announce) {
+        const early = await Promise.race([line, new Promise<null>((r) => setTimeout(() => r(null), SUMMARY_WAIT_MS))]);
+        if (mine !== seq) return;
+        say(sentence(c, early));
+      }
     } catch {
       if (mine !== seq) return;
       el.result.removeAttribute('aria-busy');
+      renderSummary('');
       el.stamp.textContent = 'The latest readings could not be loaded. They are on the Station Dashboard.';
       if (announce) say(`The latest readings for ${st.name} could not be loaded.`, true);
     }

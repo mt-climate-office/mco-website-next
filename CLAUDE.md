@@ -34,7 +34,7 @@ change the kit and bump the pinned version here; never patch a local copy.
 
 ## Design system (D1)
 
-**Pinned jsDelivr tag + SRI + `crossorigin`, v0.16.1.** Favicons and
+**Pinned jsDelivr tag + SRI + `crossorigin`, v0.17.0.** Favicons and
 `og-card.png` hot-linked from the pinned tag. Do not vendor, do not add a
 `package.json` to the kit, **do not self-host the fonts** — the kit uses
 `font-display: block` plus preload deliberately.

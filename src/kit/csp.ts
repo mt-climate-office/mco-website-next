@@ -74,15 +74,26 @@ export interface CspOptions {
    * with integrity (kit README § CSP notes): connect-src jsDelivr.
    */
   places?: boolean;
+  /**
+   * The page has the kit's conditions line (the homepage conditions card).
+   * MCO.summary.forStation() reads the station's hourly rows and its
+   * /derived/ppt/ row from mesonet2 (already in connect-src), and the NWS
+   * forecast for its point from api.weather.gov: /points/{lat},{lon}, then
+   * the forecast URL that answer names, which the kit fetches only when it
+   * is on api.weather.gov (kit README § CSP notes). connect-src
+   * api.weather.gov, nothing else.
+   */
+  summary?: boolean;
 }
 
 const UNPKG = 'https://unpkg.com';
 const CARTO = 'https://basemaps.cartocdn.com https://tiles.basemaps.cartocdn.com';
+const NWS = 'https://api.weather.gov';
 
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
 export function contentSecurityPolicy(
   inlineScripts: string[],
-  { search = false, photos = false, map = false, places = false }: CspOptions = {},
+  { search = false, photos = false, map = false, places = false, summary = false }: CspOptions = {},
 ): string {
   const hashes = inlineScripts.map(hash).join(' ');
   return [
@@ -95,7 +106,7 @@ export function contentSecurityPolicy(
     // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
     // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.
     `img-src 'self' data:${map ? ' blob:' : ''} ${JSDELIVR} ${DATA2}`,
-    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO}` : ''}${map || places ? ` ${JSDELIVR}` : ''}`,
+    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO}` : ''}${map || places ? ` ${JSDELIVR}` : ''}${summary ? ` ${NWS}` : ''}`,
     "base-uri 'none'",
     `form-action ${search ? "'self'" : "'none'"}`,
   ].join('; ');

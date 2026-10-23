@@ -5,7 +5,7 @@
 // snippets/head.html, re-vendor anti-flash.inline.js and public/mco-logo.png
 // from the same tag, and run `npm run check:kit`. CI fails on any mismatch.
 
-export const KIT_VERSION = '0.16.1';
+export const KIT_VERSION = '0.17.0';
 
 const KIT_BASE = `https://cdn.jsdelivr.net/gh/mt-climate-office/mco-web-style@${KIT_VERSION}/`;
 
@@ -20,6 +20,8 @@ export const kit = (path: string): string => KIT_BASE + path;
  * hashes. places/mco-places.js is the homepage conditions card's place
  * search (Base.astro `places`); it fetches its gazetteer from the same tag
  * with an integrity hash it carries, so its own SRI pins the data too.
+ * summary/mco-summary.js is the same card's plain-language line (Base.astro
+ * `summary`); it fetches from mesonet2 and api.weather.gov, not the tag.
  * Palette and map are the homepage station map's, injected only when
  * the map nears the viewport (src/scripts/station-map-island.ts); the state
  * outline is fetched with `integrity` by the same island. The tag's head.html
@@ -31,6 +33,7 @@ export const KIT_SRI = {
   'core/mco-core.js': 'sha384-5LuIiruVjXsc4aJP9psEF1MLhfwow4XrNztT4Sn1OSCbbY7wkqTpgWbX+ucBlUlC',
   'photos/mco-photos.js': 'sha384-VepbbKE6CKKljLPjOlw1TATvqOZH73WIWtFXmpSR5RAgYVEphm1rE2fkGa+vK17C',
   'places/mco-places.js': 'sha384-4Amo71pLoRONH4SjB2I+Ai9FpSNqDDGGqQVxq4z0Yu/0c7GtGgLUYtNX/wQDUHVg',
+  'summary/mco-summary.js': 'sha384-9qE6iFiGkwK/CB8QUbb3Ue7Dd8n8XeXgyVkoBs9TJFcCIO3d+XlfpHfRvnnMplcj',
   'palette/mco-palette.js': 'sha384-nmQlqM0DO86ApUoiACDt0cl/bUjemVhSUytRow9vdP1ydxnXGamD81mumft3n41L',
   'map/mco-map.js': 'sha384-BmAbWT508YkXfTenCpVne4+ONoA0HyPeR6qLIt1KxVFXTD+jWtHSWnysuInSQx8t',
   'map/data/mt_state_simple.geojson': 'sha384-iAefAIf1SkdKze/Jw3NMj5mtk3smh6cr7LGf1gdnEEsij/hJPGEU7BYUUwFArq/o',

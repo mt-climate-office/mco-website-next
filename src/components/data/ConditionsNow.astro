@@ -11,7 +11,9 @@
 //
 // Without JavaScript the search is not shown at all (it would not work), and
 // the card says where to get readings now, with no figures. The plain-language
-// line (`summary`) waits for the kit's conditions summary (D9 extraction #3).
+// line (`summary`, #cond-summary) is the kit's conditions summary
+// (MCO.summary, D9 extraction #3), filled by the same script; a part it
+// cannot read is left out, and with nothing known the line is hidden.
 //
 // `conditions`, when given, renders the same markup filled at build time.
 // The homepage passes none: it never shows a made-up or stale figure here.
@@ -60,7 +62,7 @@ const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
           {conditions && formatReading(conditions.headline.value, conditions.headline.unit, conditions.headline.digits)}
         </span>
       </p>
-      {conditions?.summary && <p class="cond-summary">{conditions.summary}</p>}
+      <p class="cond-summary" id="cond-summary" hidden={!conditions?.summary}>{conditions?.summary}</p>
       <dl class="mco-facts cond-readings" id="cond-readings">
         {conditions?.readings.map((r) => (
           <div>
@@ -121,7 +123,9 @@ const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
   .cond-headline-label { font-size: var(--fs-md); color: var(--text-muted); }
   /* One line tall even while loading, so filling it never moves the card. */
   .cond-headline-value { font-size: calc(var(--fs-2xl) * 1.25); min-height: 1.2em; line-height: 1.2; }
-  .cond-summary { margin-top: var(--space-2); font-size: var(--fs-base); color: var(--text-secondary); }
+  /* Two lines held from the pick, so the sentence arriving after the
+     readings never moves the card; hidden only when nothing is known. */
+  .cond-summary { margin-top: var(--space-2); font-size: var(--fs-base); line-height: 1.5; min-height: 3em; color: var(--text-secondary); }
   /* Room for three readings from the start, the most the card shows. */
   .cond-readings { margin-top: var(--space-4); font-size: var(--fs-base); min-height: calc(3 * 1.6em + 2 * 0.15rem); align-content: start; }
   .cond-stamp { margin-top: var(--space-4); min-height: 1.6em; }
