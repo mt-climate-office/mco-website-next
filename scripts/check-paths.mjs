@@ -13,7 +13,9 @@ const TEXT = /\.(astro|ts|mjs|js|css|md|mdx|json|ya?ml|html|txt)$/;
 
 const RULES = [
   { re: /next\.climate\.umt\.edu/, why: 'staging host' },
-  { re: /mt-climate-office\.github\.io/, why: 'project-pages host' },
+  // The redirect map may send an old short link (/ETo/, /usdm-archive/ …) to
+  // another repo's project site, as the old site did; never this site's.
+  { re: /mt-climate-office\.github\.io/, why: 'project-pages host', allow: ['src/data/redirects.json'] },
   { re: /\/mco-website-next\b/, why: 'project-pages base path' },
   { re: /(?<![\w.-])climate\.umt\.edu/, why: 'production host (only astro.config.mjs names it)',
     allow: ['scripts/check-built.mjs'] },

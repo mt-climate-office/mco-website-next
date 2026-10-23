@@ -37,9 +37,14 @@ interface Props {
       kit's places/mco-places.js after core, and its CSP lets that fetch its
       gazetteer from the pinned tag (csp.ts). Only the homepage does. */
   places?: boolean;
+  /** A redirect page for an old URL (src/lib/redirects.mjs): a 0-second
+      meta refresh to `href`, and a canonical at the target's production URL
+      (`canonical`), so search engines move the old URL's standing to it.
+      Always noindex. */
+  redirect?: { href: string; canonical: string };
 }
 
-const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false, places = false } = Astro.props;
+const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false, places = false, redirect } = Astro.props;
 const { searchable = indexable } = Astro.props;
 const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
 const FAMILY_SHORT = 'MCO';
@@ -57,6 +62,7 @@ const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [anti
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content={csp}>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  {redirect && <meta http-equiv="refresh" content={`0; url=${redirect.href}`}>}
   <meta name="author" content="Montana Climate Office">
   <!-- Token copies: light is --accent, dark is --bg-deep (kit snippets/head.html). -->
   <meta name="theme-color" content="#1a6faf" media="(prefers-color-scheme: light)">
@@ -67,7 +73,7 @@ const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [anti
   <title>{title}</title>
   <meta name="description" content={description}>
   {noindex && <meta name="robots" content="noindex, nofollow">}
-  {indexable && <link rel="canonical" href={canonical}>}
+  {(indexable || redirect) && <link rel="canonical" href={redirect ? redirect.canonical : canonical}>}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content={FAMILY_LONG}>
   <meta property="og:title" content={cardTitle}>
