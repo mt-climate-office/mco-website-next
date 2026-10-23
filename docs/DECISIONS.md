@@ -316,3 +316,25 @@ Three things follow from that, and they are not optional.
   (`MCO.photos`, v0.15.0, MINOR). The tools pass it; the website does not.
 - The dashboard's photo tile follows the Photo Explorer.
 
+
+---
+
+## D17 — CI tiers
+
+**Decided 22 October 2026.** CI was too heavy for every pull request; keep
+the protection, tier it.
+
+- **Expensive checks run where they protect a deploy or a release.** Push to
+  main, the nightly rebuild and manual runs get the full set before deploy:
+  the kit verify harness in Chromium and WebKit, Lighthouse on every page,
+  median of 3 runs. Deploy still needs it to pass.
+- **Pull requests** get every cheap gate, the harness in Chromium only, and
+  Lighthouse on the homepage, one run. Budgets are unchanged (accessibility
+  100, performance ≥ 90, homepage JS < 150 KB gzipped).
+- **WCAG axe still runs on every PR**, in all three themes at both widths.
+- The scripts default to the full set, so a local `npm run verify` or
+  `npm run lighthouse` does everything. CI narrows them with
+  `VERIFY_ENGINES`, `LH_PAGES` and `LH_RUNS`.
+- Playwright browsers are cached per Playwright version, and the download and
+  apt steps each carry a timeout, so a hung mirror fails in minutes under a
+  step name that says which.

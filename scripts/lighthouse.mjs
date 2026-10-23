@@ -8,6 +8,10 @@
 //
 //   BASE_PATH=/verify-base/ node scripts/lighthouse.mjs
 //
+// LH_PAGES narrows the pages (comma-separated names from PAGES, or "all") and
+// LH_RUNS sets the runs per page. Defaults are the full set: every page, 3
+// runs. Pull requests use LH_PAGES=home LH_RUNS=1 (D17); budgets are the same.
+//
 // Uses Playwright's pinned Chromium, so CI downloads one browser, not two.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -17,7 +21,7 @@ import lighthouse from 'lighthouse';
 import { chromium } from 'playwright';
 import { base, stage, stageDist } from './stage.mjs';
 
-const PAGES = [
+const ALL_PAGES = [
   { name: 'home', path: '', jsBudgetKB: 150 },
   { name: 'not-found', path: '404.html' },
   { name: 'stations', path: 'mesonet/stations/' },
@@ -26,7 +30,16 @@ const PAGES = [
   { name: 'search', path: 'search/' },
 ];
 const MIN = { accessibility: 1, performance: 0.9 };
-const RUNS = 3;
+
+const want = (process.env.LH_PAGES || 'all').split(',').map((s) => s.trim()).filter(Boolean);
+const PAGES = want.includes('all') ? ALL_PAGES : ALL_PAGES.filter((p) => want.includes(p.name));
+const missing = want.filter((n) => n !== 'all' && !ALL_PAGES.some((p) => p.name === n));
+const RUNS = Number(process.env.LH_RUNS || 3);
+if (!PAGES.length || missing.length || !Number.isInteger(RUNS) || RUNS < 1) {
+  console.error(`lighthouse: LH_PAGES takes "all" or names from ${ALL_PAGES.map((p) => p.name).join(', ')}; LH_RUNS a whole number ≥ 1. Got LH_PAGES="${process.env.LH_PAGES ?? ''}" LH_RUNS="${process.env.LH_RUNS ?? ''}"`);
+  process.exit(2);
+}
+console.log(`lighthouse: ${PAGES.map((p) => p.name).join(', ')} × ${RUNS} run(s)`);
 
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
