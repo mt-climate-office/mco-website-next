@@ -1,0 +1,45 @@
+---
+// One news post at /news/<slug>/. The slug comes from newsSlug() and the path
+// from newsPath() (src/lib/news.ts), the same functions the newsletter uses,
+// so an emailed link is this page.
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getNews, headerImageSize, SHOW_DRAFTS, type NewsPost } from '../../lib/news-posts';
+import { newsDate } from '../../lib/news';
+import { url } from '../../lib/paths';
+
+export async function getStaticPaths() {
+  const posts = await getNews();
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+interface Props { post: NewsPost }
+const { post } = Astro.props;
+const { data, category } = post;
+const { Content } = await render(post.entry);
+const d = newsDate(data.date);
+// The tab title is "<Short> · MCO" (HOUSE-STYLE §1) and must stay within 70
+// characters, so a long post title is cut at a word and marked with an
+// ellipsis there. The page's h1 is always the full title.
+const MAX_SHORT = 70 - ' · MCO'.length;
+const short = data.title.length <= MAX_SHORT
+  ? data.title
+  : data.title.slice(0, MAX_SHORT).replace(/\s+\S*$/, '').replace(/[\s:;,.–—-]+$/, '') + '…';
+const hero = data.image ? { src: url(data.image), alt: data.imageAlt ?? '', ...headerImageSize(data.image) } : null;
+---
+<Base short={short} description={data.summary}>
+  <article class="news-article" aria-labelledby="post-title">
+    <header class="news-article-head">
+      <p class="news-back"><a href={url('news/')}>News</a></p>
+      <h1 class="news-article-title" id="post-title">{data.title}</h1>
+      <p class="stamp news-meta">
+        <time datetime={d.iso}>{d.label}</time> · {category}{SHOW_DRAFTS && data.draft && ' · Draft'}
+      </p>
+    </header>
+    {hero && <img class="news-hero" src={hero.src} alt={hero.alt} width={hero.width} height={hero.height}>}
+    <div class="prose news-body">
+      <Content />
+    </div>
+    <p class="news-article-foot"><a href={url('news/')}>All news posts</a></p>
+  </article>
+</Base>

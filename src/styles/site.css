@@ -92,6 +92,38 @@ main a:not([class]) {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+/* Deeper headings in long posts: body size, set apart by weight. */
+.prose h3 { font-size: var(--fs-lg); line-height: var(--lh-tight); font-weight: var(--fw-bold); margin-top: var(--space-6); }
+.prose :is(h4, h5, h6) { font-size: var(--fs-lg); line-height: var(--lh-tight); font-weight: var(--fw-semibold); margin-top: var(--space-6); }
+.prose ol { padding-left: var(--space-6); }
+.prose blockquote { padding-left: var(--space-5); border-left: 3px solid var(--border); color: var(--text-secondary); }
+.prose hr { border: 0; border-top: 1px solid var(--border); }
+/* Images keep their aspect ratio inside the measure; a tall phone
+   screenshot stops at most of the viewport height. */
+.prose img { display: block; width: auto; max-width: 100%; height: auto; max-height: 80vh; border-radius: var(--radius-sm); }
+.prose figure > * + *,
+.prose figure img + img { margin-top: var(--space-3); }
+.prose figcaption { font-size: var(--fs-md); line-height: var(--lh-body); color: var(--text-secondary); }
+/* A link that is a heading is not an inline link in running text, so on a
+   touch screen it gets the 40px target (HOUSE-STYLE §5.5). */
+@media (hover: none) {
+  .prose :is(h2, h3, h4, h5, h6) a,
+  .news-item-title a { display: inline-block; min-height: 40px; padding-block: var(--space-2); }
+}
+
+/* ── News (src/pages/news/) ─────────────────────────────────────────────── */
+.news-list { list-style: none; margin-top: var(--space-6); max-width: 68ch; }
+.news-item + .news-item { margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--border); }
+.news-item-title { font-size: var(--fs-xl); line-height: var(--lh-tight); font-weight: var(--fw-semibold); }
+.news-meta { margin-top: var(--space-2); }
+.news-item-summary { margin-top: var(--space-3); font-size: var(--fs-lg); line-height: var(--lh-body); color: var(--text-secondary); }
+.news-empty { margin-top: var(--space-6); }
+.news-article-head { max-width: 68ch; }
+.news-back { font-size: var(--fs-md); }
+.news-article-title { margin-top: var(--space-3); font-size: var(--fs-2xl); line-height: var(--lh-tight); font-weight: var(--fw-bold); }
+.news-hero { display: block; margin-top: var(--space-6); max-width: 100%; height: auto; border-radius: var(--radius-md); }
+.news-body { margin-top: var(--space-6); }
+.news-article-foot { max-width: 68ch; margin-top: var(--space-7); padding-top: var(--space-5); border-top: 1px solid var(--border); }
 
 /* ── Navbar sections ────────────────────────────────────────────────────── */
 .site-nav ul {

@@ -57,6 +57,10 @@ export default {
       ready: () => !document.documentElement.classList.contains('mco-booting') &&
         document.querySelector('#st-table th[aria-sort="descending"]') != null,
     },
+    // News: the list, and the longest migrated post (17 figures, captions,
+    // h2–h5), so axe sees content images and the reading layer.
+    { name: 'news', query: 'news/', ready: chromeReady },
+    { name: 'news-post', query: 'news/mtdrought-and-climate-2026-march/', ready: chromeReady },
     { name: 'search', query: 'search/', ready: chromeReady },
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
