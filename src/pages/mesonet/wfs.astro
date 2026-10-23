@@ -1,0 +1,121 @@
+---
+// /mesonet/wfs/: the OGC API - Features service, at the old path.
+// Source: mco-website/_pages/mesonet/mesonet_wfs.md. Connection steps, code
+// and specifications unchanged; the announcement opener is rewritten per
+// docs/VOICE.md.
+//
+// The old page's live map is not migrated: it loaded MapLibre 3.6.2 and OSM
+// tiles from unpinned CDNs, colored stations with a hand-picked ramp rather
+// than MCO.palette, and captured page scroll (CLAUDE.md, HOUSE-STYLE §6, §7).
+// The Mesonet Explorer is the live map; this page links it.
+//
+// The service URL stays on mesonet.climate.umt.edu, the name the service
+// gives itself in its own links. Both it and mesonet2 answered 200 on
+// 23 Oct 2026 (mesonet-gateway routes /api/latest/wfs* to the pygeoapi
+// Lambda).
+import Base from '../../layouts/Base.astro';
+import { tool } from '../../lib/hubs';
+import { url } from '../../lib/paths';
+
+const OGC_FEATURES = 'https://ogcapi.ogc.org/features/';
+const SERVICE = 'https://mesonet.climate.umt.edu/api/latest/wfs';
+const ITEMS = `${SERVICE}/collections/stations_latest/items`;
+const explorer = tool('Mesonet Explorer');
+
+const PYTHON = `import requests
+
+# Fetch the stations with latest observations
+url = "${ITEMS}"
+params = {"limit": 100}
+
+response = requests.get(url, params=params)
+data = response.json()
+
+for feature in data['features']:
+    print(f"Station: {feature['id']}, Temp: {feature['properties']['Air Temperature @ 2 m [°F]']}")`;
+
+const R = `library(sf)
+
+# Load the Montana Mesonet data directly into an sf object
+mesonet_url <- "${ITEMS}"
+mesonet_data <- st_read(mesonet_url)
+
+# View the first few rows
+head(mesonet_data)`;
+---
+<Base short="Mesonet OGC API"
+      description="Stream the latest Montana Mesonet observations into QGIS, ArcGIS, Python or R through an OGC API - Features service.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Montana Mesonet spatial services (OGC API)</h1>
+    <p>
+      The Montana Mesonet's latest observations are available as an
+      <a href={OGC_FEATURES}>OGC API - Features</a> service. GIS software and analysis environments
+      can read it directly, without downloading and managing static files.
+    </p>
+    <p>
+      The connection is live. Whenever you refresh your map or pan across the state, your software
+      fetches the most recent observations, including air temperature, precipitation, and soil
+      moisture.
+    </p>
+    <p>
+      To see the latest observations on a map without GIS software, open the
+      <a href={explorer.href}>{explorer.name}</a>.
+    </p>
+
+    <h2>Service URL</h2>
+    <p><a href={SERVICE}><code>{SERVICE}</code></a></p>
+
+    <h2>Connect from GIS software</h2>
+    <h3>QGIS</h3>
+    <p>QGIS provides the most complete support for modern OGC API standards.</p>
+    <ol>
+      <li><strong>Open Data Source Manager:</strong> Click the <strong>Layer</strong> menu &gt; <strong>Add Layer</strong> &gt; <strong>Add WFS Layer...</strong> (or press <kbd>Ctrl+L</kbd>).</li>
+      <li><strong>Create Connection:</strong> In the <strong>WFS / OGC API - Features</strong> tab, click <strong>New</strong>.</li>
+      <li><strong>Details:</strong> Enter "Montana Mesonet" for the name and paste the Service URL above into the <strong>URL</strong> field. Click <strong>OK</strong>.</li>
+      <li><strong>Add Layer:</strong> Click <strong>Connect</strong>, select the <code>stations_latest</code> layer, and click <strong>Add</strong>.</li>
+    </ol>
+
+    <h3>ArcGIS Pro</h3>
+    <ol>
+      <li><strong>Insert Tab:</strong> Go to the <strong>Insert</strong> tab on the top ribbon.</li>
+      <li><strong>New Server:</strong> Click <strong>Connections</strong> &gt; <strong>Server</strong> &gt; <strong>New OGC API Server</strong>.</li>
+      <li><strong>Configure:</strong> Paste the Service URL into the <strong>Server URL</strong> box and click <strong>OK</strong>.</li>
+      <li><strong>Add to Map:</strong> In your <strong>Catalog Pane</strong>, expand <strong>Servers</strong>, and drag the <code>stations_latest</code> layer onto your map.</li>
+    </ol>
+
+    <h3>ArcGIS Online</h3>
+    <ol>
+      <li><strong>Open Map Viewer:</strong> Sign in to your account and open a new or existing Map.</li>
+      <li><strong>Add Layer:</strong> Click the <strong>Add</strong> (+) button and select <strong>OGC WFS Layer</strong>.</li>
+      <li><strong>URL:</strong> Paste the Service URL into the URL field.</li>
+      <li><strong>Finish:</strong> The system will detect the features; click <strong>Add to Map</strong>.</li>
+    </ol>
+
+    <h2>Python and R</h2>
+    <p>
+      The service returns GeoJSON, so live weather data can be read straight into data frames for
+      analysis.
+    </p>
+    <h3>Python (Requests)</h3>
+    <pre tabindex="0"><code>{PYTHON}</code></pre>
+    <h3>R (sf package)</h3>
+    <pre tabindex="0"><code>{R}</code></pre>
+
+    <h2>Technical specifications</h2>
+    <ul>
+      <li><strong>Update frequency:</strong> Data is cached and refreshed every 60 seconds.</li>
+      <li><strong>Coordinate system:</strong> Data is served in WGS 84 (EPSG:4326).</li>
+      <li>
+        <strong>Spatial filtering:</strong> The API supports server-side spatial filtering. Your GIS
+        software will only request data for the stations currently visible in your map extent,
+        ensuring fast performance even on mobile connections.
+      </li>
+    </ul>
+
+    <p class="method-note">
+      For history, derived values and CSV, use the <a href={url('mesonet/') + '#mesonet-data'}>Mesonet
+      API</a>. The <a href={url('mesonet/variables/')}>variables page</a> lists every element.
+    </p>
+  </div>
+</Base>

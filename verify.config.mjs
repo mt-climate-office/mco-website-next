@@ -105,6 +105,10 @@ export default {
         /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
         / of \d+ publications?$/.test(document.getElementById('pub-count')?.textContent || '') },
     { name: 'publication', query: 'research/publications/hoylman-2022-drought-assessment/', ready: chromeReady },
+    // Method pages: the longest (seven stage tables, linear equations, a
+    // logo) and the QA/QC thresholds table read from the kept CSV.
+    { name: 'ag-gdds', query: 'mesonet/ag_tools/gdds/', ready: chromeReady },
+    { name: 'qaqc', query: 'mesonet/qaqc/', ready: chromeReady },
     { name: 'about', query: 'about/', ready: chromeReady },
     // People, partners and projects: the team page (photos, a person with
     // none, contact links), the partners page, the project list, and a

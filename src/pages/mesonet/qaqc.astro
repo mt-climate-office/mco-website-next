@@ -1,0 +1,143 @@
+---
+// /mesonet/qaqc/: quality-control procedures, at the old path (papers may
+// cite it). Source: mco-website/_pages/mesonet/mesonet_qaqc.md. Text
+// unchanged.
+//
+// The threshold table is read from public/assets/tables/qaqc_vals.csv, the
+// old site's file kept byte for byte at its old path (redirects.json), so
+// the page and the download cannot disagree. The old page typed the table
+// by hand; it differed from the CSV in three places (element names "Soil
+// Pore EC" / "Soil Rel. Permittivity", no Enclosure Door Status row, and no
+// shared element for Wind Speed, where the CSV says windgust). The CSV's
+// flag_min / flag_max columns are not shown, as before.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import Base from '../../layouts/Base.astro';
+import Unit from '../../components/content/Unit.astro';
+import { url } from '../../lib/paths';
+import { API_BASE } from '../../lib/mesonet';
+
+const OK_MESONET_QA = 'https://cig.mesonet.org/staff/shafer/Mesonet_QA_final_fixed.pdf';
+const QC_REPO = 'https://github.com/mt-climate-office/mesonet-qc';
+const CSV_PATH = 'assets/tables/qaqc_vals.csv';
+// Flag counts per station, element and day; answered 200 on 23 Oct 2026.
+const QAQC_ENDPOINT = `${API_BASE}/qaqc/`;
+
+const [header, ...lines] = readFileSync(join(process.cwd(), 'public', CSV_PATH), 'utf8')
+  .trim()
+  .split(/\r?\n/)
+  .map((line) => line.split(',').map((cell) => cell.trim()));
+const col = (name: string) => {
+  const i = header.indexOf(name);
+  if (i < 0) throw new Error(`qaqc: ${CSV_PATH} has no ${name} column`);
+  return i;
+};
+const C = {
+  name: col('description_short'),
+  units: col('base_units'),
+  min: col('range_min'),
+  max: col('range_max'),
+  step: col('step_size'),
+  sd: col('persistence_delta'),
+  shared: col('shared_sensor'),
+};
+const blank = (v: string) => (v === 'NA' ? '' : v);
+const num = (v: string) => blank(v).replace(/^-/, '−');
+const rows = lines.map((r) => ({
+  name: r[C.name],
+  units: blank(r[C.units]),
+  min: num(r[C.min]),
+  max: num(r[C.max]),
+  step: num(r[C.step]),
+  sd: num(r[C.sd]),
+  shared: blank(r[C.shared]),
+}));
+---
+<Base short="Mesonet quality control"
+      description="The quality-control tests the Montana Mesonet runs on station data, and the thresholds each element is checked against.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Montana Mesonet quality control procedures</h1>
+    <p>
+      We perform operational and daily quality checks on station data to ensure the data reported by
+      our stations is reliable and accurate. We currently perform four tests that are recommended by
+      the Oklahoma Mesonet (<a href={OK_MESONET_QA}>Oklahoma Mesonet quality assurance paper, PDF</a>):
+    </p>
+    <ol>
+      <li>
+        <strong>Range test:</strong> For a given measurement, an upper and lower threshold of
+        reasonable measurement values are provided. If the measurement falls outside of those values,
+        a flag is raised.
+      </li>
+      <li>
+        <strong>Step test:</strong> For two consecutive measurements of a given variable, the
+        difference between the two values is compared to a maximum allowable "step" size. If the
+        difference is larger than the step size, a flag is raised.
+      </li>
+      <li>
+        <strong>Persistence test:</strong> The standard deviation of all values of a given variable
+        over the course of a day is calculated. If the standard deviation is smaller than a specified
+        threshold value, a flag is raised for all values that day.
+      </li>
+      <li>
+        <strong>Shared sensor test:</strong> If a given sensor observes more than one variable, all
+        variables reported for a time step will be removed if a check fails on an associated
+        variable. For example, the rain gauges at HydroMet stations record both precipitation and the
+        maximum rate of precipitation over a 5-minute interval. If the maximum precipitation rate
+        fails any of the three tests listed above but precipitation does not, precipitation will still
+        be flagged by this test.
+      </li>
+    </ol>
+
+    <h2>Thresholds</h2>
+    <p>
+      Below is a table showing the QA/QC values that are used for each element reported by our
+      stations for all the tests given above. Note that this is an example for the Absarokee
+      HydroMet station. The values below can change slightly depending on the exact make and model
+      deployed at a station.
+    </p>
+    <section class="method-table-wrap" aria-labelledby="t-qaqc" tabindex="0">
+      <table class="method-table">
+        <caption id="t-qaqc">QA/QC thresholds by element, Absarokee HydroMet station</caption>
+        <thead>
+          <tr>
+            <th scope="col">Element</th>
+            <th scope="col">Units</th>
+            <th scope="col" class="is-num">Valid min.</th>
+            <th scope="col" class="is-num">Valid max.</th>
+            <th scope="col" class="is-num">Allowed step size</th>
+            <th scope="col" class="is-num">Min. daily std. dev.</th>
+            <th scope="col">Shared element</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <th scope="row">{r.name}</th>
+              <td><Unit u={r.units} /></td>
+              <td class="is-num">{r.min}</td>
+              <td class="is-num">{r.max}</td>
+              <td class="is-num">{r.step}</td>
+              <td class="is-num">{r.sd}</td>
+              <td class="is-code">{r.shared}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+    <p>
+      <a href={url(CSV_PATH)} download>Download the thresholds as CSV</a>.
+    </p>
+
+    <h2>Code</h2>
+    <p>
+      All the code used to perform these QA/QC checks is open-source and available on our GitHub, in
+      the <a href={QC_REPO}>mesonet-qc repository</a>.
+    </p>
+    <p class="method-note">
+      The Mesonet API's <a href={QAQC_ENDPOINT}><code>/qaqc/</code> endpoint</a> lists the flags
+      raised, by station, element and day. The <a href={url('mesonet/variables/')}>variables
+      page</a> lists every element.
+    </p>
+  </div>
+</Base>

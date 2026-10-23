@@ -1,0 +1,125 @@
+---
+// /mesonet/ag_tools/risk/: the livestock risk index, at the old path.
+// Source: mco-website/_pages/mesonet/tools/mesonet_tools_risk.md. The
+// Station Dashboard's CCI chart links here (learnMore.ts maps cci → risk).
+//
+// Changed from the source, for staff review:
+// - The stress table's header was two broken Markdown rows; it is one table
+//   with a "Cold conditions" column group.
+// - Severe heat read ">25 to 40", which overlaps Mild and Moderate. It is
+//   ">35 to 40" here, as in the sequence, in Mader et al. (2010), and in the
+//   dashboard's classes (Severe from 96 °F; mesonet-dashboard
+//   web/src/core/ag/compute/cci.ts classifyCciF).
+// - Wind speed read "(mph)". Both implementations take m/s
+//   (mesonet-db-rds api/app/app/derived.py calc_comprehensive_climate_index
+//   converts to m/s before the correction; cci.ts says the same), so the
+//   unit here is m/s.
+// Equations are otherwise unchanged, as linear HTML instead of MathJax.
+import Base from '../../../layouts/Base.astro';
+import { url } from '../../../lib/paths';
+import { DASHBOARD } from '../../../lib/tools';
+
+const MADER_PDF = 'https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1004&context=extfacpub';
+const MADER_DOI = 'https://doi.org/10.2527/jas.2009-2586';
+
+// [level, hot, cold newborn, cold adult], °C
+const LEVELS = [
+  ['No Stress', '<25', '>5', '>0'],
+  ['Mild', '25 to 30', '0 to 5', '0 to -10'],
+  ['Moderate', '>30 to 35', '<0 to -5', '<-10 to -20'],
+  ['Severe', '>35 to 40', '<-5 to -10', '<-20 to -30'],
+  ['Extreme', '>40 to 45', '<-10 to -15', '<-30 to -40'],
+  ['Extreme Danger', '>45', '<-15', '<-40'],
+];
+// Print a real minus sign.
+const minus = (s: string) => s.replaceAll('-', '−');
+---
+<Base short="Livestock risk index"
+      description="How the Montana Mesonet computes the Livestock Risk Index (Comprehensive Climate Index) and its stress levels for hot and cold conditions.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Livestock risk index</h1>
+    <p>
+      The Livestock Risk Index (also known as the Comprehensive Climate Index), uses temperature,
+      relative humidity, wind speed and solar radiation to produce an adjusted temperature value
+      that represents risk to livestock (Mader et al. 2010). The index is output in °C, and the index
+      stress levels for hot and cold conditions are provided in the table below.
+    </p>
+    <section class="method-table-wrap" aria-labelledby="t-stress" tabindex="0">
+      <table class="method-table">
+        <caption id="t-stress">Livestock Risk Index stress levels, °C (adapted from Mader et al. 2010)</caption>
+        <thead>
+          <tr>
+            <th scope="col" rowspan="2">Stress level</th>
+            <th scope="col" rowspan="2" class="is-num">Hot conditions</th>
+            <th scope="colgroup" colspan="2">Cold conditions</th>
+          </tr>
+          <tr>
+            <th scope="col" class="is-num">Newborn</th>
+            <th scope="col" class="is-num">Adult</th>
+          </tr>
+        </thead>
+        <tbody>
+          {LEVELS.map(([level, hot, newborn, adult]) => (
+            <tr>
+              <th scope="row">{level}</th>
+              <td class="is-num">{minus(hot)}</td>
+              <td class="is-num">{minus(newborn)}</td>
+              <td class="is-num">{minus(adult)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+
+    <h2>Calculation</h2>
+    <p>
+      The Livestock Risk Index is calculated by correcting relative humidity, wind speed, and solar
+      radiation values so they can be used to adjust temperature:
+    </p>
+    <p class="eq">
+      <var>RH<sub>cor</sub></var> =
+      exp(0.00182 × <var>RH<sub>avg</sub></var> + 1.8 × 10<sup>−5</sup> × <var>T<sub>avg</sub></var> × <var>RH<sub>avg</sub></var>)
+      × (0.000054 × <var>T<sub>avg</sub></var><sup>2</sup> + 0.00192 × <var>T<sub>avg</sub></var> − 0.0246)
+      × (<var>RH<sub>avg</sub></var> − 30)
+    </p>
+    <p class="eq">
+      <var>WS<sub>cor</sub></var> =
+      −6.56 / exp[(1 / (2.26 × <var>WS</var> + 0.23)<sup>0.45</sup>)
+      × (2.9 + 1.14 × 10<sup>−6</sup> × <var>WS</var><sup>2.5</sup>
+      − log<sub>0.3</sub>(2.26 × <var>WS</var> + 0.33)<sup>−2</sup>)]
+      − 0.00566 × <var>WS</var><sup>2</sup> + 3.33
+    </p>
+    <p class="eq">
+      <var>RAD<sub>cor</sub></var> =
+      0.0076 × <var>RAD<sub>avg</sub></var> − 0.00002 × <var>RAD<sub>avg</sub></var> × <var>T<sub>avg</sub></var>
+      + 0.00005 × <var>T<sub>avg</sub></var><sup>2</sup> × √<var>RAD<sub>avg</sub></var>
+      + 0.1 × <var>T<sub>avg</sub></var> − 2
+    </p>
+    <p class="eq">
+      Livestock Risk Index = <var>T<sub>avg</sub></var> + <var>RH<sub>cor</sub></var>
+      + <var>WS<sub>cor</sub></var> + <var>RAD<sub>cor</sub></var>
+    </p>
+    <p>
+      where <var>T<sub>avg</sub></var> is average temperature (°C), <var>RH<sub>avg</sub></var> is
+      average relative humidity (%), <var>WS<sub>avg</sub></var> (<var>WS</var> above) is average
+      wind speed (m/s), and <var>RAD<sub>avg</sub></var> is average solar radiation
+      (W/m<sup>2</sup>). Variables ending in "cor" are the corrected values for calculating the
+      index.
+    </p>
+
+    <h2>Reference</h2>
+    <p class="refs">
+      Mader TL, Johnson LJ, Gaughan JB. A comprehensive index for assessing environmental stress in
+      animals. J Anim Sci. 2010 Jun;88(6):2153-65. <a href={MADER_DOI}>doi: 10.2527/jas.2009-2586</a>.
+      Epub 2010 Jan 29. Erratum in: J Anim Sci. 2011 Sep;89(9):2955. PMID: 20118427.
+      <a href={MADER_PDF}>Full text at UNL Digital Commons</a>.
+    </p>
+
+    <p class="method-note">
+      Part of the <a href={url('mesonet/ag_tools/')}>agricultural tools</a>.
+      The <a href={`${DASHBOARD}#charts`}>Station Dashboard</a> charts it for each station under
+      Charts, Ag tools.
+    </p>
+  </div>
+</Base>
