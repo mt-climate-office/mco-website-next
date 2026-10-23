@@ -24,9 +24,13 @@ interface Props {
   searchable?: boolean;
   /** The page runs Pagefind: its CSP gains what Pagefind needs (csp.ts). */
   search?: boolean;
+  /** The page shows station photos: it loads the kit's photos/mco-photos.js
+      after core, and its CSP allows what the photo controls need (csp.ts).
+      Only the homepage does. */
+  photos?: boolean;
 }
 
-const { short, description, indexable = true, fullBleed = false, search = false } = Astro.props;
+const { short, description, indexable = true, fullBleed = false, search = false, photos = false } = Astro.props;
 const { searchable = indexable } = Astro.props;
 const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
 const FAMILY_SHORT = 'MCO';
@@ -36,7 +40,7 @@ const title = short ? `${short} · ${FAMILY_SHORT}` : FAMILY_LONG;
 const cardTitle = short ? `${short} · ${FAMILY_LONG}` : FAMILY_LONG;
 const canonical = canonicalUrl(Astro.url.pathname);
 const ogImage = kit('assets/og-card.png');
-const csp = contentSecurityPolicy([antiFlash], { search });
+const csp = contentSecurityPolicy([antiFlash], { search, photos });
 ---
 <!doctype html>
 <html lang="en">
@@ -87,6 +91,10 @@ const csp = contentSecurityPolicy([antiFlash], { search });
   <Footer />
   <script is:inline src={kit('core/mco-core.js')}
           integrity={KIT_SRI['core/mco-core.js']} crossorigin="anonymous"></script>
+  {photos && (
+    <script is:inline src={kit('photos/mco-photos.js')}
+            integrity={KIT_SRI['photos/mco-photos.js']} crossorigin="anonymous"></script>
+  )}
   <script>
     import '../scripts/chrome';
   </script>

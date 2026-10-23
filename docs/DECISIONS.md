@@ -315,4 +315,7 @@ Three things follow from that, and they are not optional.
 - The kit keeps its clamped default and gains an opt-in for full history
   (`MCO.photos`, v0.15.0, MINOR). The tools pass it; the website does not.
 - The dashboard's photo tile follows the Photo Explorer.
+- As built (kit v0.15.1): the hero calls `MCO.photos.load()` with no
+  options, at build time (`src/lib/photo-snapshot.ts`) and in the page
+  (`src/scripts/photo-hero.ts`).
 
