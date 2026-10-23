@@ -386,3 +386,23 @@ the protection, tier it.
 - **Camera North view:** left as is; the homepage hero keeps North.
 - **MCO News:** the owner runs the bootstrap script; the footer signup is
   wired once the list's UUID exists.
+
+---
+
+## D20 — The website repo is public
+
+**Decided 23 October 2026.**
+
+`mt-climate-office/mco-website-next` is public. GitHub Actions had stopped
+starting jobs on the private repo ("recent account payments have failed or
+your spending limit needs to be increased"), which blocked CI and staging
+deploys; Actions minutes are free on public repos. Before the change the full
+history was scanned (gitleaks, 40 commits, no findings; a credential pattern
+search found nothing) and the repo had no Actions secrets or variables.
+
+Consequences:
+- Staging content was already public by design (D2); now the source is too.
+- Newsletter credentials stay Actions secrets, never files.
+- The website can join the kit's canary matrix (D3).
+- Staff and partner content comes from the current public site (owner,
+  23 Oct 2026).
