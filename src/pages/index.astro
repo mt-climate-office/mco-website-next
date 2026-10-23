@@ -7,7 +7,9 @@
 // mesonet-compliance summary at build time, and the photo hero takes the
 // most recent public set from the kit's MCO.photos at build time (a failed
 // fetch fails either, so the previous deploy stays up). The conditions card
-// stays empty until the kit's place search is wired. The station map takes
+// renders empty and is filled in the browser by the kit's place search
+// (src/scripts/conditions-now.ts); without JavaScript it links to the
+// Station Dashboard. The station map takes
 // the build's /stations/ catalog and a /latest/ air-temperature snapshot (a
 // failed fetch fails the build too) and refreshes itself in the browser.
 // Never pass sample data
@@ -72,7 +74,7 @@ const QUESTIONS = [
   },
 ];
 ---
-<Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed photos map>
+<Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed photos map places>
   <PhotoMosaic set={hero.set} stations={hero.stations} />
 
   <section id="readings" class="readings" aria-labelledby="readings-title">
@@ -84,11 +86,6 @@ const QUESTIONS = [
             Air temperature, humidity, wind, precipitation, soil moisture and soil temperature.
             Recent values are provisional.
           </p>
-          <!--
-            Place search ("find conditions near you") goes here once the kit ships
-            the dashboard's place search on MCO.searchModel / initSearchBox
-            (DECISIONS D9, extraction #2). It sets the station ConditionsNow shows.
-          -->
         </div>
         <ConditionsNow />
       </div>

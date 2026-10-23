@@ -67,6 +67,13 @@ export interface CspOptions {
    * No terrain host: the homepage map draws no hillshade.
    */
   map?: boolean;
+  /**
+   * The page has the kit's place search (the homepage conditions card).
+   * places/mco-places.js fetches its gazetteer, and a reservation's
+   * boundary on the first reservation pick, from the pinned tag on jsDelivr,
+   * with integrity (kit README § CSP notes): connect-src jsDelivr.
+   */
+  places?: boolean;
 }
 
 const UNPKG = 'https://unpkg.com';
@@ -75,7 +82,7 @@ const CARTO = 'https://basemaps.cartocdn.com https://tiles.basemaps.cartocdn.com
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
 export function contentSecurityPolicy(
   inlineScripts: string[],
-  { search = false, photos = false, map = false }: CspOptions = {},
+  { search = false, photos = false, map = false, places = false }: CspOptions = {},
 ): string {
   const hashes = inlineScripts.map(hash).join(' ');
   return [
@@ -88,7 +95,7 @@ export function contentSecurityPolicy(
     // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
     // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.
     `img-src 'self' data:${map ? ' blob:' : ''} ${JSDELIVR} ${DATA2}`,
-    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO} ${JSDELIVR}` : ''}`,
+    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO}` : ''}${map || places ? ` ${JSDELIVR}` : ''}`,
     "base-uri 'none'",
     `form-action ${search ? "'self'" : "'none'"}`,
   ].join('; ');

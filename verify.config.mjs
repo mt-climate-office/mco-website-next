@@ -40,6 +40,17 @@ const mapReady = () => {
     !!frame.querySelector('.maplibregl-ctrl-attrib');
 };
 
+// The conditions card shows a station with its readings in (none loading).
+const conditionsReady = () => {
+  const card = document.getElementById('cond');
+  const result = document.getElementById('cond-result');
+  if (!card || !result) return false;
+  card.scrollIntoView({ block: 'center' });
+  return !document.documentElement.classList.contains('mco-booting') &&
+    !result.hidden && !result.hasAttribute('aria-busy') &&
+    /^Updated /.test(document.getElementById('cond-stamp')?.textContent || '');
+};
+
 export default {
   // keyboard.mjs opens every probe page with this; without it, it would use
   // the first scenario's (photosReady), which only the homepage can meet.
@@ -54,6 +65,8 @@ export default {
         /_E_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || '') },
     // The station map, loaded, with its table twin open.
     { name: 'home-map', query: '', ready: mapReady },
+    // The conditions card, filled from a linked station (?s=).
+    { name: 'home-conditions', query: '?s=aceabsar', ready: conditionsReady },
     { name: 'not-found', query: '404.html', ready: chromeReady },
     // Station directory with the filter applied from the URL, and one station.
     { name: 'stations', query: 'mesonet/stations/?q=gallatin',
@@ -241,6 +254,104 @@ export default {
       check('station map: the table twin has every station in the directory',
         directory.length > 100 && missing.length === 0 && twin.length === directory.length,
         `twin=${twin.length} directory=${directory.length} missing=${missing.slice(0, 5).join(',')}`);
+      await close();
+    }
+
+    // Conditions card: the kit's place search finds stations and places in
+    // headed sections; a ZIP code fills the card with its nearest station,
+    // the distance, the readings and ?s=; Esc behaves as the kit's search
+    // box does; ?s= restores the card on load.
+    {
+      const filled = () => !document.getElementById('cond-result').hidden &&
+        !document.getElementById('cond-result').hasAttribute('aria-busy') &&
+        /^Updated /.test(document.getElementById('cond-stamp').textContent);
+      const { page, close } = await open('');
+      const empty = await page.evaluate(() => ({
+        result: document.getElementById('cond-result').hidden,
+        empty: !document.getElementById('cond-empty').hidden,
+        label: document.querySelector('label[for="cond-q"]')?.textContent,
+        url: location.search,
+      }));
+      check('conditions: empty card with a labelled search, homepage URL left clean',
+        empty.result && empty.empty && empty.label === 'Find conditions near you' && empty.url === '', JSON.stringify(empty));
+
+      await page.locator('#cond-q').click();
+      await page.keyboard.type('bozeman');
+      await page.waitForFunction(() => document.querySelectorAll('#cond-list .mco-search-group').length === 2, null, { timeout: 30000 });
+      const town = await page.evaluate(() => ({
+        groups: [...document.querySelectorAll('#cond-list .mco-search-group')].map((g) => g.textContent),
+        first: document.querySelector('#cond-list [role="option"]')?.textContent,
+        places: [...document.querySelectorAll('#cond-list [role="group"]:last-child [role="option"]')].map((o) => o.textContent),
+        expanded: document.getElementById('cond-q').getAttribute('aria-expanded'),
+      }));
+      check('conditions: typing a town lists Stations, then Places, headed',
+        town.groups.join(',') === 'Stations,Places' && /^Bozeman, (HydroMet|AgriMet)$/.test(town.first || '') &&
+        town.places.some((p) => p === 'Bozeman, City') && town.expanded === 'true', JSON.stringify(town));
+
+      // Esc with the list open closes it and restores the text from before
+      // it opened (empty here); with the list closed, Esc clears the text.
+      await page.keyboard.press('Escape');
+      const esc1 = await page.evaluate(() => ({ v: document.getElementById('cond-q').value,
+        expanded: document.getElementById('cond-q').getAttribute('aria-expanded'), list: document.getElementById('cond-list').hidden }));
+      await page.keyboard.type('lolo');
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Shift+Tab');
+      const kept = await page.evaluate(() => document.getElementById('cond-q').value);
+      await page.keyboard.press('Escape');
+      const esc2 = await page.evaluate(() => ({ v: document.getElementById('cond-q').value,
+        expanded: document.getElementById('cond-q').getAttribute('aria-expanded') }));
+      check('conditions: Esc closes the list and restores the text, then clears it once closed',
+        esc1.v === '' && esc1.expanded === 'false' && esc1.list && kept === 'lolo' && esc2.v === '' && esc2.expanded === 'false',
+        JSON.stringify({ esc1, kept, esc2 }));
+
+      await page.keyboard.type('59715');
+      await page.waitForFunction(() => [...document.querySelectorAll('#cond-list [role="option"]')]
+        .some((o) => /^59715, ZIP code$/.test(o.textContent)), null, { timeout: 30000 });
+      await page.locator('#cond-list [role="option"]', { hasText: /^59715/ }).first().click();
+      await page.waitForFunction(filled, null, { timeout: 30000 });
+      await page.waitForFunction(() => [...document.querySelectorAll('[aria-live="polite"]')]
+        .some((e) => /from the center of ZIP code 59715\./.test(e.textContent)), null, { timeout: 3000 }).catch(() => {});
+      const zip = await page.evaluate(() => ({
+        station: document.getElementById('cond-station').textContent,
+        from: document.getElementById('cond-from').textContent,
+        headline: document.getElementById('cond-headline-label').textContent + ' ' + document.getElementById('cond-headline-value').textContent,
+        readings: [...document.querySelectorAll('#cond-readings dt')].map((d) => d.textContent),
+        stamp: document.getElementById('cond-stamp').textContent,
+        near: [...document.querySelectorAll('#cond-near-rows button')].map((b) => [b.textContent, b.getAttribute('aria-pressed')]),
+        links: [...document.querySelectorAll('.cond-links a')].map((a) => a.getAttribute('href')),
+        s: new URLSearchParams(location.search).get('s'),
+        focus: document.activeElement?.id,
+        live: [...document.querySelectorAll('[aria-live="polite"]')].map((e) => e.textContent).join(' '),
+      }));
+      const pressed = zip.near.filter(([, p]) => p === 'true');
+      check('conditions: a ZIP code fills the card with its nearest station and the distance',
+        !!zip.station && /^\d+(\.\d)? mi from the center of ZIP code 59715$/.test(zip.from) &&
+        /^Air temperature at (2 m|8 ft) -?\d+°F$/.test(zip.headline) && /^Updated .+ · Provisional$|^Updated [^·]+$/.test(zip.stamp) &&
+        zip.near.length >= 2 && pressed.length === 1 && pressed[0][0].startsWith(zip.station + ', '),
+        JSON.stringify(zip));
+      check('conditions: the pick links the station page and dashboard, writes ?s= and keeps focus in the field',
+        zip.links.some((h) => new RegExp(`/mesonet/stations/${zip.s}/$`).test(h)) &&
+        zip.links.includes(`https://mesonet.climate.umt.edu/dash/next/?s=${zip.s}`) && /^[a-z0-9_]+$/.test(zip.s || '') &&
+        zip.focus === 'cond-q', JSON.stringify(zip));
+      check('conditions: the card is announced once, in words',
+        zip.live.includes(`${zip.station}, ${zip.from}.`), zip.live);
+      await close();
+    }
+    {
+      const { page, close } = await open('?s=arskeogh');
+      await page.waitForFunction(() => !document.getElementById('cond-result').hidden &&
+        !document.getElementById('cond-result').hasAttribute('aria-busy') &&
+        /^Updated /.test(document.getElementById('cond-stamp').textContent), null, { timeout: 30000 });
+      const restored = await page.evaluate(() => ({
+        station: document.getElementById('cond-station').textContent,
+        label: document.getElementById('cond-headline-label').textContent,
+        from: document.getElementById('cond-from').hidden,
+        empty: document.getElementById('cond-empty').hidden,
+        s: new URLSearchParams(location.search).get('s'),
+      }));
+      check('conditions: ?s= restores the card on load (an AgriMet station reads its 8 ft sensor)',
+        !!restored.station && restored.station !== 'Station' && /^Air temperature( at 8 ft)?$/.test(restored.label) && restored.from && restored.empty && restored.s === 'arskeogh',
+        JSON.stringify(restored));
       await close();
     }
 

@@ -109,8 +109,9 @@ try {
     const perf = median(runs.map((r) => r.categories.performance.score));
     const scriptKB = median(runs.map((r) => scriptKBOf(r, false)));
     const islandKB = median(runs.map((r) => scriptKBOf(r, true)));
+    const cls = median(runs.map((r) => r.audits['cumulative-layout-shift'].numericValue));
 
-    console.log(`${page.name}: accessibility ${Math.round(a11y * 100)}, performance ${Math.round(perf * 100)} (median of ${RUNS}), JS ${scriptKB.toFixed(1)} KB` +
+    console.log(`${page.name}: accessibility ${Math.round(a11y * 100)}, performance ${Math.round(perf * 100)} (median of ${RUNS}), CLS ${cls.toFixed(3)}, JS ${scriptKB.toFixed(1)} KB` +
       (islandKB ? ` + map island ${islandKB.toFixed(1)} KB (not budgeted)` : ''));
     if (a11y < MIN.accessibility) {
       const failed = Object.values(runs[0].audits)
