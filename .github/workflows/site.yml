@@ -82,10 +82,12 @@ jobs:
       - id: pw
         name: Playwright version and engines
         run: |
-          echo "version=$(node -p "require('./package-lock.json').packages['node_modules/playwright'].version")" >> "$GITHUB_OUTPUT"
-          echo "engines=${VERIFY_ENGINES//,/ }" >> "$GITHUB_OUTPUT"
-          # Cache keys cannot contain commas: key on "chromium-webkit".
-          echo "engines_key=${VERIFY_ENGINES//,/-}" >> "$GITHUB_OUTPUT"
+          # Cache keys cannot contain commas, so the key uses "chromium-webkit".
+          {
+            echo "version=$(node -p "require('./package-lock.json').packages['node_modules/playwright'].version")"
+            echo "engines=${VERIFY_ENGINES//,/ }"
+            echo "engines_key=${VERIFY_ENGINES//,/-}"
+          } >> "$GITHUB_OUTPUT"
       - name: Restore Playwright browsers
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
