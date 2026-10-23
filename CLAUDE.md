@@ -34,7 +34,7 @@ change the kit and bump the pinned version here; never patch a local copy.
 
 ## Design system (D1)
 
-**Pinned jsDelivr tag + SRI + `crossorigin`, v0.13.1.** Favicons and
+**Pinned jsDelivr tag + SRI + `crossorigin`, v0.15.1.** Favicons and
 `og-card.png` hot-linked from the pinned tag. Do not vendor, do not add a
 `package.json` to the kit, **do not self-host the fonts** — the kit uses
 `font-display: block` plus preload deliberately.
@@ -69,9 +69,14 @@ timeout**. Generate types from `/api/openapi.json`.
   summary JSON on data2 (D5). Do not compute them here.
 - Photo times come from `data2.climate.umt.edu` `photos/schedule/schedule.json`
   and the monthly manifests (D6), not the API.
-- Public photo directions are **N/S/E/W**, default North, most recent capture,
-  **clamped to dates on or after 2026-10-21** (D7). Snow/Pluvio/Solar stay
-  staff-only (D8).
+- Photos go through the kit's `MCO.photos` (`photos/mco-photos.js`, D9),
+  never a local copy. The homepage hero uses the kit's **default** audience:
+  N/E/S/W, North, most recent capture, first date **2026-10-22**. Never pass
+  `since` or `fullHistory` here; the tools pass `fullHistory` (D16).
+  Snow/Pluvio/Solar stay staff-only (D8).
+- The hero's build-time set is computed by the same pinned kit bytes, loaded
+  in `node:vm` after an SRI check (`src/lib/kit-node.ts`), through
+  `src/lib/photo-hero.ts`, which the page's script also runs.
 - Station and camera counts come from data, never prose.
 
 **Fetch, don't frame.** No iframes for primary content. Every data island
@@ -124,12 +129,17 @@ src/kit/                kit pin + SRI (kit.ts), meta CSP (csp.ts), vendored
                         anti-flash body (anti-flash.inline.js)
 src/layouts/Base.astro  document shell: head per snippets/head.html, skip link,
                         header, <main id="main">, footer, kit core script
+                        (+ photos/mco-photos.js with `photos`, homepage only)
 src/components/layout/  Header (kit navbar + compact drawer), Footer
 src/lib/                paths.ts (url(), canonicalUrl()), nav.ts (sections),
                         mesonet.ts (API client) + mesonet.openapi.d.ts
-                        (generated: npm run gen:api, manual, never in CI)
+                        (generated: npm run gen:api, manual, never in CI),
+                        kit-node.ts (pinned kit in node:vm, build only),
+                        photo-hero.ts (hero set, both realms),
+                        photo-snapshot.ts (hero build-time snapshot)
 src/scripts/chrome.ts   theme toggle, drawer, MCO.ready()
 src/scripts/search.ts   /search/ on Pagefind's JS API (loaded on first query)
+src/scripts/photo-hero.ts  homepage photo controls (MCO.photos.initPhotoControls)
 src/styles/site.css     site layer over the kit; tokens only
 src/pages/              routes, robots.txt endpoint, 404
 public/mco-logo.png     navbar badge, vendored from the kit tag
@@ -168,13 +178,17 @@ half of `npm run build`. It indexes only `<main data-pagefind-body>`, which
   `assetsInlineLimit: 0` and `inlineStylesheets: 'never'`. The CSP is written
   by hand because the kit's `head.mjs` matches only the
   `Content-Security-Policy` spelling, and Astro's built-in CSP emits it
-  lowercase.
+  lowercase. The homepage alone adds `style-src-attr 'unsafe-inline'`:
+  WebKit draws the photo controls' `<select>` with style attributes
+  (`csp.ts`, `photos`).
 - **noindex is automatic.** Only a deploy whose Pages origin is the production
   host is indexable. At cutover, set `EXPECT_INDEXABLE: '1'` in the deploy
   job in the same change that moves the domain.
-- **Kit bump:** change `KIT_VERSION` and the hashes in `src/kit/kit.ts`,
-  re-vendor `src/kit/anti-flash.inline.js` and `public/mco-logo.png` from the
-  new tag, then `npm run check:kit`.
+- **Kit bump:** change `KIT_VERSION` and the hashes in `src/kit/kit.ts`
+  (theme, core, photos), re-vendor `src/kit/anti-flash.inline.js` and
+  `public/mco-logo.png` from the new tag, then `npm run check:kit`. The build
+  fetches core + photos at the new tag and checks them against the same
+  hashes (cached in `node_modules/.cache/mco-kit/<version>/`).
 
 ## Checks
 

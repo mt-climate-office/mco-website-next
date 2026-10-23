@@ -15,9 +15,27 @@ const chromeReady = () =>
   !document.documentElement.classList.contains('mco-booting') &&
   /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '');
 
+// The photo controls are wired (they stay hidden until MCO.photos has the
+// schedule) and no set is loading.
+const photosReady = () =>
+  !document.documentElement.classList.contains('mco-booting') &&
+  /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
+  document.getElementById('photo-controls')?.hidden === false &&
+  document.querySelectorAll('#pc-views input[type="radio"]').length > 0 &&
+  !document.getElementById('hero-mosaic')?.hasAttribute('aria-busy');
+
 export default {
+  // keyboard.mjs opens every probe page with this; without it, it would use
+  // the first scenario's (photosReady), which only the homepage can meet.
+  ready: chromeReady,
   scenarios: [
-    { name: 'home', query: '', ready: chromeReady },
+    { name: 'home', query: '', ready: photosReady },
+    // A linked direction: the mosaic, h1 and stamp follow ?dir=.
+    { name: 'home-east', query: '?dir=E',
+      ready: () => !document.documentElement.classList.contains('mco-booting') &&
+        document.getElementById('photo-controls')?.hidden === false &&
+        !document.getElementById('hero-mosaic')?.hasAttribute('aria-busy') &&
+        /_E_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || '') },
     { name: 'not-found', query: '404.html', ready: chromeReady },
     // Station directory with the filter applied from the URL, and one station.
     { name: 'stations', query: 'mesonet/stations/?q=gallatin',
@@ -43,6 +61,68 @@ export default {
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
   probes: async ({ open, check }) => {
+    // Photo hero: the controls change the set in place, announce it once,
+    // and write the URL (date and time kept, North elided).
+    {
+      const { page, close } = await open('');
+      await page.waitForFunction(() => document.getElementById('photo-controls')?.hidden === false &&
+        !document.getElementById('hero-mosaic')?.hasAttribute('aria-busy'), null, { timeout: 30000 });
+      const before = await page.evaluate(() => ({
+        srcs: [...document.querySelectorAll('#hero-mosaic img')].map((i) => i.getAttribute('src')),
+        url: location.search,
+        views: [...document.querySelectorAll('#pc-views input')].map((i) => i.value).join(','),
+      }));
+      check('photos: North by default, public views only, homepage URL left clean',
+        before.srcs.length > 0 && before.srcs.every((s) => /_N_/.test(s)) && before.views === 'N,E,S,W' && before.url === '',
+        JSON.stringify({ n: before.srcs.length, views: before.views, url: before.url }));
+
+      await page.locator('#pc-views label', { hasText: /^E$/ }).click();
+      await page.waitForFunction(() => /_E_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || '') &&
+        !document.getElementById('hero-mosaic').hasAttribute('aria-busy'), null, { timeout: 30000 });
+      await page.waitForFunction(() => [...document.querySelectorAll('[aria-live="polite"]')]
+        .some((e) => /facing east/.test(e.textContent)), null, { timeout: 3000 }).catch(() => {});
+      const east = await page.evaluate(() => ({
+        tiles: [...document.querySelectorAll('#hero-mosaic img')].length,
+        allEast: [...document.querySelectorAll('#hero-mosaic img')].every((i) => /_E_/.test(i.src) && /^Looking east from /.test(i.alt)),
+        h1: document.querySelector('h1').textContent,
+        stamp: document.querySelector('.hero .stamp').textContent,
+        live: [...document.querySelectorAll('[aria-live="polite"]')].map((e) => e.textContent).join(' '),
+        q: Object.fromEntries(new URLSearchParams(location.search)),
+      }));
+      check('photos: East swaps every tile in place, with the h1 and stamp',
+        east.tiles > 0 && east.allEast && /looking east/.test(east.h1) && /facing east/.test(east.stamp), JSON.stringify(east));
+      check('photos: the change is announced once, in words',
+        /cameras, facing east,/.test(east.live), east.live);
+      check('photos: the URL carries date, time and dir=E',
+        east.q.dir === 'E' && /^\d{4}-\d{2}-\d{2}$/.test(east.q.date || '') && !!east.q.time, JSON.stringify(east.q));
+
+      // The first public date has no previous day, so move the time: another
+      // ready slot that day, read from the menu the kit built.
+      const first = await page.evaluate(() => {
+        const s = document.getElementById('pc-time');
+        return [...s.options].find((o) => !o.disabled && o.value !== s.value)?.value ?? '';
+      });
+      const stamp = east.stamp;
+      await page.locator('#pc-time').selectOption(first);
+      await page.waitForFunction((s) => document.querySelector('.hero .stamp').textContent !== s &&
+        !document.getElementById('hero-mosaic').hasAttribute('aria-busy'), stamp, { timeout: 30000 });
+      const moved = await page.evaluate(() => ({
+        time: new URLSearchParams(location.search).get('time'),
+        select: document.getElementById('pc-time').value,
+        stamp: document.querySelector('.hero .stamp').textContent,
+        dir: new URLSearchParams(location.search).get('dir'),
+      }));
+      check('photos: a new time moves the set and the URL together, keeping the direction',
+        !!first && moved.select === first && moved.time === (first.endsWith(':00') ? String(Number(first.slice(0, 2))) : first) && moved.dir === 'E' && /facing east/.test(moved.stamp),
+        JSON.stringify({ first, ...moved }));
+
+      await page.locator('#pc-views label', { hasText: /^N$/ }).click();
+      await page.waitForFunction(() => /_N_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || ''), null, { timeout: 30000 });
+      const north = await page.evaluate(() => new URLSearchParams(location.search).has('dir'));
+      check('photos: back to North drops dir= from the URL', !north);
+      await close();
+    }
+
     // Station directory: the filter appears with JS, narrows the rows, says
     // how many match, mirrors ?q=, and clearing it shows every row again.
     {

@@ -11,8 +11,9 @@ const hash = (body: string) =>
   `'sha256-${createHash('sha256').update(body).digest('base64')}'`;
 
 const JSDELIVR = 'https://cdn.jsdelivr.net';
-// Photo schedules, manifests and frames are read from data2 directly
-// (DECISIONS D6). The photo frames will need it in img-src too.
+// Photo schedules, archive listings and frames are read from data2 directly
+// (DECISIONS D6): connect-src for the schedule and listings, img-src for the
+// homepage hero's thumbnails.
 const DATA2 = 'https://data2.climate.umt.edu';
 
 export interface CspOptions {
@@ -35,19 +36,32 @@ export interface CspOptions {
    *     (GET ?q=), so it works before the script loads.
    */
   search?: boolean;
+  /**
+   * The page shows the kit's photo controls (the homepage hero). Their time
+   * menu is a <select>, which initPhotoControls requires, and WebKit draws a
+   * <select> with inline style attributes in its shadow tree. Under
+   * style-src 'self' those are refused (a CSP console error on every load)
+   * and the control collapses to about 20px, under the 40px touch target.
+   * `style-src-attr 'unsafe-inline'` allows style attributes only: no
+   * <style> element and no stylesheet from anywhere else, and a style
+   * attribute cannot run script. Checked in Playwright's WebKit, 22 Oct 2026.
+   * The status page avoids <select> for this reason; this page cannot.
+   */
+  photos?: boolean;
 }
 
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
-export function contentSecurityPolicy(inlineScripts: string[], { search = false }: CspOptions = {}): string {
+export function contentSecurityPolicy(inlineScripts: string[], { search = false, photos = false }: CspOptions = {}): string {
   const hashes = inlineScripts.map(hash).join(' ');
   return [
     "default-src 'none'",
     `script-src 'self' ${JSDELIVR} ${hashes}${search ? " 'wasm-unsafe-eval'" : ''}`,
     `style-src 'self' ${JSDELIVR}`,
+    ...(photos ? ["style-src-attr 'unsafe-inline'"] : []),
     `font-src ${JSDELIVR}`,
     // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
     // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.
-    `img-src 'self' data: ${JSDELIVR}`,
+    `img-src 'self' data: ${JSDELIVR} ${DATA2}`,
     `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}`,
     "base-uri 'none'",
     `form-action ${search ? "'self'" : "'none'"}`,

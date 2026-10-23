@@ -4,10 +4,11 @@
 //
 // Each data component takes typed props (src/components/data/types.ts) and
 // renders its empty state when they are absent. The status bar reads the
-// mesonet-compliance summary at build time (a failed fetch fails the build,
-// so the previous deploy stays up). The photo hero and conditions card stay
-// empty until the kit's photo module and place search are wired. Never pass
-// sample data here; the page must not show a made-up figure.
+// mesonet-compliance summary at build time, and the photo hero takes the
+// most recent public set from the kit's MCO.photos at build time (a failed
+// fetch fails either, so the previous deploy stays up). The conditions card
+// stays empty until the kit's place search is wired. Never pass sample data
+// here; the page must not show a made-up figure.
 // Copy follows docs/VOICE.md. Each question's claims are sourced beside it.
 import Base from '../layouts/Base.astro';
 import PhotoMosaic from '../components/data/PhotoMosaic.astro';
@@ -17,8 +18,12 @@ import QuestionCard from '../components/content/QuestionCard.astro';
 import ToolList from '../components/content/ToolList.astro';
 import { DASHBOARD, TOOLS } from '../lib/tools';
 import { loadSummary, toNetworkSummary } from '../lib/compliance';
+import { loadHeroSnapshot } from '../lib/photo-snapshot';
 
-const summary = toNetworkSummary(await loadSummary());
+const [summary, hero] = await Promise.all([
+  loadSummary().then(toNetworkSummary),
+  loadHeroSnapshot(),
+]);
 
 const QUESTIONS = [
   // mco-drought-dashboard/docs/index.html:175-178 (indices), :836 (15 d to
@@ -57,8 +62,8 @@ const QUESTIONS = [
   },
 ];
 ---
-<Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed>
-  <PhotoMosaic />
+<Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed photos>
+  <PhotoMosaic set={hero.set} stations={hero.stations} />
 
   <section id="readings" class="readings" aria-labelledby="readings-title">
     <div class="wrap readings-inner">
