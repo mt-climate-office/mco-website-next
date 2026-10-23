@@ -1,0 +1,91 @@
+---
+// /mesonet/ag_tools/feels_like/: feels-like temperature, at the old path.
+// Source: mco-website/_pages/mesonet/tools/mesonet_tools_feels_like.md.
+// Text and coefficients unchanged; equations are linear HTML (T*T → T²).
+// The example call moved from the legacy API, framed in an iframe, to a
+// plain link on mesonet2 (same station, dates and element; answered 200 on
+// 23 Oct 2026).
+import Base from '../../../layouts/Base.astro';
+import { url } from '../../../lib/paths';
+import { DASHBOARD } from '../../../lib/tools';
+import { API_BASE } from '../../../lib/mesonet';
+
+const WIND_CHILL = 'https://www.weather.gov/media/epz/wxcalc/windChill.pdf';
+const HEAT_INDEX = 'https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml';
+const EXAMPLE = `${API_BASE}/derived/daily/?stations=crowagen&start_time=2023-12-01&end_time=2023-12-15&elements=feels_like&type=csv`;
+---
+<Base short="Feels-like temperature"
+      description="How the Montana Mesonet computes the feels-like temperature from wind chill, heat index and air temperature.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Feels-like temperature</h1>
+    <p>
+      The "Feels Like" temperature is a combination of the heat index, wind chill, and air
+      temperature.
+    </p>
+
+    <h2>Wind chill</h2>
+    <p>
+      Wind chill combines the air temperature and wind speed to provide a real feel temperature
+      when temperatures are less than 50 °F and wind speed is greater than 3 mph
+      (<a href={WIND_CHILL}>National Weather Service wind chill equation</a>):
+    </p>
+    <p class="eq">
+      Wind chill (°F) = 35.74 + 0.6215 <var>T</var> − 35.75 <var>V</var><sup>0.16</sup>
+      + 0.4275 <var>T</var> <var>V</var><sup>0.16</sup>
+    </p>
+    <p>where <var>T</var> is the temperature in °F and <var>V</var> is wind speed in miles per hour.</p>
+
+    <h2>Heat index</h2>
+    <p>
+      When temperatures are above 80 °F, the heat index is used to calculate the feels like
+      temperature. The heat index combines temperature and relative humidity to provide a real feel
+      temperature in warm conditions (<a href={HEAT_INDEX}>NOAA Weather Prediction Center heat
+      index equation</a>):
+    </p>
+    <p class="eq">
+      <var>HI</var> = −42.379 + 2.04901523 <var>T</var> + 10.14333127 <var>RH</var>
+      − 0.22475541 <var>T</var> <var>RH</var> − 0.00683783 <var>T</var><sup>2</sup>
+      − 0.05481717 <var>RH</var><sup>2</sup> + 0.00122874 <var>T</var><sup>2</sup> <var>RH</var>
+      + 0.00085282 <var>T</var> <var>RH</var><sup>2</sup>
+      − 0.00000199 <var>T</var><sup>2</sup> <var>RH</var><sup>2</sup>
+    </p>
+    <p>
+      where <var>T</var> is the temperature in °F and <var>RH</var> is the relative humidity
+      expressed as percent.
+    </p>
+    <p>
+      If <var>RH</var> is less than 13% and the temperature is between 80 and 112 °F, the following
+      is subtracted from the <var>HI</var> value given above:
+    </p>
+    <p class="eq">
+      ((13 − <var>RH</var>) / 4) × √((17 − |<var>T</var> − 95|) / 17)
+    </p>
+    <p>
+      If <var>RH</var> is greater than 85% and the temperature is between 80 and 87 °F, the
+      following is added to the <var>HI</var> value given above:
+    </p>
+    <p class="eq">
+      ((<var>RH</var> − 85) / 10) × ((87 − <var>T</var>) / 5)
+    </p>
+
+    <h2>Air temperature</h2>
+    <p>
+      If the temperature, wind speed, or relative humidity don't meet the criteria for calculating
+      the wind chill or heat index, raw temperature is used to calculate the feels like temperature.
+    </p>
+
+    <h2>Get the data</h2>
+    <p>
+      The Mesonet API serves the feels-like temperature as the <code>feels_like</code> element. For
+      example, <a href={EXAMPLE}>daily feels-like temperature at Crow Agency E (<code>crowagen</code>), 1 to 15 December
+      2023, as CSV</a>.
+    </p>
+
+    <p class="method-note">
+      Part of the <a href={url('mesonet/ag_tools/')}>agricultural tools</a>.
+      The <a href={`${DASHBOARD}#charts`}>Station Dashboard</a> charts it for each station under
+      Charts, Ag tools.
+    </p>
+  </div>
+</Base>

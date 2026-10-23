@@ -1,0 +1,36 @@
+---
+// /mesonet/ag_tools/soil_profile/: soil profile plots, at the old path.
+// Source: mco-website/_pages/mesonet/tools/mesonet_tools_soil_profile.md.
+// Text unchanged; the figure (assets/images/soil_profile.png) is a lossless
+// WebP without metadata, with written alt text.
+import Base from '../../../layouts/Base.astro';
+import { url } from '../../../lib/paths';
+import { DASHBOARD } from '../../../lib/tools';
+---
+<Base short="Soil profile plots"
+      description="How to read the Station Dashboard's soil profile plots: soil moisture, temperature, conductivity and water potential by depth through time.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Soil profile plots</h1>
+    <p>
+      The soil profile plots available on the dashboard show soil moisture (VWC), temperature,
+      electrical conductivity, and soil water potential as a function of depth. For example, in the
+      plot below, VWC for all of 2023 is plotted at the Bozeman HydroMet station. The bluer colors
+      represent wetter conditions, while the browner colors represent drier conditions. The figure
+      shows that as winter snowpack starts to melt, VWC increases, reaching as far as 20 inches
+      beneath the surface. As summer begins, the three soil layers begin to dry out. Uncolored cells
+      represent periods of time when the soil is frozen.
+    </p>
+    <figure>
+      <img src={url('images/mesonet/soil-profile.webp')} width="1628" height="500" loading="lazy"
+           alt="Heat map of soil volumetric water content at 4, 8 and 20 inches deep at the Bozeman HydroMet station, January to December 2023, on a scale from about 12% (brown) to 37% (blue-green). All three depths are dry until April, turn wet from mid-April into July, and dry again from August through December. The 4 inch row has blank stretches in February, March and December, and the 8 inch row in December, where the soil was frozen.">
+      <figcaption>Soil profile plot of volumetric water content at the Bozeman HydroMet station.</figcaption>
+    </figure>
+
+    <p class="method-note">
+      Part of the <a href={url('mesonet/ag_tools/')}>agricultural tools</a>.
+      The <a href={`${DASHBOARD}#charts`}>Station Dashboard</a> draws these plots for each station
+      under Charts, Ag tools.
+    </p>
+  </div>
+</Base>

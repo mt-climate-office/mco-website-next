@@ -1,0 +1,70 @@
+---
+// /mesonet/ag_tools/eto/: reference evapotranspiration, at the old path.
+// Source: mco-website/_pages/mesonet/tools/mesonet_tools_eto.md. Text and
+// equation unchanged; the MathJax equation is linear HTML, and the footnote
+// is a link in the sentence that quotes it.
+import Base from '../../../layouts/Base.astro';
+import { url } from '../../../lib/paths';
+import { DASHBOARD } from '../../../lib/tools';
+
+const FAO_CH2 = 'https://www.fao.org/3/X0490E/x0490e05.htm';
+const FAO_CH4 = 'https://www.fao.org/3/x0490e/x0490e08.htm';
+---
+<Base short="Reference evapotranspiration"
+      description="How the Montana Mesonet computes reference evapotranspiration (ETo) with the FAO Penman-Monteith equation.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Reference evapotranspiration</h1>
+    <p>
+      Reference evapotranspiration (ET<sub>o</sub>) is defined as the potential water lost to
+      evaporation and plant transpiration from a reference surface. The
+      <a href={FAO_CH2}>FAO defines the reference surface</a> as follows.
+    </p>
+    <blockquote>
+      <p>
+        The reference surface is a hypothetical grass reference crop with an assumed crop height of
+        0.12 m, a fixed surface resistance of 70 s m<sup>−1</sup> and an albedo of 0.23. The
+        reference surface closely resembles an extensive surface of green, well-watered grass of
+        uniform height, actively growing and completely shading the ground. The fixed surface
+        resistance of 70 s m<sup>−1</sup> implies a moderately dry soil surface resulting from about
+        a weekly irrigation frequency.
+      </p>
+    </blockquote>
+
+    <h2>Calculation</h2>
+    <p>
+      To calculate ET<sub>o</sub>, we use the Food and Agriculture Organization's
+      <a href={FAO_CH4}>Penman-Monteith ET<sub>o</sub> algorithm</a>. This method allows
+      ET<sub>o</sub> to be calculated using either hourly or daily meteorological observations
+      collected at our Mesonet stations. With this method, daily ET<sub>o</sub> is calculated as:
+    </p>
+    <p class="eq">
+      <var>ET<sub>o</sub></var> =
+      [0.408 <var>Δ</var> (<var>R<sub>n</sub></var> − <var>G</var>)
+      + <var>γ</var> (900 / (<var>T</var> + 273)) <var>u<sub>2</sub></var> (<var>e<sub>s</sub></var> − <var>e<sub>a</sub></var>)]
+      / [<var>Δ</var> + <var>γ</var> (1 + 0.34 <var>u<sub>2</sub></var>)]
+    </p>
+    <p>where:</p>
+    <dl>
+      <div><dt><var>ET<sub>o</sub></var></dt> <dd>is the reference surface evapotranspiration (mm/day)</dd></div>
+      <div><dt><var>R<sub>n</sub></var></dt> <dd>is the net radiation at the crop surface (MJ/m<sup>2</sup>/day)</dd></div>
+      <div><dt><var>G</var></dt> <dd>is soil heat flux (MJ/m<sup>2</sup>/day)</dd></div>
+      <div><dt><var>T</var></dt> <dd>is the average temperature (°C)</dd></div>
+      <div><dt><var>u<sub>2</sub></var></dt> <dd>is the wind speed at 2 meters height (m/s)</dd></div>
+      <div><dt><var>e<sub>s</sub></var></dt> <dd>is the saturation vapor pressure (kPa)</dd></div>
+      <div><dt><var>e<sub>a</sub></var></dt> <dd>is the actual vapor pressure (kPa)</dd></div>
+      <div><dt><var>Δ</var> (delta)</dt> <dd>is the slope of the vapor pressure curve (kPa/°C)</dd></div>
+      <div><dt><var>γ</var> (gamma)</dt> <dd>is the psychrometric constant (kPa/°C)</dd></div>
+    </dl>
+    <p>
+      For how each of these is derived from meteorological data, see
+      <a href={FAO_CH4}>chapter 4 of FAO Irrigation and Drainage Paper 56</a>.
+    </p>
+
+    <p class="method-note">
+      Part of the <a href={url('mesonet/ag_tools/')}>agricultural tools</a>.
+      The <a href={`${DASHBOARD}#charts`}>Station Dashboard</a> charts it for each station under
+      Charts, Ag tools.
+    </p>
+  </div>
+</Base>
