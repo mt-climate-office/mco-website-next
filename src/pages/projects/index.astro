@@ -1,0 +1,38 @@
+---
+// /projects/ (rebuild plan §4.2): every project in the projects collection,
+// active first. The name is the link text (WCAG 2.4.4). Each project page
+// lists its publications.
+import Base from '../../layouts/Base.astro';
+import { getProjects, projectPath, STATUS_LABEL, type Project } from '../../lib/projects';
+import { url } from '../../lib/paths';
+
+const projects = await getProjects();
+const groups = (['active', 'completed'] as const)
+  .map((status) => ({ status, label: STATUS_LABEL[status], items: projects.filter((p) => p.status === status) }))
+  .filter((g) => g.items.length > 0);
+const named = (p: Project) => (p.shortName ? `${p.name} (${p.shortName})` : p.name);
+---
+<Base short="Projects"
+      description="Research and data projects the Montana Climate Office runs or takes part in, with their partners and publications.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <p class="pub-back"><a href={url('research/')}>Research</a></p>
+  <h1 class="section-title pub-page-title">Projects</h1>
+  <p class="section-lede">
+    Research and data projects the Montana Climate Office runs or takes part in. Each page lists the project's
+    partners and the publications that came out of it.
+  </p>
+
+  {groups.map((g) => (
+    <section class="hub-section" aria-labelledby={`projects-${g.status}`}>
+      <h2 id={`projects-${g.status}`} class="hub-h2">{g.label}</h2>
+      <ul class="org-list">
+        {g.items.map((p) => (
+          <li>
+            <p class="org-name"><a href={url(projectPath(p.slug))}>{named(p)}</a></p>
+            <p class="org-text">{p.summary}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Base>

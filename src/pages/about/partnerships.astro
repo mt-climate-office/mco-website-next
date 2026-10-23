@@ -1,0 +1,94 @@
+---
+// /about/partnerships/, at the old site's path, also holding what was
+// /about/sponsors/ (that path redirects to #sponsors): both old pages were
+// short, so one page carries them. From the partners collection:
+//   - Partners and Sponsors: the organizations the two old pages named
+//     (mco-website/_pages/about/about_partnerships.md, about_sponsors.md).
+//   - Project partners: organizations named only by a project, each with
+//     links to the projects that name it.
+// The old Sponsors page's giving tiers ("Annual Friends" and so on) belong
+// with the donation page, which waits on an owner decision, so they are not
+// here.
+//
+// A logo is always printed beside the organization's name, so it is
+// decorative (alt=""), and the name is the link text (WCAG 1.1.1, 2.4.4).
+import Base from '../../layouts/Base.astro';
+import { getPartners, projectPath, type Partner } from '../../lib/projects';
+import { contentImage } from '../../lib/content-image';
+import { url } from '../../lib/paths';
+
+const all = await getPartners();
+const partners = all.filter((p) => p.roles.includes('partner'));
+const sponsors = all.filter((p) => p.roles.includes('sponsor'));
+const projectOnly = all.filter((p) => p.roles.length === 0 && p.projects.length > 0);
+const logo = (p: Partner) => (p.logo ? contentImage(p.logo, `partner ${p.slug}`) : null);
+---
+<Base short="Partners and sponsors"
+      description="Organizations the Montana Climate Office works with, the agencies that sponsor its work, and its project partners.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <p class="pub-back"><a href={url('about/')}>About</a></p>
+  <h1 class="section-title pub-page-title">Partners and sponsors</h1>
+  <p class="section-lede">
+    Organizations the Montana Climate Office works with, and the agencies that sponsor its work.
+  </p>
+
+  <section class="hub-section" aria-labelledby="partners">
+    <h2 id="partners" class="hub-h2">Partners</h2>
+    <ul class="org-list">
+      {partners.map((p) => {
+        const img = logo(p);
+        return (
+          <li>
+            <p class="org-name">
+              {img && <img class="org-logo" src={img.src} alt="" width={img.width} height={img.height} loading="lazy" decoding="async">}
+              {p.url ? <a href={p.url}>{p.name}</a> : p.name}
+            </p>
+            {p.note && <p class="org-text">{p.note}</p>}
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+
+  <section class="hub-section" aria-labelledby="sponsors">
+    <h2 id="sponsors" class="hub-h2">Sponsors</h2>
+    <p>Government agencies that sponsor the office's work.</p>
+    <ul class="org-list">
+      {sponsors.map((p) => {
+        const img = logo(p);
+        return (
+          <li>
+            <p class="org-name">
+              {img && <img class="org-logo" src={img.src} alt="" width={img.width} height={img.height} loading="lazy" decoding="async">}
+              {p.url ? <a href={p.url}>{p.name}</a> : p.name}
+            </p>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+
+  {projectOnly.length > 0 && (
+    <section class="hub-section" aria-labelledby="project-partners">
+      <h2 id="project-partners" class="hub-h2">Project partners and funders</h2>
+      <p>Organizations named by the office's <a href={url('projects/')}>projects</a>.</p>
+      <ul class="org-list">
+        {projectOnly.map((p) => {
+          const img = logo(p);
+          return (
+            <li>
+              <p class="org-name">
+                {img && <img class="org-logo" src={img.src} alt="" width={img.width} height={img.height} loading="lazy" decoding="async">}
+                {p.url ? <a href={p.url}>{p.name}</a> : p.name}
+              </p>
+              <p class="org-text">
+                {p.projects.length === 1 ? 'Project' : 'Projects'}:{' '}
+                {p.projects.map((x, i) => <>{i > 0 && ', '}<a href={url(projectPath(x.slug))}>{x.label}</a></>)}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+</Base>

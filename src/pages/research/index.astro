@@ -1,22 +1,25 @@
 ---
 // /research/ (rebuild plan §4.2): the featured publications, a link to the
-// full list (the portal, §4.7, at /research/publications/), and the climate
-// assessments. Titles are the link text (WCAG 2.4.4; the current page
+// full list (the portal, §4.7, at /research/publications/), the active
+// projects (/projects/), and the climate assessments. Titles are the link text (WCAG 2.4.4; the current page
 // repeats "Read Article"). Featured is set per entry in the CMS.
 import Base from '../../layouts/Base.astro';
 import { authorList, getPublications, publicationPath } from '../../lib/publications';
+import { getProjects, projectPath } from '../../lib/projects';
 import { count } from '../../lib/format';
 import { url } from '../../lib/paths';
 
 const pubs = await getPublications();
 const featured = pubs.filter((p) => p.featured);
+const projects = (await getProjects()).filter((p) => p.status === 'active');
 ---
 <Base short="Research"
-      description="Papers with Montana Climate Office authors, and the Montana Climate Assessment.">
+      description="Papers with Montana Climate Office authors, the office's research projects, and the Montana Climate Assessment.">
   <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
   <h1 class="section-title">Research</h1>
   <p class="section-lede">
-    Papers with Montana Climate Office authors, and the Montana Climate Assessment reports the office worked on.
+    Papers with Montana Climate Office authors, the projects they come from, and the Montana Climate Assessment
+    reports the office worked on.
   </p>
 
   <section class="hub-section" aria-labelledby="research-pubs">
@@ -33,6 +36,21 @@ const featured = pubs.filter((p) => p.featured);
     )}
     <p class="pub-all">
       <a class="nav-btn site-cta" href={url('research/publications/')}>All {count(pubs.length)} publications, with filters and citations</a>
+    </p>
+  </section>
+
+  <section class="hub-section" aria-labelledby="research-projects">
+    <h2 id="research-projects" class="hub-h2">Projects</h2>
+    <ul class="pub-list">
+      {projects.map((p) => (
+        <li>
+          <p class="pub-title"><a href={url(projectPath(p.slug))}>{p.name}</a></p>
+          <p class="pub-meta">{p.summary}</p>
+        </li>
+      ))}
+    </ul>
+    <p class="pub-all">
+      <a class="nav-btn site-cta" href={url('projects/')}>All projects, active and completed</a>
     </p>
   </section>
 

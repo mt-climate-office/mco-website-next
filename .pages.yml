@@ -7,14 +7,46 @@ settings:
   content:
     merge: true # DO NOT REMOVE. Without it Pages CMS deletes unlisted fields on save (DECISIONS D14).
 media:
-  input: public/images/news
-  output: /images/news
-  extensions:
-    - jpg
-    - jpeg
-    - png
-    - webp
-    - gif
+  - name: news
+    label: News
+    input: public/images/news
+    output: /images/news
+    extensions:
+      - jpg
+      - jpeg
+      - png
+      - webp
+      - gif
+  - name: people
+    label: People
+    input: public/images/people
+    output: /images/people
+    extensions:
+      - jpg
+      - jpeg
+      - png
+      - webp
+      - gif
+  - name: partners
+    label: Partners
+    input: public/images/partners
+    output: /images/partners
+    extensions:
+      - jpg
+      - jpeg
+      - png
+      - webp
+      - gif
+  - name: projects
+    label: Projects
+    input: public/images/projects
+    output: /images/projects
+    extensions:
+      - jpg
+      - jpeg
+      - png
+      - webp
+      - gif
 content:
   - name: news
     label: News
@@ -56,6 +88,8 @@ content:
         type: image
         label: Header image
         description: Optional. Shown above the post and as the email banner.
+        options:
+          media: news
       - name: imageAlt
         type: string
         label: Header image alt text
@@ -102,16 +136,15 @@ content:
         description: Featured publications are listed on the Research page as well as the publications list.
         default: false
       - name: projects
-        type: select
+        type: reference
         label: Projects
-        description: Office projects this publication came out of. Leave empty if none.
+        description: Office projects this publication came out of. Leave empty if none. The publication is then listed on each project's page.
         options:
-          values:
-            - NGP-RIDR
-            - Sustainable FSA
-            - EcoRestore
-            - Native Resilience
+          collection: projects
           multiple: true
+          value: "{fields.slug}"
+          label: "{fields.name}"
+          search: name,slug
       - name: topics
         type: string
         label: Topics
@@ -129,3 +162,189 @@ content:
         type: string
         label: URL slug
         description: Optional. Overrides the address made from the first author, year and title. Changing it on a published entry breaks links to it.
+  - name: people
+    label: People
+    type: collection
+    path: src/content/people
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      fields:
+        - name
+        - role
+        - group
+        - current
+        - order
+      primary: name
+    description: One entry per person on the team page (/about/team/). The bio is the body text. Untick "Current" when someone leaves; the page lists current people only. Photo alt text is required whenever a photo is set. The CMS cannot check this; the site build fails without it.
+    fields:
+      - name: name
+        type: string
+        required: true
+      - name: role
+        type: string
+        label: Position or title
+        required: true
+      - name: group
+        type: select
+        label: Group
+        description: The heading the person is listed under on the team page.
+        required: true
+        options:
+          values:
+            - staff
+            - students
+            - affiliates
+      - name: order
+        type: number
+        label: Order
+        description: "Position within the group: lower numbers come first."
+        default: 100
+      - name: current
+        type: boolean
+        label: Current
+        description: Untick when the person leaves. Former people are not listed.
+        default: true
+      - name: photo
+        type: image
+        label: Photo
+        description: Optional. A square crop, at least 320 pixels wide.
+        options:
+          media: people
+      - name: photoAlt
+        type: string
+        label: Photo alt text
+        description: Required whenever a photo is set, such as "Portrait of Jane Doe".
+      - name: email
+        type: string
+        label: Email
+      - name: orcid
+        type: string
+        label: ORCID iD
+        description: Optional. The 16-character iD only, such as 0000-0002-1825-0097.
+      - name: github
+        type: string
+        label: GitHub profile
+        description: Optional. A full https://github.com/ address.
+      - name: website
+        type: string
+        label: Website
+        description: Optional. A full https:// address.
+      - name: body
+        type: rich-text
+        label: Bio
+  - name: partners
+    label: Partners
+    type: collection
+    path: src/content/partners
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      fields:
+        - name
+        - roles
+        - slug
+      primary: name
+    description: Organizations the office works with or is funded by. "Listed as" puts one on the Partners page (/about/partnerships/); a project lists the partners it names whether or not they are listed there.
+    fields:
+      - name: name
+        type: string
+        required: true
+      - name: slug
+        type: string
+        label: Slug
+        description: Short lowercase id that projects use to refer to this partner, such as noaa. Do not change it once projects use it.
+        required: true
+      - name: url
+        type: string
+        label: Website
+        description: Optional. A full https:// address.
+      - name: roles
+        type: select
+        label: Listed as
+        description: Partner, sponsor, both, or neither (named on project pages only).
+        options:
+          values:
+            - partner
+            - sponsor
+          multiple: true
+      - name: logo
+        type: image
+        label: Logo
+        description: Optional. Always shown beside the printed name, so it carries no alt text of its own.
+        options:
+          media: partners
+      - name: note
+        type: text
+        label: Note
+        description: Optional. One or two sentences on what the partnership is. Shown on the Partners page.
+  - name: projects
+    label: Projects
+    type: collection
+    path: src/content/projects
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      fields:
+        - name
+        - status
+        - slug
+      primary: name
+    description: One entry per project. The page is /projects/<slug>/. Describe the project, not the office (docs/VOICE.md). Publications are listed on the page from the Publications collection, not typed here. Image alt text is required whenever an image is set. The CMS cannot check this; the site build fails without it.
+    fields:
+      - name: name
+        type: string
+        description: The full name, such as Northern Great Plains Regional Incubator for Drought Resiliency.
+        required: true
+      - name: shortName
+        type: string
+        label: Short name
+        description: Optional. Used in lists and filters, such as NGP RIDR.
+      - name: slug
+        type: string
+        label: Slug
+        description: The page address, /projects/<slug>/, and the id publications use. Changing it on a published project breaks links to it.
+        required: true
+      - name: summary
+        type: text
+        description: One or two sentences. Shown in the project list and link previews.
+        required: true
+      - name: status
+        type: select
+        label: Status
+        required: true
+        options:
+          values:
+            - active
+            - completed
+      - name: url
+        type: string
+        label: Project website
+        description: Optional. A full https:// address.
+      - name: partners
+        type: reference
+        label: Partners and funders
+        description: Organizations from the Partners collection, listed on the project page.
+        options:
+          collection: partners
+          multiple: true
+          value: "{fields.slug}"
+          label: "{fields.name}"
+          search: name,slug
+      - name: image
+        type: image
+        label: Image
+        description: Optional. Shown at the top of the project page.
+        options:
+          media: projects
+      - name: imageAlt
+        type: string
+        label: Image alt text
+        description: Required whenever an image is set. Say what the image shows.
+      - name: sources
+        type: string
+        label: Sources
+        description: "Where the facts on the page come from: a web address or a file. Not shown on the site; for reviewers. Every claim should have one (docs/VOICE.md, Claims)."
+        list: true
+      - name: body
+        type: rich-text

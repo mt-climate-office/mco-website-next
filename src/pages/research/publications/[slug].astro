@@ -2,11 +2,13 @@
 // One publication at /research/publications/<slug>/ (rebuild plan §4.7):
 // title, authors, venue, the DOI, the abstract when the registry has one, a
 // reference to copy, and this item's BibTeX and CSL-JSON. Every link says
-// where it goes (WCAG 2.4.4). Projects and topics link to the filtered list.
+// where it goes (WCAG 2.4.4). Projects link to their pages (src/pages/projects/);
+// topics link to the filtered list.
 import Base from '../../../layouts/Base.astro';
 import {
   authorList, facetValue, getPublications, licenseLabel, reference, TYPE_LABEL, type Publication,
 } from '../../../lib/publications';
+import { projectPath, projectsBySlug } from '../../../lib/projects';
 import { url } from '../../../lib/paths';
 
 export async function getStaticPaths() {
@@ -31,6 +33,7 @@ const rest = [p.volume && `volume ${p.volume}`, p.issue && `issue ${p.issue}`,
   p.version && `version ${p.version}`]
   .filter(Boolean).map((x) => `, ${x}`).join('');
 const description = `${authorList(p.authors, 3)}. ${p.container ?? p.publisher ?? TYPE_LABEL[p.type]}, ${p.year}.`;
+const projects = await projectsBySlug();
 const filterLink = (key: string, value: string) => url(`research/publications/?${key}=${encodeURIComponent(facetValue(value))}`);
 ---
 <Base short={short} description={description}>
@@ -64,7 +67,7 @@ const filterLink = (key: string, value: string) => url(`research/publications/?$
         <dt>{p.projects.length === 1 ? 'Project' : 'Projects'}</dt>
         <dd>
           <ul class="pub-inline">
-            {p.projects.map((x) => <li><a href={filterLink('project', x)}>{x} publications</a></li>)}
+            {p.projects.map((x) => <li><a href={url(projectPath(x))}>{projects.get(x)!.name}</a></li>)}
           </ul>
         </dd>
       )}

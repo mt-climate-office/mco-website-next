@@ -1,0 +1,77 @@
+---
+// One project at /projects/<slug>/ (rebuild plan §4.2, §4.6): what the
+// project is (the entry's body, which describes the project, not the office;
+// docs/VOICE.md), its partners, and the publications whose `projects` name
+// it (§4.7), newest first. The facts on each page are sourced in the entry's
+// `sources` field, which the site does not show.
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getProjects, STATUS_LABEL, type Project } from '../../lib/projects';
+import { authorList, getPublications, publicationPath } from '../../lib/publications';
+import { contentImage } from '../../lib/content-image';
+import { url } from '../../lib/paths';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((p) => ({ params: { slug: p.slug }, props: { p } }));
+}
+
+interface Props { p: Project }
+const { p } = Astro.props;
+const { Content } = await render(p.entry);
+const pubs = (await getPublications()).filter((x) => x.projects.includes(p.slug));
+const img = p.image ? contentImage(p.image, p.entry.filePath ?? p.slug) : null;
+const site = p.url ? new URL(p.url).host.replace(/^www\./, '') : null;
+---
+<Base short={p.label} description={p.summary}>
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <article class="pub-article" aria-labelledby="project-title">
+    <header class="pub-article-head">
+      <p class="pub-back"><a href={url('projects/')}>Projects</a></p>
+      <h1 class="pub-article-title" id="project-title">{p.name}</h1>
+      <p class="section-lede">{p.summary}</p>
+      <p class="stamp project-status">{STATUS_LABEL[p.status]} project</p>
+    </header>
+
+    {p.url && (
+      <ul class="pub-actions">
+        <li><a class="nav-btn site-cta" href={p.url}>Go to the {p.label} site, {site}</a></li>
+      </ul>
+    )}
+
+    {img && <img class="project-hero" src={img.src} alt={p.imageAlt} width={img.width} height={img.height}>}
+
+    <div class="prose project-body">
+      <Content />
+    </div>
+
+    {p.partnerList.length > 0 && (
+      <section class="pub-section" aria-labelledby="project-partners">
+        <h2 id="project-partners" class="hub-h2">Partners and funders</h2>
+        <ul class="org-list">
+          {p.partnerList.map((x) => (
+            <li><p class="org-name">{x.url ? <a href={x.url}>{x.name}</a> : x.name}</p></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section class="pub-section" aria-labelledby="project-pubs">
+      <h2 id="project-pubs" class="hub-h2">Publications</h2>
+      {pubs.length > 0 ? (
+        <ul class="pub-list">
+          {pubs.map((x) => (
+            <li>
+              <p class="pub-title"><a href={url(publicationPath(x.slug))}>{x.title}</a></p>
+              <p class="pub-meta">{authorList(x.authors, 6)}. {x.container ? <cite>{x.container}</cite> : x.publisher}, {x.year}.</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="pub-missing">No publication in the office's list is tagged with this project yet.</p>
+      )}
+    </section>
+
+    <p class="pub-article-foot"><a href={url('projects/')}>All projects</a></p>
+  </article>
+</Base>
