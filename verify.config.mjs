@@ -145,25 +145,38 @@ export default {
       check('photos: the URL carries date, time and dir=E',
         east.q.dir === 'E' && /^\d{4}-\d{2}-\d{2}$/.test(east.q.date || '') && !!east.q.time, JSON.stringify(east.q));
 
-      // The first public date has no previous day, so move the time: another
-      // ready slot that day, read from the menu the kit built.
-      const first = await page.evaluate(() => {
+      // Move the set: another ready slot that day if the kit's menu offers
+      // one, else the previous day. Early in the Mountain day only one slot
+      // is ready, and on the first public date there is no previous day, so
+      // the probe takes whichever move exists (a fixed choice timed out on
+      // 2026-10-23 at 9:40 MDT, when the menu held one time).
+      const pick = await page.evaluate(() => {
         const s = document.getElementById('pc-time');
-        return [...s.options].find((o) => !o.disabled && o.value !== s.value)?.value ?? '';
+        const other = [...s.options].find((o) => !o.disabled && o.value !== s.value)?.value ?? '';
+        const prev = document.getElementById('pc-prev');
+        return { other, prevOk: !!prev && !prev.disabled && prev.getAttribute('aria-disabled') !== 'true',
+          date: new URLSearchParams(location.search).get('date') };
       });
       const stamp = east.stamp;
-      await page.locator('#pc-time').selectOption(first);
-      await page.waitForFunction((s) => document.querySelector('.hero .stamp').textContent !== s &&
-        !document.getElementById('hero-mosaic').hasAttribute('aria-busy'), stamp, { timeout: 30000 });
+      if (pick.other) await page.locator('#pc-time').selectOption(pick.other);
+      else if (pick.prevOk) await page.locator('#pc-prev').click();
+      if (pick.other || pick.prevOk) {
+        await page.waitForFunction((s) => document.querySelector('.hero .stamp').textContent !== s &&
+          !document.getElementById('hero-mosaic').hasAttribute('aria-busy'), stamp, { timeout: 30000 });
+      }
       const moved = await page.evaluate(() => ({
         time: new URLSearchParams(location.search).get('time'),
+        date: new URLSearchParams(location.search).get('date'),
         select: document.getElementById('pc-time').value,
         stamp: document.querySelector('.hero .stamp').textContent,
         dir: new URLSearchParams(location.search).get('dir'),
       }));
-      check('photos: a new time moves the set and the URL together, keeping the direction',
-        !!first && moved.select === first && moved.time === (first.endsWith(':00') ? String(Number(first.slice(0, 2))) : first) && moved.dir === 'E' && /facing east/.test(moved.stamp),
-        JSON.stringify({ first, ...moved }));
+      const movedOk = pick.other
+        ? moved.select === pick.other && moved.time === (pick.other.endsWith(':00') ? String(Number(pick.other.slice(0, 2))) : pick.other)
+        : pick.prevOk && moved.date !== pick.date;
+      check('photos: a new time or day moves the set and the URL together, keeping the direction',
+        movedOk && moved.stamp !== stamp && moved.dir === 'E' && /facing east/.test(moved.stamp),
+        JSON.stringify({ pick, ...moved }));
 
       await page.locator('#pc-views label', { hasText: /^N$/ }).click();
       await page.waitForFunction(() => /_N_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || ''), null, { timeout: 30000 });
