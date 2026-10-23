@@ -48,21 +48,47 @@ export interface CspOptions {
    * The status page avoids <select> for this reason; this page cannot.
    */
   photos?: boolean;
+  /**
+   * The page has the station map (the homepage). MapLibre 6 per the kit
+   * README's CSP notes and HOUSE-STYLE §7, plus the map's own data hosts:
+   *   - script-src https://unpkg.com: the pinned MapLibre modules, imported
+   *     by MCO.map.loadMapLibre(). The import map that carries their SRI is
+   *     an inline script, hashed like any other (pass it in inlineScripts).
+   *   - worker-src blob: https://unpkg.com: MapLibre starts its worker from
+   *     a blob: URL that then imports its chunk from unpkg. Both, or the
+   *     basemap draws and nothing else does ("Worker failed to load").
+   *   - style-src https://unpkg.com: maplibre-gl.css, injected with SRI.
+   *   - img-src blob:: MapLibre decodes sprite and tile images through blob:
+   *     URLs where createImageBitmap is not used.
+   *   - connect-src: CARTO's style JSON (basemaps.cartocdn.com) and its
+   *     tiles, sprites and glyphs (tiles.basemaps.cartocdn.com), from the
+   *     main thread and the worker; jsDelivr for the kit's Montana outline
+   *     GeoJSON (fetched with integrity).
+   * No terrain host: the homepage map draws no hillshade.
+   */
+  map?: boolean;
 }
 
+const UNPKG = 'https://unpkg.com';
+const CARTO = 'https://basemaps.cartocdn.com https://tiles.basemaps.cartocdn.com';
+
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
-export function contentSecurityPolicy(inlineScripts: string[], { search = false, photos = false }: CspOptions = {}): string {
+export function contentSecurityPolicy(
+  inlineScripts: string[],
+  { search = false, photos = false, map = false }: CspOptions = {},
+): string {
   const hashes = inlineScripts.map(hash).join(' ');
   return [
     "default-src 'none'",
-    `script-src 'self' ${JSDELIVR} ${hashes}${search ? " 'wasm-unsafe-eval'" : ''}`,
-    `style-src 'self' ${JSDELIVR}`,
+    `script-src 'self' ${JSDELIVR}${map ? ` ${UNPKG}` : ''} ${hashes}${search ? " 'wasm-unsafe-eval'" : ''}`,
+    ...(map ? [`worker-src blob: ${UNPKG}`] : []),
+    `style-src 'self' ${JSDELIVR}${map ? ` ${UNPKG}` : ''}`,
     ...(photos ? ["style-src-attr 'unsafe-inline'"] : []),
     `font-src ${JSDELIVR}`,
     // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
     // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.
-    `img-src 'self' data: ${JSDELIVR} ${DATA2}`,
-    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}`,
+    `img-src 'self' data:${map ? ' blob:' : ''} ${JSDELIVR} ${DATA2}`,
+    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO} ${JSDELIVR}` : ''}`,
     "base-uri 'none'",
     `form-action ${search ? "'self'" : "'none'"}`,
   ].join('; ');

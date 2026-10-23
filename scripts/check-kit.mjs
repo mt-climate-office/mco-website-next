@@ -12,7 +12,7 @@ const read = (p) => readFileSync(new URL(p, root));
 const src = read('src/kit/kit.ts').toString();
 
 const version = src.match(/KIT_VERSION = '([^']+)'/)?.[1];
-const sri = Object.fromEntries([...src.matchAll(/'([\w/.-]+\.(?:css|js))': '(sha384-[^']+)'/g)].map((m) => [m[1], m[2]]));
+const sri = Object.fromEntries([...src.matchAll(/'([\w/.-]+\.(?:css|js|geojson))': '(sha384-[^']+)'/g)].map((m) => [m[1], m[2]]));
 const base = `https://cdn.jsdelivr.net/gh/mt-climate-office/mco-web-style@${version}/`;
 
 // jsDelivr refuses to serve .html from GitHub, so the snippet comes from the
@@ -49,5 +49,13 @@ const body = snippet.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 check(body === read('src/kit/anti-flash.inline.js').toString(), 'anti-flash.inline.js matches snippets/anti-flash.html');
 
 check((await get('assets/mco-logo.png')).equals(read('public/mco-logo.png')), 'public/mco-logo.png matches assets/mco-logo.png');
+
+// The station map's MapLibre pin: the import map line and the stylesheet's
+// SRI, each as the tag's snippets/head.html has them.
+const head = (await get('snippets/head.html', raw)).toString();
+const importMap = head.match(/<script type="importmap">([\s\S]*?)<\/script>/)?.[1];
+check(!!importMap && importMap === src.match(/MAPLIBRE_IMPORT_MAP = '([^']+)'/)?.[1], 'MAPLIBRE_IMPORT_MAP matches snippets/head.html');
+const css = head.match(/href="(https:\/\/unpkg\.com\/maplibre-gl@[^"]+\.css)"\s+integrity="([^"]+)"/);
+check(!!css && src.includes(`href: '${css[1]}'`) && src.includes(`integrity: '${css[2]}'`), 'MAPLIBRE_CSS matches snippets/head.html');
 
 if (failures.length) process.exit(1);

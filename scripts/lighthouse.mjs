@@ -3,8 +3,10 @@
 // against the built site:
 //   - accessibility 100 on every page (fail on any regression)
 //   - performance ≥ 90 (median of RUNS runs, to damp simulation noise)
-//   - homepage JavaScript under 150 KB transferred, excluding a lazy map
-//     island (none exists yet)
+//   - homepage JavaScript under 150 KB transferred, excluding the lazy
+//     station-map island (ISLAND below), which loads only when the map
+//     reaches the viewport. Whatever of it a run did load is reported
+//     beside the budgeted figure.
 //
 //   BASE_PATH=/verify-base/ node scripts/lighthouse.mjs
 //
@@ -67,6 +69,13 @@ const chrome = await chromeLauncher.launch({
 });
 
 const median = (xs) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+// The station map's lazy island: its own chunk, the kit's map and palette
+// files, and MapLibre (entry, shared and worker chunks) from unpkg.
+const ISLAND = [/\/station-map-island\.[^/]*\.js$/, /\/map\/mco-map\.js$/, /\/palette\/mco-palette\.js$/, /^https:\/\/unpkg\.com\/maplibre-gl@/];
+const isIsland = (url) => ISLAND.some((re) => re.test(url));
+const scriptKBOf = (lhr, island) => lhr.audits['network-requests'].details.items
+  .filter((it) => it.resourceType === 'Script' && isIsland(it.url) === island)
+  .reduce((sum, it) => sum + (it.transferSize || 0), 0) / 1024;
 const failures = [];
 try {
   for (const page of PAGES) {
@@ -81,11 +90,11 @@ try {
     }
     const a11y = Math.min(...runs.map((r) => r.categories.accessibility.score));
     const perf = median(runs.map((r) => r.categories.performance.score));
-    const scriptKB = median(runs.map((r) => r.audits['network-requests'].details.items
-      .filter((it) => it.resourceType === 'Script')
-      .reduce((sum, it) => sum + (it.transferSize || 0), 0))) / 1024;
+    const scriptKB = median(runs.map((r) => scriptKBOf(r, false)));
+    const islandKB = median(runs.map((r) => scriptKBOf(r, true)));
 
-    console.log(`${page.name}: accessibility ${Math.round(a11y * 100)}, performance ${Math.round(perf * 100)} (median of ${RUNS}), JS ${scriptKB.toFixed(1)} KB`);
+    console.log(`${page.name}: accessibility ${Math.round(a11y * 100)}, performance ${Math.round(perf * 100)} (median of ${RUNS}), JS ${scriptKB.toFixed(1)} KB` +
+      (islandKB ? ` + map island ${islandKB.toFixed(1)} KB (not budgeted)` : ''));
     if (a11y < MIN.accessibility) {
       const failed = Object.values(runs[0].audits)
         .filter((a) => runs[0].categories.accessibility.auditRefs.some((ref) => ref.id === a.id) && a.score === 0)

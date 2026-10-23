@@ -1,0 +1,220 @@
+---
+// Homepage station map: every station coloured by its latest air
+// temperature (rebuild plan §4.5 StationMap).
+//
+// The build renders the snapshot: the stamp, the hidden-station lines and a
+// table of every station's reading, which is the map's accessible twin and
+// the whole component without JavaScript. The table is the snapshot's only
+// copy: the scripts read it back rather than a second, data-attribute copy,
+// and the island fetches station coordinates itself, which keeps the
+// homepage's HTML (Lighthouse's first paint on a slow link) small. src/scripts/station-map.ts then
+// refreshes /latest/ once after load and every 12 minutes while the page is
+// visible, updating the table and stamp in place; a failed refresh keeps the
+// snapshot and its time. MapLibre and the kit's map and palette files load
+// only when the map nears the viewport (src/scripts/station-map-island.ts).
+//
+// The map never captures page scroll: MapLibre's cooperative gestures, so a
+// wheel scrolls the page unless Ctrl or ⌘ is held, and one finger scrolls
+// the page on touch.
+//
+// Absent `stations`: no map, no table, a link to the Explorer. Never a
+// made-up figure.
+import type { MapStation } from '../../lib/station-map';
+import { formatTemp, hiddenLines, summarize } from '../../lib/station-map';
+import { isoTime, stampMT } from '../../lib/format';
+import { stationPath } from '../../lib/stations';
+import { url } from '../../lib/paths';
+
+interface Props {
+  stations?: MapStation[] | null;
+  /** When the snapshot's /latest/ was fetched, epoch ms. */
+  fetchedAt?: number;
+}
+
+const { stations = null, fetchedAt = 0 } = Astro.props;
+const EXPLORER = 'https://mesonet.climate.umt.edu/explorer/';
+const sum = stations ? summarize(stations, fetchedAt) : null;
+const stampAt = sum?.latestAt ?? fetchedAt;
+---
+{stations && sum ? (
+  <div class="sm" id="sm" data-fetched-at={fetchedAt}>
+    <div class="sm-frame">
+      <div class="sm-map" id="sm-map"></div>
+      <p class="sm-note sm-nojs">The map needs JavaScript. Every reading is in the table below.</p>
+      <p class="sm-note" id="sm-failed" hidden>The map could not load. Every reading is in the table below.</p>
+    </div>
+    <div class="sm-legend" id="sm-legend" hidden></div>
+    <p class="stamp sm-stamp" id="sm-stamp">
+      Air temperature · <time datetime={isoTime(stampAt)}>{stampMT(stampAt)}</time>
+    </p>
+    <p class="stamp sm-hidden" id="sm-hidden">
+      {hiddenLines(sum).map((line) => <span>{line}</span>)}
+    </p>
+    <details class="sm-details" data-pagefind-ignore>
+      <summary>Air temperature at every station</summary>
+      <section class="sm-scroll" aria-labelledby="sm-caption" tabindex="0">
+        <table class="sm-table" id="sm-table">
+          <caption id="sm-caption">
+            Air temperature by station, as of <time datetime={isoTime(stampAt)}>{stampMT(stampAt)}</time>
+            ({stations.length} stations)
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Station</th>
+              <th scope="col">Network</th>
+              <th scope="col" class="is-num">Air temperature</th>
+              <th scope="col">Reported</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stations.map((s) => (
+              <tr data-id={s.id} data-at={s.at ?? undefined}>
+                <th scope="row"><a href={url(stationPath(s.id))}>{s.name}</a></th>
+                <td>{s.network}</td>
+                <td class="is-num">{formatTemp(s.value)}</td>
+                <td>{s.at == null ? 'No report' : stampMT(s.at)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </details>
+  </div>
+) : (
+  <p class="sm-empty">
+    Latest readings from every station are on the <a href={EXPLORER}>Mesonet Explorer</a>.
+  </p>
+)}
+
+<script>
+  import '../../scripts/station-map';
+</script>
+
+<style is:global>
+  /* Global, not scoped: scoping would stamp an attribute on each of the
+     table's ~1,300 elements. Every selector names an sm- class. */
+  .sm { min-width: 0; }
+  .sm-frame {
+    position: relative;
+    /* Montana is about 1.6 times as wide as it is tall at this latitude. */
+    /* An explicit width: with aspect-ratio, min-height would otherwise
+       widen the frame past its column on a phone. */
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    min-height: 240px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-raised);
+    overflow: hidden;
+  }
+  /* Two classes: maplibre-gl.css sets .maplibregl-map { position: relative }. */
+  .sm-frame > .sm-map { position: absolute; inset: 0; }
+  .sm-note {
+    position: absolute;
+    inset: auto var(--space-5) var(--space-5);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+  }
+  .sm-note[hidden] { display: none; }
+  /* Shown only without scripts: data-theme is set by the kit's anti-flash
+     boot, which runs before first paint whenever scripts do. */
+  html[data-theme] .sm-nojs { display: none; }
+
+  .sm-legend { margin-top: var(--space-4); }
+  .sm-legend[hidden] { display: none; }
+  .sm-legend-title {
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+  }
+  .sm-ramp {
+    height: 10px;
+    margin-top: var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .sm-ticks {
+    position: relative;
+    height: 1.4em;
+    margin-top: 2px;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .sm-ticks li { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+  .sm-ticks li.is-start { transform: none; }
+  .sm-ticks li.is-end { transform: translateX(-100%); }
+  .sm-nets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-2);
+    list-style: none;
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+  }
+  .sm-nets li { display: flex; align-items: center; gap: var(--space-2); }
+
+  .sm-stamp { margin-top: var(--space-4); }
+  .sm-hidden span { display: block; }
+  .sm-hidden:empty { display: none; }
+
+  .sm-details { margin-top: var(--space-4); }
+  .sm-details summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    font-size: var(--fs-base);
+    color: var(--accent-line);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+  .sm-scroll {
+    max-height: 24rem;
+    margin-top: var(--space-2);
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+  .sm-table { width: 100%; border-collapse: collapse; font-size: var(--fs-base); }
+  .sm-table caption {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+  }
+  .sm-table th,
+  .sm-table td {
+    padding: var(--space-2) var(--space-4);
+    text-align: left;
+    white-space: nowrap;
+    border-top: 1px solid var(--border);
+  }
+  .sm-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-surface);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+  }
+  .sm-table tbody th { font-weight: var(--fw-medium); }
+  .sm-table .is-num { text-align: right; }
+  .sm-table td.is-num,
+  .sm-table time {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  @media (hover: none) {
+    .sm-table tbody th a { display: inline-flex; align-items: center; min-height: 40px; min-width: 40px; }
+  }
+
+  /* The popup's station rows: one block per co-located station. */
+  .sm-popup + .sm-popup { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+  .sm-empty { font-size: var(--fs-base); color: var(--text-secondary); }
+
+</style>
