@@ -138,9 +138,13 @@ main a:not([class]) {
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 .site-footer { padding-block: var(--space-7); }
-/* Footer links sit on consecutive lines: pad each to a 24 px target so
-   neighbours never overlap (WCAG 2.5.8, Lighthouse target-size). */
-.site-footer a { display: inline-block; min-height: 24px; padding-block: var(--space-1); }
+/* Footer links sit on consecutive lines: each is a 24 px target so
+   neighbours never overlap (WCAG 2.5.8, Lighthouse target-size), and 40 px
+   on touch screens (HOUSE-STYLE §5.5). */
+.site-footer a { display: inline-flex; align-items: center; min-height: 24px; }
+@media (hover: none) {
+  .site-footer a { min-height: 40px; }
+}
 
 /* ── Site search (src/pages/search.astro) ───────────────────────────────── */
 .site-search { max-width: 48rem; }
