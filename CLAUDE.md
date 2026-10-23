@@ -203,6 +203,6 @@ BASE_PATH=/verify-base/ npm run lighthouse
 ```
 
 Locally `verify` and `lighthouse` run the full set. CI tiers them (D17):
-PRs run `VERIFY_ENGINES=chromium LH_PAGES=home LH_RUNS=1`; push to main,
+PRs run `VERIFY_ENGINES=chromium LH_PAGES=home` (still 3 runs); push to main,
 the nightly schedule and manual runs use Chromium and WebKit and every page
 at 3 runs before deploy. Axe runs on every PR either way.

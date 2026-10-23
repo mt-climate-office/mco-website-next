@@ -332,8 +332,9 @@ the protection, tier it.
   the kit verify harness in Chromium and WebKit, Lighthouse on every page,
   median of 3 runs. Deploy still needs it to pass.
 - **Pull requests** get every cheap gate, the harness in Chromium only, and
-  Lighthouse on the homepage, one run. Budgets are unchanged (accessibility
-  100, performance ≥ 90, homepage JS < 150 KB gzipped).
+  Lighthouse on the homepage, median of 3 runs (one run proved too noisy:
+  89 against a median of 96). Budgets are unchanged (accessibility 100,
+  performance ≥ 90, homepage JS < 150 KB gzipped).
 - **WCAG axe still runs on every PR**, in all three themes at both widths.
 - The scripts default to the full set, so a local `npm run verify` or
   `npm run lighthouse` does everything. CI narrows them with
