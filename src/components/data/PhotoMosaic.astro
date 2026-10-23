@@ -85,7 +85,7 @@ const THUMB = { width: 320, height: 180 };
 </section>
 
 {set && (
-  <section class="photo-controls" id="photo-controls" aria-label="Photo controls" hidden
+  <section class="photo-controls is-pending" id="photo-controls" aria-label="Photo controls"
            data-date={set.slot.date} data-time={set.slot.time} data-view={set.view}
            data-stations={JSON.stringify(stations.map((s) => [s.id, s.name]))}>
     <div class="wrap pc-row">
@@ -194,6 +194,13 @@ const THUMB = { width: 320, height: 180 };
     border-bottom: 1px solid var(--border);
   }
   .photo-controls[hidden] { display: none; }
+  /* The bar takes its space from first paint and stays invisible until the
+     controls are built, so the page below does not shift when it appears
+     (Lighthouse measured a 0.066 layout shift on #readings). Without JS it
+     is gone (only the anti-flash boot sets data-theme); if the schedule
+     fails to load, the script hides it. */
+  .photo-controls.is-pending { visibility: hidden; }
+  :global(html:not([data-theme])) .photo-controls { display: none; }
   .pc-row {
     display: flex;
     flex-wrap: wrap;
