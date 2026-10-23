@@ -341,3 +341,20 @@ the protection, tier it.
 - Playwright browsers are cached per Playwright version, and the download and
   apt steps each carry a timeout, so a hung mirror fails in minutes under a
   step name that says which.
+
+---
+
+## D18 — Homepage CSP allows inline style attributes
+
+**Decided 22 October 2026**, merging the photo hero (PR #10).
+
+- The homepage's meta CSP adds `style-src-attr 'unsafe-inline'`, set only
+  through the `photos` option in `src/kit/csp.ts`. WebKit draws the native
+  `<select>` that `MCO.initPhotoControls` uses for the time menu with inline
+  style attributes; without this it logs a CSP error on every load and the
+  control renders 21 px tall, under the 40 px target.
+- It allows style attributes only, not `<style>` elements, and applies to no
+  other page.
+- **Remove it** when the kit's photo controls offer a time control that is
+  not a native `<select>` (for example the segmented buttons already used for
+  direction). Raise that at the kit's next photos change.
