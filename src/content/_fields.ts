@@ -27,6 +27,8 @@ export interface CmsField {
   description?: string;
   required?: boolean;
   default?: unknown;
+  /** A repeatable field: the CMS edits a list of values. */
+  list?: boolean;
   options?: { values?: string[]; multiple?: boolean };
 }
 
@@ -67,6 +69,21 @@ export const select = (name: string, values: readonly [string, ...string[]], o: 
   field(optional(o) ? z.enum(values).optional() : z.enum(values),
     { name, type: 'select', required: !optional(o), options: { values: [...values] }, ...o });
 
+/** Several values from a fixed list (a multi-select in the CMS). */
+export const multiselect = (name: string, values: readonly [string, ...string[]], o: Opts = {}): Field =>
+  field(z.array(z.enum(values)).default([]),
+    { name, type: 'select', required: false, options: { values: [...values], multiple: true }, ...o });
+
+/** A list of short free-text values, such as tags. */
+export const textList = (name: string, o: Opts = {}): Field =>
+  field(z.array(z.string().trim().min(1)).default([]),
+    { name, type: 'string', required: false, list: true, ...o });
+
+/** An optional https:// address. */
+export const link = (name: string, o: Opts = {}): Field =>
+  field(z.string().regex(/^https:\/\/\S+$/, 'must be a full https:// address').optional(),
+    { name, type: 'string', required: false, ...o });
+
 /**
  * An image in public/, written as a root-relative path such as
  * /images/news/2026-10-dillon.jpg. The newsletter renderer resolves that
@@ -96,6 +113,11 @@ export interface CollectionDef {
   filename?: string;
   /** Columns in the CMS's list of entries. */
   view?: string[];
+  /** The field the CMS names an entry by, and uses for {primary} in
+      `filename`. Pages CMS's default is `title`. */
+  primary?: string;
+  /** What the collection is for, shown above its entries in the CMS. */
+  description?: string;
   fields: Field[];
   /** Cross-field rules Zod enforces and the CMS cannot express. */
   refine?: (schema: z.ZodObject<z.ZodRawShape>) => z.ZodType;
@@ -119,6 +141,16 @@ export function toCms(def: CollectionDef): CmsField[] {
 }
 
 /* ─── The collections ───────────────────────────────────────────────── */
+
+/** A DOI as Crossref and doi.org write it: prefix 10.<registrant>/suffix. */
+export const DOI = /^10\.\d{4,9}\/\S+$/;
+
+/** Strips what people paste around a DOI: a doi.org link or a "doi:" prefix. */
+export const normalizeDoi = (s: string): string =>
+  s.trim().replace(/^(?:https?:\/\/(?:dx\.)?doi\.org\/|doi:\s*)/i, '');
+
+/** Office projects a publication can belong to (rebuild plan §4.2 /projects/). */
+export const PUBLICATION_PROJECTS = ['NGP-RIDR', 'Sustainable FSA', 'EcoRestore', 'Native Resilience'] as const;
 
 /** News categories. Labels are what the site shows. */
 export const NEWS_CATEGORIES = ['newsletter', 'announcement', 'event-report', 'research'] as const;
@@ -182,8 +214,63 @@ export const collectionDefs: Record<string, CollectionDef> = {
       'The CMS cannot check this; the site build fails without it.',
   },
 
-  // TODO(Phase 4): people, pages, projects and publications (rebuild plan
-  // §4.6, §4.7) are added here when they are built, each with a matching
-  // entry in src/content.config.ts. docs/examples/cms-codegen/fields.ts has
-  // sketches for people, pages and projects; publications is DOI-driven.
+  // The publications portal (rebuild plan §4.7). One file per publication,
+  // holding its DOI and what only a person can say about it. Title, authors,
+  // venue, year, type, abstract and licence are Crossref's (or DataCite's),
+  // fetched by scripts/publications-refresh.mjs into
+  // src/data/publications.json. They are data, so they are not typeable here.
+  publications: {
+    path: 'src/content/publications',
+    label: 'Publications',
+    description:
+      'One entry per publication. Paste its DOI; the title, authors, journal, year and abstract come from ' +
+      'Crossref when the publication list is refreshed, so they are not typed here. A new DOI appears on the ' +
+      'site after the next refresh (npm run publications:refresh).',
+    // Pages CMS slugifies {primary}, so a new entry's file is named after its DOI.
+    filename: '{primary}.md',
+    primary: 'doi',
+    view: ['doi', 'featured', 'projects'],
+    fields: [
+      field(
+        z.string().trim().transform(normalizeDoi).pipe(z.string().regex(DOI, 'must be a DOI such as 10.1038/s41467-022-30316-5')),
+        {
+          name: 'doi',
+          type: 'string',
+          label: 'DOI',
+          required: true,
+          description: 'Such as 10.1038/s41467-022-30316-5. A doi.org link works too.',
+        }),
+      bool('featured', false, {
+        description: 'Featured publications are listed on the Research page as well as the publications list.',
+      }),
+      multiselect('projects', PUBLICATION_PROJECTS, {
+        label: 'Projects',
+        description: 'Office projects this publication came out of. Leave empty if none.',
+      }),
+      textList('topics', {
+        label: 'Topics',
+        description: 'Short subject terms for the topic filter, such as Drought or Soil moisture. Reuse a term ' +
+          'already in use where one fits, so the filter stays short.',
+      }),
+      link('pdf', {
+        label: 'PDF address',
+        description: 'Optional. A full https:// address of a PDF anyone can read, such as an open-access copy.',
+      }),
+      longtext('note', {
+        required: false,
+        label: 'Note',
+        description: 'Optional. One or two sentences shown on the publication page, such as what data it uses.',
+      }),
+      text('slug', {
+        required: false,
+        label: 'URL slug',
+        description: 'Optional. Overrides the address made from the first author, year and title. ' +
+          'Changing it on a published entry breaks links to it.',
+      }),
+    ],
+  },
+
+  // TODO(Phase 4): people, pages and projects (rebuild plan §4.6) are added
+  // here when they are built, each with a matching entry in
+  // src/content.config.ts. docs/examples/cms-codegen/fields.ts has sketches.
 };

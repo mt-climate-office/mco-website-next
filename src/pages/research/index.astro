@@ -1,10 +1,15 @@
 ---
-// /research/ (rebuild plan §4.2): the publications the current site lists,
-// as a plain list until the portal (§4.7) replaces it, and the climate
+// /research/ (rebuild plan §4.2): the featured publications, a link to the
+// full list (the portal, §4.7, at /research/publications/), and the climate
 // assessments. Titles are the link text (WCAG 2.4.4; the current page
-// repeats "Read Article"). Entries and their sources: src/lib/publications.ts.
+// repeats "Read Article"). Featured is set per entry in the CMS.
 import Base from '../../layouts/Base.astro';
-import { doiUrl, PUBLICATIONS } from '../../lib/publications';
+import { authorList, getPublications, publicationPath } from '../../lib/publications';
+import { count } from '../../lib/format';
+import { url } from '../../lib/paths';
+
+const pubs = await getPublications();
+const featured = pubs.filter((p) => p.featured);
 ---
 <Base short="Research"
       description="Papers with Montana Climate Office authors, and the Montana Climate Assessment.">
@@ -16,15 +21,19 @@ import { doiUrl, PUBLICATIONS } from '../../lib/publications';
 
   <section class="hub-section" aria-labelledby="research-pubs">
     <h2 id="research-pubs" class="hub-h2">Publications</h2>
-    {/* Each title links to its DOI, so the link text says where it goes. */}
-    <ul class="pub-list">
-      {PUBLICATIONS.map((p) => (
-        <li>
-          <p class="pub-title"><a href={doiUrl(p.doi)}>{p.title}</a></p>
-          <p class="pub-meta">{p.authors}. <cite>{p.venue}</cite>, {p.year}. DOI {p.doi}</p>
-        </li>
-      ))}
-    </ul>
+    {featured.length > 0 && (
+      <ul class="pub-list">
+        {featured.map((p) => (
+          <li>
+            <p class="pub-title"><a href={url(publicationPath(p.slug))}>{p.title}</a></p>
+            <p class="pub-meta">{authorList(p.authors, 6)}. {p.container ? <cite>{p.container}</cite> : p.publisher}, {p.year}.</p>
+          </li>
+        ))}
+      </ul>
+    )}
+    <p class="pub-all">
+      <a class="nav-btn site-cta" href={url('research/publications/')}>All {count(pubs.length)} publications, with filters and citations</a>
+    </p>
   </section>
 
   <section class="hub-section" aria-labelledby="research-mca">

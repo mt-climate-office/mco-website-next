@@ -1,0 +1,93 @@
+---
+// /research/publications/ (rebuild plan §4.7): every publication in the DOI
+// list, newest first. The list is complete without JavaScript;
+// src/scripts/publication-filter.ts adds filters by year, type, project and
+// topic, mirrored to the URL. A filter group appears only when it has two or
+// more values to choose between.
+//
+// Titles are the link text (WCAG 2.4.4). Metadata comes from the committed
+// Crossref cache (src/lib/publications.ts); counts come from the list.
+import Base from '../../../layouts/Base.astro';
+import { authorList, facetValue, getPublications, publicationPath, TYPE_LABEL } from '../../../lib/publications';
+import { count } from '../../../lib/format';
+import { url } from '../../../lib/paths';
+
+const pubs = await getPublications();
+const total = pubs.length;
+const noun = (n: number) => (n === 1 ? 'publication' : 'publications');
+const registries = [...new Set(pubs.map((p) => (p.source === 'datacite' ? 'DataCite' : 'Crossref')))].sort().join(' and ');
+
+// Filter groups: [value in the URL, label], in display order.
+const uniq = (pairs: [string, string][]) => [...new Map(pairs).entries()];
+const years = uniq(pubs.map((p) => [String(p.year), String(p.year)]));
+const types = uniq(pubs.map((p) => [p.type, TYPE_LABEL[p.type]]));
+const projects = uniq(pubs.flatMap((p) => p.projects.map((x): [string, string] => [facetValue(x), x])))
+  .sort((a, b) => a[1].localeCompare(b[1]));
+const topics = uniq(pubs.flatMap((p) => p.topics.map((x): [string, string] => [facetValue(x), x])))
+  .sort((a, b) => a[1].localeCompare(b[1]));
+const groups = [
+  { key: 'year', label: 'Year', values: years },
+  { key: 'type', label: 'Type', values: types },
+  { key: 'project', label: 'Project', values: projects },
+  { key: 'topic', label: 'Topic', values: topics },
+].filter((g) => g.values.length > 1);
+---
+<Base short="Publications"
+      description="Papers with Montana Climate Office authors, with abstracts, citations, and BibTeX and CSL-JSON downloads.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <p class="pub-back"><a href={url('research/')}>Research</a></p>
+  <h1 class="section-title pub-page-title">Publications</h1>
+  <p class="section-lede">
+    Papers with Montana Climate Office authors. Each title opens a page with the abstract and a citation.
+    Titles, authors and abstracts are as {registries} {registries.includes(" and ") ? "record" : "records"} them.
+  </p>
+  <ul class="pub-downloads">
+    <li><a class="nav-btn" href={url('research/publications/publications.bib')} download="mco-publications.bib">BibTeX for all {count(total)}</a></li>
+    <li><a class="nav-btn" href={url('research/publications/publications.json')} download="mco-publications.json">CSL-JSON for all {count(total)}</a></li>
+  </ul>
+
+  {groups.length > 0 && (
+    // Laid out before first paint whenever scripts run, so showing it never
+    // shifts the list; held invisible until MCO.ready(). Hidden without
+    // scripts (no data-theme), since it cannot work there.
+    <div class="pub-filters" id="pub-filters" data-hold>
+      {groups.map((g) => (
+        <div class="pub-filter">
+          <span id={`pf-${g.key}-label`} class="pub-filter-label">{g.label}</span>
+          <div class="mco-chips" id={`pf-${g.key}`} data-key={g.key} role="group" aria-labelledby={`pf-${g.key}-label`}>
+            {g.values.map(([value, label]) => (
+              <button type="button" class="mco-chip" aria-pressed="false" data-value={value}>{label}</button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <div class="pub-bar">
+    <p id="pub-count" class="pub-count">{count(total)} {noun(total)}</p>
+    <button type="button" id="pub-clear" class="nav-btn" hidden>Show all publications</button>
+  </div>
+
+  <ol class="pub-items" id="pub-items" aria-label="Publications, newest first">
+    {pubs.map((p) => (
+      <li class="pub-item"
+          data-year={p.year}
+          data-type={p.type}
+          data-project={p.projects.map(facetValue).join(' ')}
+          data-topic={p.topics.map(facetValue).join(' ')}>
+        <h2 class="pub-item-title"><a href={url(publicationPath(p.slug))}>{p.title}</a></h2>
+        <p class="pub-meta">{authorList(p.authors, 6)}.</p>
+        <p class="pub-meta">
+          {p.container ? <cite>{p.container}</cite> : p.publisher}, {p.year}.
+          {' '}{TYPE_LABEL[p.type]}{p.openAccess === 'yes' && ', open access'}.
+        </p>
+      </li>
+    ))}
+  </ol>
+  <p id="pub-empty" class="mco-empty pub-empty" hidden>No publication matches these filters.</p>
+</Base>
+
+<script>
+  import '../../../scripts/publication-filter';
+</script>

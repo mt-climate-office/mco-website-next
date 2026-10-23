@@ -98,6 +98,13 @@ export default {
     { name: 'drought', query: 'drought/', ready: chromeReady },
     { name: 'mesonet', query: 'mesonet/', ready: chromeReady },
     { name: 'research', query: 'research/', ready: chromeReady },
+    // Publications: the list filtered from the URL (chips pressed, count
+    // stated), and one publication page.
+    { name: 'publications', query: 'research/publications/?year=2021&topic=drought',
+      ready: () => !document.documentElement.classList.contains('mco-booting') &&
+        /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
+        / of \d+ publications?$/.test(document.getElementById('pub-count')?.textContent || '') },
+    { name: 'publication', query: 'research/publications/hoylman-2022-drought-assessment/', ready: chromeReady },
     { name: 'about', query: 'about/', ready: chromeReady },
     { name: 'accessibility', query: 'accessibility/', ready: chromeReady },
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
@@ -380,6 +387,64 @@ export default {
       }));
       check('stations: clearing the filter shows every row and drops ?q=',
         cleared.hidden === 0 && !cleared.q, JSON.stringify(cleared));
+      await close();
+    }
+
+    // Publications: chips narrow the list (or within a group, and across
+    // groups), say how many match, announce it, and mirror the URL; "Show
+    // all" undoes it. Each item page links its own BibTeX and CSL-JSON.
+    {
+      const { page, close } = await open('research/publications/');
+      const total = await page.locator('#pub-items > li').count();
+      const state = () => page.evaluate(() => ({
+        shown: [...document.querySelectorAll('#pub-items > li')].filter((li) => !li.hidden)
+          .map((li) => ({ year: li.dataset.year, topic: li.dataset.topic })),
+        count: document.getElementById('pub-count').textContent,
+        q: Object.fromEntries(new URLSearchParams(location.search)),
+        clear: !document.getElementById('pub-clear').hidden,
+        live: [...document.querySelectorAll('[aria-live="polite"]')].map((e) => e.textContent).join(' '),
+      }));
+      await page.locator('#pf-year .mco-chip', { hasText: /^2021$/ }).click();
+      await page.waitForTimeout(150);
+      const y = await state();
+      check('publications: a year chip narrows the list to that year',
+        total > 1 && y.shown.length > 0 && y.shown.length < total && y.shown.every((s) => s.year === '2021'), JSON.stringify(y));
+      check('publications: the count is stated, announced and mirrored to ?year=',
+        y.count === `${y.shown.length} of ${total} publications` && y.q.year === '2021' && y.clear &&
+        y.live.includes(y.count), JSON.stringify(y));
+      await page.locator('#pf-topic .mco-chip', { hasText: /^Drought$/ }).click();
+      await page.waitForTimeout(150);
+      const yt = await state();
+      check('publications: groups combine (2021 and Drought)',
+        yt.shown.length > 0 && yt.shown.length <= y.shown.length &&
+        yt.shown.every((s) => s.year === '2021' && s.topic.split(' ').includes('drought')) && yt.q.topic === 'drought',
+        JSON.stringify(yt));
+      await page.locator('#pub-clear').click();
+      await page.waitForTimeout(150);
+      const all = await state();
+      check('publications: Show all restores every item and clears the URL',
+        all.shown.length === total && !all.q.year && !all.q.topic && !all.clear, JSON.stringify(all));
+
+      await page.goto(new URL('hoylman-2022-drought-assessment/', page.url()).href);
+      const item = await page.evaluate(() => {
+        const links = [...document.querySelectorAll('main a')].map((a) => ({ text: a.textContent.trim(), href: a.href }));
+        return {
+          h1: document.querySelector('h1').textContent,
+          doi: links.some((l) => l.href === 'https://doi.org/10.1038/s41467-022-30316-5'),
+          vague: links.filter((l) => /^(read article|permalink|here|link|more)$/i.test(l.text)).length,
+          bibHref: links.find((l) => /^BibTeX for this /.test(l.text))?.href,
+          cslHref: links.find((l) => /^CSL-JSON for this /.test(l.text))?.href,
+        };
+      });
+      // Fetched from the test runner: the page's CSP (connect-src) rightly
+      // blocks fetch() from the page itself. The links are plain downloads.
+      item.bib = item.bibHref ? (await (await page.request.get(item.bibHref)).text()).slice(0, 48) : null;
+      item.csl = item.cslHref ? (await (await page.request.get(item.cslHref)).json()).map((x) => x.id) : null;
+      check('publication: title as h1, DOI linked, no vague link text',
+        /^Drought assessment has been outpaced/.test(item.h1) && item.doi && item.vague === 0, JSON.stringify(item));
+      check('publication: its BibTeX and CSL-JSON load',
+        /^@article\{hoylman-2022-drought-assessment,/.test(item.bib || '') &&
+        JSON.stringify(item.csl) === '["hoylman-2022-drought-assessment"]', JSON.stringify(item));
       await close();
     }
 

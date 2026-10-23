@@ -21,7 +21,9 @@
     "test:newsletter": "node --test \"scripts/newsletter/test/*.test.mjs\"",
     "newsletter:preview": "node scripts/newsletter/send.mjs --dry-run --out previews",
     "gen:cms": "node scripts/generate-pages-yml.mjs",
-    "check:cms": "node scripts/generate-pages-yml.mjs --check"
+    "check:cms": "node scripts/generate-pages-yml.mjs --check",
+    "publications:refresh": "node scripts/publications-refresh.mjs",
+    "check:publications": "node scripts/publications-refresh.mjs --check"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "0.4.3",

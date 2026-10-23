@@ -318,3 +318,93 @@ main a:not([class]) {
   line-height: var(--lh-body);
   color: var(--text-secondary);
 }
+
+/* ── Publications portal (src/pages/research/publications/) ─────────────── */
+.pub-back { font-size: var(--fs-md); }
+.pub-page-title { margin-top: var(--space-3); }
+.pub-downloads {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+/* Filters: laid out whenever scripts run, so showing them never shifts the
+   list; hidden without scripts (data-theme is set only by the kit's
+   anti-flash boot), where they could not work. */
+html:not([data-theme]) .pub-filters { display: none; }
+.pub-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+.pub-filter { display: flex; flex-direction: column; gap: var(--space-2); }
+.pub-filter-label { font-size: var(--fs-md); font-weight: var(--fw-medium); color: var(--text-secondary); }
+.pub-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  min-height: 34px;
+  margin-top: var(--space-5);
+}
+.pub-count { font-size: var(--fs-base); color: var(--text-secondary); }
+.pub-items { list-style: none; max-width: 68ch; margin-top: var(--space-5); }
+.pub-item + .pub-item { margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--border); }
+.pub-item-title { font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); }
+.pub-empty { margin-top: var(--space-5); max-width: 68ch; }
+
+/* One publication. */
+.pub-article-head { max-width: 68ch; }
+.pub-article-title {
+  margin-top: var(--space-3);
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-tight);
+  font-weight: var(--fw-bold);
+}
+.pub-authors { margin-top: var(--space-4); font-size: var(--fs-lg); line-height: var(--lh-body); }
+.pub-actions {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+.pub-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-2) var(--space-5);
+  max-width: 68ch;
+  margin-top: var(--space-6);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+.pub-facts dt { color: var(--text-muted); }
+.pub-facts dd { overflow-wrap: anywhere; }
+.pub-inline { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
+.pub-note { max-width: 68ch; margin-top: var(--space-5); font-size: var(--fs-lg); line-height: var(--lh-body); }
+.pub-section { margin-top: var(--space-7); }
+.pub-abstract { margin-top: var(--space-4); }
+.pub-missing { margin-top: var(--space-4); color: var(--text-secondary); }
+.pub-source { margin-top: var(--space-3); }
+/* A reference to copy, as .hub-cite on the hubs. */
+.pub-cite {
+  max-width: 68ch;
+  margin-top: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  overflow-wrap: anywhere;
+}
+.pub-article-foot { max-width: 68ch; margin-top: var(--space-7); padding-top: var(--space-5); border-top: 1px solid var(--border); }
+@media (hover: none) {
+  .pub-item-title a,
+  .pub-inline a,
+  .pub-back a,
+  .pub-article-foot a { display: inline-block; min-height: 40px; padding-block: var(--space-2); }
+}
+.hub-section > p.pub-all { margin-top: var(--space-6); }
