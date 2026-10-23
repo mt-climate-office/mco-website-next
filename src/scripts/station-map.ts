@@ -9,9 +9,10 @@
 //     value and time cells, the stamp and the hidden-station lines in place.
 //     A failed refresh changes nothing: the last data stays with its time.
 //   - The island (MapLibre, the kit's map and palette files) is imported
-//     only when the map frame reaches the viewport (ISLAND_MARGIN),
-//     watched from the load event on: before it, the photo controls and
-//     late images are still moving the band down the page.
+//     when the map frame comes within ISLAND_MARGIN of the viewport,
+//     watched from the load event on. The photo controls hold their space
+//     from first paint, so the band no longer moves; on a phone the frame
+//     still sits far enough down that nothing loads before a scroll.
 //
 // Nothing here is announced on a plain load. A refresh that moves the stamp
 // is announced once, and only while focus is inside the readings band, so a
@@ -26,7 +27,7 @@ import {
 declare const MCO: { announce?: (text: string) => void } | undefined;
 
 const REFRESH_MS = 12 * 60 * 1000;
-const ISLAND_MARGIN = '0px';
+const ISLAND_MARGIN = '200px 0px';
 
 /** What the island subscribes to. */
 export interface StationStore {

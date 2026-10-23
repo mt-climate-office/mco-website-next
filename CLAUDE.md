@@ -85,7 +85,9 @@ an error string. **Never let an embedded map capture page scroll.**
 
 ## Content (D13, D14)
 
-Phase 4; none of this exists in the repo yet.
+Built for **news** (the public archive, migrated from the Jekyll site;
+`/news/`, `/news/<slug>/`, `/news/rss.xml`). Pages, people, projects and
+publications are TODOs in `_fields.ts`.
 
 Collections in `src/content/`, Zod schema in `src/content.config.ts`.
 One field definition in `src/content/_fields.ts` emits both the Zod schema and
@@ -102,9 +104,9 @@ scoped to this repo only.
 the API knows — counts, percentages, schedules — must not be typeable in the
 CMS. Use a component, not a number in Markdown.
 
-Read `docs/newsletter.md` before finalising the news schema; it lists the
-fields the newsletter workflow needs (`summary`, `draft`, `email`, ...) and
-the `/news/<slug>/` URL helper in `src/lib/news.ts` the route must use.
+`docs/newsletter.md` lists the fields the newsletter workflow needs
+(`summary`, `draft`, `email`, ...); post URLs come only from `newsSlug()` /
+`newsPath()` in `src/lib/news.ts`. No migrated post sets `email:`.
 
 ## Accessibility — WCAG 2.1 AA, UM policy
 
