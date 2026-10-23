@@ -78,3 +78,54 @@ content:
         description: Optional. Overrides the address taken from the file name. Changing it on a published post breaks links to it.
       - name: body
         type: rich-text
+  - name: publications
+    label: Publications
+    type: collection
+    path: src/content/publications
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      fields:
+        - doi
+        - featured
+        - projects
+      primary: doi
+    description: One entry per publication. Paste its DOI; the title, authors, journal, year and abstract come from Crossref when the publication list is refreshed, so they are not typed here. A new DOI appears on the site after the next refresh (npm run publications:refresh).
+    fields:
+      - name: doi
+        type: string
+        label: DOI
+        description: Such as 10.1038/s41467-022-30316-5. A doi.org link works too.
+        required: true
+      - name: featured
+        type: boolean
+        description: Featured publications are listed on the Research page as well as the publications list.
+        default: false
+      - name: projects
+        type: select
+        label: Projects
+        description: Office projects this publication came out of. Leave empty if none.
+        options:
+          values:
+            - NGP-RIDR
+            - Sustainable FSA
+            - EcoRestore
+            - Native Resilience
+          multiple: true
+      - name: topics
+        type: string
+        label: Topics
+        description: Short subject terms for the topic filter, such as Drought or Soil moisture. Reuse a term already in use where one fits, so the filter stays short.
+        list: true
+      - name: pdf
+        type: string
+        label: PDF address
+        description: Optional. A full https:// address of a PDF anyone can read, such as an open-access copy.
+      - name: note
+        type: text
+        label: Note
+        description: Optional. One or two sentences shown on the publication page, such as what data it uses.
+      - name: slug
+        type: string
+        label: URL slug
+        description: Optional. Overrides the address made from the first author, year and title. Changing it on a published entry breaks links to it.

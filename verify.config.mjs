@@ -98,6 +98,13 @@ export default {
     { name: 'drought', query: 'drought/', ready: chromeReady },
     { name: 'mesonet', query: 'mesonet/', ready: chromeReady },
     { name: 'research', query: 'research/', ready: chromeReady },
+    // Publications: the list filtered from the URL (chips pressed, count
+    // stated), and one publication page.
+    { name: 'publications', query: 'research/publications/?year=2021&topic=drought',
+      ready: () => !document.documentElement.classList.contains('mco-booting') &&
+        /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
+        / of \d+ publications?$/.test(document.getElementById('pub-count')?.textContent || '') },
+    { name: 'publication', query: 'research/publications/hoylman-2022-drought-assessment/', ready: chromeReady },
     { name: 'about', query: 'about/', ready: chromeReady },
     { name: 'accessibility', query: 'accessibility/', ready: chromeReady },
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
@@ -138,25 +145,38 @@ export default {
       check('photos: the URL carries date, time and dir=E',
         east.q.dir === 'E' && /^\d{4}-\d{2}-\d{2}$/.test(east.q.date || '') && !!east.q.time, JSON.stringify(east.q));
 
-      // The first public date has no previous day, so move the time: another
-      // ready slot that day, read from the menu the kit built.
-      const first = await page.evaluate(() => {
+      // Move the set: another ready slot that day if the kit's menu offers
+      // one, else the previous day. Early in the Mountain day only one slot
+      // is ready, and on the first public date there is no previous day, so
+      // the probe takes whichever move exists (a fixed choice timed out on
+      // 2026-10-23 at 9:40 MDT, when the menu held one time).
+      const pick = await page.evaluate(() => {
         const s = document.getElementById('pc-time');
-        return [...s.options].find((o) => !o.disabled && o.value !== s.value)?.value ?? '';
+        const other = [...s.options].find((o) => !o.disabled && o.value !== s.value)?.value ?? '';
+        const prev = document.getElementById('pc-prev');
+        return { other, prevOk: !!prev && !prev.disabled && prev.getAttribute('aria-disabled') !== 'true',
+          date: new URLSearchParams(location.search).get('date') };
       });
       const stamp = east.stamp;
-      await page.locator('#pc-time').selectOption(first);
-      await page.waitForFunction((s) => document.querySelector('.hero .stamp').textContent !== s &&
-        !document.getElementById('hero-mosaic').hasAttribute('aria-busy'), stamp, { timeout: 30000 });
+      if (pick.other) await page.locator('#pc-time').selectOption(pick.other);
+      else if (pick.prevOk) await page.locator('#pc-prev').click();
+      if (pick.other || pick.prevOk) {
+        await page.waitForFunction((s) => document.querySelector('.hero .stamp').textContent !== s &&
+          !document.getElementById('hero-mosaic').hasAttribute('aria-busy'), stamp, { timeout: 30000 });
+      }
       const moved = await page.evaluate(() => ({
         time: new URLSearchParams(location.search).get('time'),
+        date: new URLSearchParams(location.search).get('date'),
         select: document.getElementById('pc-time').value,
         stamp: document.querySelector('.hero .stamp').textContent,
         dir: new URLSearchParams(location.search).get('dir'),
       }));
-      check('photos: a new time moves the set and the URL together, keeping the direction',
-        !!first && moved.select === first && moved.time === (first.endsWith(':00') ? String(Number(first.slice(0, 2))) : first) && moved.dir === 'E' && /facing east/.test(moved.stamp),
-        JSON.stringify({ first, ...moved }));
+      const movedOk = pick.other
+        ? moved.select === pick.other && moved.time === (pick.other.endsWith(':00') ? String(Number(pick.other.slice(0, 2))) : pick.other)
+        : pick.prevOk && moved.date !== pick.date;
+      check('photos: a new time or day moves the set and the URL together, keeping the direction',
+        movedOk && moved.stamp !== stamp && moved.dir === 'E' && /facing east/.test(moved.stamp),
+        JSON.stringify({ pick, ...moved }));
 
       await page.locator('#pc-views label', { hasText: /^N$/ }).click();
       await page.waitForFunction(() => /_N_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || ''), null, { timeout: 30000 });
@@ -396,6 +416,64 @@ export default {
       }));
       check('stations: clearing the filter shows every row and drops ?q=',
         cleared.hidden === 0 && !cleared.q, JSON.stringify(cleared));
+      await close();
+    }
+
+    // Publications: chips narrow the list (or within a group, and across
+    // groups), say how many match, announce it, and mirror the URL; "Show
+    // all" undoes it. Each item page links its own BibTeX and CSL-JSON.
+    {
+      const { page, close } = await open('research/publications/');
+      const total = await page.locator('#pub-items > li').count();
+      const state = () => page.evaluate(() => ({
+        shown: [...document.querySelectorAll('#pub-items > li')].filter((li) => !li.hidden)
+          .map((li) => ({ year: li.dataset.year, topic: li.dataset.topic })),
+        count: document.getElementById('pub-count').textContent,
+        q: Object.fromEntries(new URLSearchParams(location.search)),
+        clear: !document.getElementById('pub-clear').hidden,
+        live: [...document.querySelectorAll('[aria-live="polite"]')].map((e) => e.textContent).join(' '),
+      }));
+      await page.locator('#pf-year .mco-chip', { hasText: /^2021$/ }).click();
+      await page.waitForTimeout(150);
+      const y = await state();
+      check('publications: a year chip narrows the list to that year',
+        total > 1 && y.shown.length > 0 && y.shown.length < total && y.shown.every((s) => s.year === '2021'), JSON.stringify(y));
+      check('publications: the count is stated, announced and mirrored to ?year=',
+        y.count === `${y.shown.length} of ${total} publications` && y.q.year === '2021' && y.clear &&
+        y.live.includes(y.count), JSON.stringify(y));
+      await page.locator('#pf-topic .mco-chip', { hasText: /^Drought$/ }).click();
+      await page.waitForTimeout(150);
+      const yt = await state();
+      check('publications: groups combine (2021 and Drought)',
+        yt.shown.length > 0 && yt.shown.length <= y.shown.length &&
+        yt.shown.every((s) => s.year === '2021' && s.topic.split(' ').includes('drought')) && yt.q.topic === 'drought',
+        JSON.stringify(yt));
+      await page.locator('#pub-clear').click();
+      await page.waitForTimeout(150);
+      const all = await state();
+      check('publications: Show all restores every item and clears the URL',
+        all.shown.length === total && !all.q.year && !all.q.topic && !all.clear, JSON.stringify(all));
+
+      await page.goto(new URL('hoylman-2022-drought-assessment/', page.url()).href);
+      const item = await page.evaluate(() => {
+        const links = [...document.querySelectorAll('main a')].map((a) => ({ text: a.textContent.trim(), href: a.href }));
+        return {
+          h1: document.querySelector('h1').textContent,
+          doi: links.some((l) => l.href === 'https://doi.org/10.1038/s41467-022-30316-5'),
+          vague: links.filter((l) => /^(read article|permalink|here|link|more)$/i.test(l.text)).length,
+          bibHref: links.find((l) => /^BibTeX for this /.test(l.text))?.href,
+          cslHref: links.find((l) => /^CSL-JSON for this /.test(l.text))?.href,
+        };
+      });
+      // Fetched from the test runner: the page's CSP (connect-src) rightly
+      // blocks fetch() from the page itself. The links are plain downloads.
+      item.bib = item.bibHref ? (await (await page.request.get(item.bibHref)).text()).slice(0, 48) : null;
+      item.csl = item.cslHref ? (await (await page.request.get(item.cslHref)).json()).map((x) => x.id) : null;
+      check('publication: title as h1, DOI linked, no vague link text',
+        /^Drought assessment has been outpaced/.test(item.h1) && item.doi && item.vague === 0, JSON.stringify(item));
+      check('publication: its BibTeX and CSL-JSON load',
+        /^@article\{hoylman-2022-drought-assessment,/.test(item.bib || '') &&
+        JSON.stringify(item.csl) === '["hoylman-2022-drought-assessment"]', JSON.stringify(item));
       await close();
     }
 

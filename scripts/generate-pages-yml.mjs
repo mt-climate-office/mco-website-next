@@ -52,6 +52,7 @@ function toField(cms) {
   if (cms.description) out.description = cms.description;
   if (cms.required) out.required = true;
   if (cms.default !== undefined) out.default = cms.default;
+  if (cms.list) out.list = true;
   if (cms.options) out.options = cms.options;
   return out;
 }
@@ -65,10 +66,16 @@ function toEntry(name, def) {
     format: 'yaml-frontmatter',
   };
   if (def.filename) entry.filename = def.filename;
-  if (def.view) entry.view = { fields: def.view };
-  // Rules the build enforces and the CMS cannot express, in words, so an
-  // editor who trips one is not surprised by a failed build.
-  if (def.refineNote) entry.description = def.refineNote;
+  if (def.view || def.primary) {
+    entry.view = {};
+    if (def.view) entry.view.fields = def.view;
+    if (def.primary) entry.view.primary = def.primary;
+  }
+  // What the collection is for, then the rules the build enforces and the
+  // CMS cannot express, in words, so an editor who trips one is not
+  // surprised by a failed build.
+  const description = [def.description, def.refineNote].filter(Boolean).join(' ');
+  if (description) entry.description = description;
   entry.fields = def.fields.map(({ cms }) => toField(cms));
   return entry;
 }

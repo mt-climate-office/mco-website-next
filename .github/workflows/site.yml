@@ -63,6 +63,10 @@ jobs:
       - run: npm run build
       - name: Built pages (CSP hashes, noindex, canonical, one h1, base path)
         run: npm run check:built
+      - name: Redirect map (every old URL lands on a built page; no chains or loops)
+        run: npm run check:redirects
+      - name: Publications cache covers every listed DOI
+        run: npm run check:publications
       - name: HTML validity
         run: npm run check:html
 

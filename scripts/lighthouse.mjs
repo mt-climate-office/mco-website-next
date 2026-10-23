@@ -34,6 +34,7 @@ const ALL_PAGES = [
   { name: 'drought', path: 'drought/' },
   { name: 'accessibility', path: 'accessibility/' },
   { name: 'news', path: 'news/' },
+  { name: 'publications', path: 'research/publications/' },
 ];
 const MIN = { accessibility: 1, performance: 0.9 };
 
