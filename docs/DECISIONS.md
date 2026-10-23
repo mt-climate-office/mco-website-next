@@ -342,6 +342,10 @@ the protection, tier it.
 - Playwright browsers are cached per Playwright version, and the download and
   apt steps each carry a timeout, so a hung mirror fails in minutes under a
   step name that says which.
+- **Engines run in parallel** (D19, 23 October 2026). One `build` job runs
+  the cheap gates and uploads `dist/`; a `verify` matrix runs one job per
+  engine against it (PRs `[chromium]`, the full tier `[chromium, webkit]`),
+  each with its own browser cache. Lighthouse runs in the Chromium job.
 
 ---
 
