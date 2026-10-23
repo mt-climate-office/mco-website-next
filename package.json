@@ -19,9 +19,12 @@
     "lighthouse": "node scripts/lighthouse.mjs",
     "gen:api": "node scripts/gen-api.mjs",
     "test:newsletter": "node --test \"scripts/newsletter/test/*.test.mjs\"",
-    "newsletter:preview": "node scripts/newsletter/send.mjs --dry-run --out previews"
+    "newsletter:preview": "node scripts/newsletter/send.mjs --dry-run --out previews",
+    "gen:cms": "node scripts/generate-pages-yml.mjs",
+    "check:cms": "node scripts/generate-pages-yml.mjs --check"
   },
   "dependencies": {
+    "@astrojs/markdown-satteri": "0.4.3",
     "astro": "7.3.8",
     "mesonet-compliance": "github:mt-climate-office/mesonet-compliance#v0.1.0"
   },
