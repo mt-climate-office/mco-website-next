@@ -3,8 +3,10 @@
 // against the built site:
 //   - accessibility 100 on every page (fail on any regression)
 //   - performance ≥ 90 (median of RUNS runs, to damp simulation noise)
-//   - homepage JavaScript under 150 KB transferred, excluding a lazy map
-//     island (none exists yet)
+//   - homepage JavaScript under 150 KB transferred, excluding the lazy
+//     station-map island (ISLAND below), which loads only when the map
+//     reaches the viewport. Whatever of it a run did load is reported
+//     beside the budgeted figure.
 //
 //   BASE_PATH=/verify-base/ node scripts/lighthouse.mjs
 //
@@ -16,6 +18,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
 import { chromium } from 'playwright';
@@ -50,6 +53,12 @@ const MIME = {
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif',
 };
 
+// Text is served gzipped, as GitHub Pages serves it, so page weight and the
+// JS budget ("150 KB gzipped", CLAUDE.md) are measured as a visitor gets
+// them. Uncompressed, a page's HTML costs Lighthouse's slow-4G simulation
+// several times what it costs in production.
+const COMPRESS = /^(text\/|image\/svg)/;
+
 stageDist();
 const server = createServer(async (req, res) => {
   try {
@@ -57,8 +66,14 @@ const server = createServer(async (req, res) => {
     if (p.endsWith('/')) p += 'index.html';
     const f = normalize(join(stage, p));
     if (!f.startsWith(stage)) { res.writeHead(403).end(); return; }
-    const body = await readFile(f);
-    res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' });
+    let body = await readFile(f);
+    const type = MIME[extname(f)] || 'application/octet-stream';
+    const headers = { 'content-type': type, vary: 'accept-encoding' };
+    if (COMPRESS.test(type) && /\bgzip\b/.test(req.headers['accept-encoding'] || '')) {
+      body = gzipSync(body);
+      headers['content-encoding'] = 'gzip';
+    }
+    res.writeHead(200, headers);
     res.end(body);
   } catch { res.writeHead(404).end(); }
 });
@@ -71,6 +86,13 @@ const chrome = await chromeLauncher.launch({
 });
 
 const median = (xs) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+// The station map's lazy island: its own chunk, the kit's map and palette
+// files, and MapLibre (entry, shared and worker chunks) from unpkg.
+const ISLAND = [/\/station-map-island\.[^/]*\.js$/, /\/map\/mco-map\.js$/, /\/palette\/mco-palette\.js$/, /^https:\/\/unpkg\.com\/maplibre-gl@/];
+const isIsland = (url) => ISLAND.some((re) => re.test(url));
+const scriptKBOf = (lhr, island) => lhr.audits['network-requests'].details.items
+  .filter((it) => it.resourceType === 'Script' && isIsland(it.url) === island)
+  .reduce((sum, it) => sum + (it.transferSize || 0), 0) / 1024;
 const failures = [];
 try {
   for (const page of PAGES) {
@@ -85,11 +107,11 @@ try {
     }
     const a11y = Math.min(...runs.map((r) => r.categories.accessibility.score));
     const perf = median(runs.map((r) => r.categories.performance.score));
-    const scriptKB = median(runs.map((r) => r.audits['network-requests'].details.items
-      .filter((it) => it.resourceType === 'Script')
-      .reduce((sum, it) => sum + (it.transferSize || 0), 0))) / 1024;
+    const scriptKB = median(runs.map((r) => scriptKBOf(r, false)));
+    const islandKB = median(runs.map((r) => scriptKBOf(r, true)));
 
-    console.log(`${page.name}: accessibility ${Math.round(a11y * 100)}, performance ${Math.round(perf * 100)} (median of ${RUNS}), JS ${scriptKB.toFixed(1)} KB`);
+    console.log(`${page.name}: accessibility ${Math.round(a11y * 100)}, performance ${Math.round(perf * 100)} (median of ${RUNS}), JS ${scriptKB.toFixed(1)} KB` +
+      (islandKB ? ` + map island ${islandKB.toFixed(1)} KB (not budgeted)` : ''));
     if (a11y < MIN.accessibility) {
       const failed = Object.values(runs[0].audits)
         .filter((a) => runs[0].categories.accessibility.auditRefs.some((ref) => ref.id === a.id) && a.score === 0)

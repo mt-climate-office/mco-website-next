@@ -24,6 +24,22 @@ const photosReady = () =>
   document.querySelectorAll('#pc-views input[type="radio"]').length > 0 &&
   !document.getElementById('hero-mosaic')?.hasAttribute('aria-busy');
 
+// The station map island has drawn (canvas, legend) and its tiles settled.
+// It loads when the map reaches the viewport, so this scrolls it there, and
+// opens the table twin so axe checks it too. Side effects in a ready check
+// are deliberate here: the harness has no separate setup hook.
+const mapReady = () => {
+  const frame = document.getElementById('sm-map');
+  if (!frame) return false;
+  frame.scrollIntoView({ block: 'center' });
+  const details = document.querySelector('.sm-details');
+  if (details) details.open = true;
+  return !document.documentElement.classList.contains('mco-booting') &&
+    !!frame.querySelector('canvas') &&
+    document.getElementById('sm-legend')?.hidden === false &&
+    !!frame.querySelector('.maplibregl-ctrl-attrib');
+};
+
 export default {
   // keyboard.mjs opens every probe page with this; without it, it would use
   // the first scenario's (photosReady), which only the homepage can meet.
@@ -36,6 +52,8 @@ export default {
         document.getElementById('photo-controls')?.hidden === false &&
         !document.getElementById('hero-mosaic')?.hasAttribute('aria-busy') &&
         /_E_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || '') },
+    // The station map, loaded, with its table twin open.
+    { name: 'home-map', query: '', ready: mapReady },
     { name: 'not-found', query: '404.html', ready: chromeReady },
     // Station directory with the filter applied from the URL, and one station.
     { name: 'stations', query: 'mesonet/stations/?q=gallatin',
@@ -131,6 +149,98 @@ export default {
       await page.waitForFunction(() => /_N_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || ''), null, { timeout: 30000 });
       const north = await page.evaluate(() => new URLSearchParams(location.search).has('dir'));
       check('photos: back to North drops dir= from the URL', !north);
+      await close();
+    }
+
+    // Station map: nothing of MapLibre until the map reaches the viewport;
+    // a wheel over it scrolls the page rather than zooming (cooperative
+    // gestures), Ctrl + wheel zooms it; the table twin lists every station
+    // in the directory; a station's popup links to its page and the
+    // dashboard.
+    {
+      const phone = { name: '390', width: 390, height: 844, touch: true };
+      const { page, close } = await open('', { viewport: phone });
+      const map = page.locator('#sm-map');
+      const top = await map.evaluate((el) => el.getBoundingClientRect().top);
+      const early = await page.evaluate(() => ({
+        ml: typeof window.maplibregl !== 'undefined',
+        unpkg: performance.getEntriesByType('resource').some((e) => e.name.startsWith('https://unpkg.com/')),
+        island: performance.getEntriesByType('resource').some((e) => /station-map-island/.test(e.name)),
+      }));
+      check('station map: no MapLibre, island or unpkg request before the map is in view',
+        top > 844 && !early.ml && !early.unpkg && !early.island, JSON.stringify({ top, ...early }));
+      await map.scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => !!document.querySelector('#sm-map canvas') &&
+        document.getElementById('sm-legend')?.hidden === false, null, { timeout: 30000 });
+      const loaded = await page.evaluate(() => ({
+        role: document.getElementById('sm-map').getAttribute('role'),
+        label: document.getElementById('sm-map').getAttribute('aria-label'),
+        ticks: document.querySelectorAll('#sm-legend .sm-ticks li').length,
+      }));
+      check('station map: loads once scrolled into view, labelled, with a legend',
+        loaded.role === 'application' && /table below/.test(loaded.label || '') && loaded.ticks >= 2, JSON.stringify(loaded));
+      await close();
+    }
+    {
+      const { page, close } = await open('');
+      await page.locator('#sm-map').scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => !!document.querySelector('#sm-map canvas') &&
+        document.getElementById('sm-legend')?.hidden === false, null, { timeout: 30000 });
+      await page.waitForTimeout(1500);
+      const box = await page.locator('#sm-map').boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      // MapLibre shows its hint for a moment, so record that it was shown.
+      await page.evaluate(() => {
+        const screen = document.querySelector('.maplibregl-cooperative-gesture-screen');
+        window.__smHint = false;
+        new MutationObserver(() => { if (screen.classList.contains('maplibregl-show')) window.__smHint = true; })
+          .observe(screen, { attributes: true, attributeFilter: ['class'] });
+      });
+      const y0 = await page.evaluate(() => window.scrollY);
+      await page.mouse.wheel(0, 240);
+      await page.waitForTimeout(600);
+      const wheel = await page.evaluate(() => ({ scrolled: window.scrollY, hint: window.__smHint }));
+      check('station map: a wheel over the map scrolls the page and shows the zoom hint',
+        wheel.scrolled > y0 && wheel.hint, JSON.stringify({ y0, ...wheel }));
+      // The page moved under the pointer: point at the map again.
+      const b1 = await page.locator('#sm-map').boundingBox();
+      await page.mouse.move(b1.x + b1.width / 2, b1.y + b1.height / 2);
+      await page.keyboard.down('Control');
+      await page.mouse.wheel(0, -240);
+      await page.keyboard.up('Control');
+      await page.waitForTimeout(600);
+      const y2 = await page.evaluate(() => window.scrollY);
+      check('station map: Ctrl + wheel zooms the map, not the page', y2 === wheel.scrolled, JSON.stringify({ before: wheel.scrolled, after: y2 }));
+
+      // A station's popup: find one under the pointer by its hover tooltip.
+      const b = await page.locator('#sm-map').boundingBox();
+      let hit = null;
+      for (let y = b.y + 50; y < b.y + b.height - 50 && !hit; y += 8) {
+        for (let x = b.x + 60; x < b.x + b.width - 70; x += 8) {
+          await page.mouse.move(x, y);
+          if (await page.evaluate(() => document.querySelector('.mco-tooltip.visible') != null)) { hit = { x, y }; break; }
+        }
+      }
+      if (hit) await page.mouse.click(hit.x, hit.y);
+      await page.waitForTimeout(500);
+      const pop = await page.evaluate(() => ({
+        links: [...document.querySelectorAll('.maplibregl-popup a')].map((a) => a.getAttribute('href')),
+        temp: /Air temperature/.test(document.querySelector('.maplibregl-popup')?.textContent || ''),
+      }));
+      check('station map: a station opens a popup with its reading, page and dashboard links',
+        !!hit && pop.temp && pop.links.some((h) => /\/mesonet\/stations\/[a-z0-9_]+\/$/.test(h)) &&
+        pop.links.some((h) => /^https:\/\/mesonet\.climate\.umt\.edu\/dash\/next\/\?s=/.test(h)), JSON.stringify(pop));
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+      check('station map: Esc closes the popup', await page.evaluate(() => !document.querySelector('.maplibregl-popup')));
+
+      const twin = await page.evaluate(() => [...document.querySelectorAll('#sm-table tbody tr')].map((tr) => tr.dataset.id));
+      await page.goto(new URL('mesonet/stations/', page.url()).href);
+      const directory = await page.evaluate(() => [...document.querySelectorAll('#station-table tbody tr')].map((tr) => tr.dataset.id));
+      const missing = directory.filter((id) => !twin.includes(id));
+      check('station map: the table twin has every station in the directory',
+        directory.length > 100 && missing.length === 0 && twin.length === directory.length,
+        `twin=${twin.length} directory=${directory.length} missing=${missing.slice(0, 5).join(',')}`);
       await close();
     }
 

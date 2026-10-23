@@ -3,7 +3,7 @@
 // snippets/head.html: metas, anti-flash inline, font preloads, stylesheets.
 import antiFlash from '../kit/anti-flash.inline.js?raw';
 import { contentSecurityPolicy } from '../kit/csp';
-import { kit, KIT_SRI } from '../kit/kit';
+import { kit, KIT_SRI, MAPLIBRE_IMPORT_MAP } from '../kit/kit';
 import { canonicalUrl } from '../lib/paths';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
@@ -28,9 +28,14 @@ interface Props {
       after core, and its CSP allows what the photo controls need (csp.ts).
       Only the homepage does. */
   photos?: boolean;
+  /** The page has the station map: its head carries the kit's MapLibre
+      import map (SRI for the lazy import), and its CSP allows what MapLibre
+      and the basemap need (csp.ts). The map scripts themselves load only
+      when the map nears the viewport. Only the homepage does. */
+  map?: boolean;
 }
 
-const { short, description, indexable = true, fullBleed = false, search = false, photos = false } = Astro.props;
+const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false } = Astro.props;
 const { searchable = indexable } = Astro.props;
 const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
 const FAMILY_SHORT = 'MCO';
@@ -40,7 +45,7 @@ const title = short ? `${short} · ${FAMILY_SHORT}` : FAMILY_LONG;
 const cardTitle = short ? `${short} · ${FAMILY_LONG}` : FAMILY_LONG;
 const canonical = canonicalUrl(Astro.url.pathname);
 const ogImage = kit('assets/og-card.png');
-const csp = contentSecurityPolicy([antiFlash], { search, photos });
+const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, photos, map });
 ---
 <!doctype html>
 <html lang="en">
@@ -53,6 +58,8 @@ const csp = contentSecurityPolicy([antiFlash], { search, photos });
   <meta name="theme-color" content="#1a6faf" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#161b22" media="(prefers-color-scheme: dark)">
   <script is:inline set:html={antiFlash}></script>
+  {/* Before any module script: an import map must precede every module load. */}
+  {map && <script is:inline type="importmap" set:html={MAPLIBRE_IMPORT_MAP}></script>}
   <title>{title}</title>
   <meta name="description" content={description}>
   {noindex && <meta name="robots" content="noindex, nofollow">}

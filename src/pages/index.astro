@@ -7,23 +7,33 @@
 // mesonet-compliance summary at build time, and the photo hero takes the
 // most recent public set from the kit's MCO.photos at build time (a failed
 // fetch fails either, so the previous deploy stays up). The conditions card
-// stays empty until the kit's place search is wired. Never pass sample data
+// stays empty until the kit's place search is wired. The station map takes
+// the build's /stations/ catalog and a /latest/ air-temperature snapshot (a
+// failed fetch fails the build too) and refreshes itself in the browser.
+// Never pass sample data
 // here; the page must not show a made-up figure.
 // Copy follows docs/VOICE.md. Each question's claims are sourced beside it.
 import Base from '../layouts/Base.astro';
 import PhotoMosaic from '../components/data/PhotoMosaic.astro';
 import ConditionsNow from '../components/data/ConditionsNow.astro';
 import NetworkStatusBar from '../components/data/NetworkStatusBar.astro';
+import StationMap from '../components/data/StationMap.astro';
 import QuestionCard from '../components/content/QuestionCard.astro';
 import ToolList from '../components/content/ToolList.astro';
 import { DASHBOARD, TOOLS } from '../lib/tools';
 import { loadSummary, toNetworkSummary } from '../lib/compliance';
 import { loadHeroSnapshot } from '../lib/photo-snapshot';
+import { buildSnapshot, getLatest } from '../lib/mesonet';
+import { getCatalog } from '../lib/stations';
+import { AIR_TEMP_ELEMENTS, joinLatest } from '../lib/station-map';
 
-const [summary, hero] = await Promise.all([
+const [summary, hero, catalog, latest] = await Promise.all([
   loadSummary().then(toNetworkSummary),
   loadHeroSnapshot(),
+  getCatalog(),
+  buildSnapshot('/latest/ air temperature', () => getLatest({ elements: AIR_TEMP_ELEMENTS, units: 'us' })),
 ]);
+const mapStations = joinLatest(catalog.stations, latest.rows);
 
 const QUESTIONS = [
   // mco-drought-dashboard/docs/index.html:175-178 (indices), :836 (15 d to
@@ -62,29 +72,27 @@ const QUESTIONS = [
   },
 ];
 ---
-<Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed photos>
+<Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed photos map>
   <PhotoMosaic set={hero.set} stations={hero.stations} />
 
   <section id="readings" class="readings" aria-labelledby="readings-title">
     <div class="wrap readings-inner">
-      <div class="readings-text">
-        <h2 id="readings-title" class="section-title">What the stations are reading</h2>
-        <p class="section-lede">
-          Air temperature, humidity, wind, precipitation, soil moisture and soil temperature.
-          Recent values are provisional.
-        </p>
-        <!--
-          Place search ("find conditions near you") goes here once the kit ships
-          the dashboard's place search on MCO.searchModel / initSearchBox
-          (DECISIONS D9, extraction #2). It sets the station ConditionsNow shows.
-        -->
+      <div class="readings-side">
+        <div class="readings-text">
+          <h2 id="readings-title" class="section-title">What the stations are reading</h2>
+          <p class="section-lede">
+            Air temperature, humidity, wind, precipitation, soil moisture and soil temperature.
+            Recent values are provisional.
+          </p>
+          <!--
+            Place search ("find conditions near you") goes here once the kit ships
+            the dashboard's place search on MCO.searchModel / initSearchBox
+            (DECISIONS D9, extraction #2). It sets the station ConditionsNow shows.
+          -->
+        </div>
+        <ConditionsNow />
       </div>
-      <ConditionsNow />
-      <!--
-        Station map goes here: a lazy MapLibre island via MCO.map.loadMapLibre()
-        below the fold, with an MCO.srTable twin, and no scroll capture
-        (rebuild plan §4.5). Needs worker-src blob: and the unpkg pins in the CSP.
-      -->
+      <StationMap stations={mapStations} fetchedAt={latest.fetchedAt} />
     </div>
   </section>
 
@@ -118,11 +126,14 @@ const QUESTIONS = [
   .readings { border-bottom: 1px solid var(--border); }
   .readings-inner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    /* Copy and the conditions card beside the map, as in the reference
+       comp; the map takes the wider share. */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     gap: var(--space-7);
     align-items: start;
     padding-block: var(--space-7);
   }
+  .readings-side { display: grid; gap: var(--space-6); align-content: start; min-width: 0; }
   .card-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
