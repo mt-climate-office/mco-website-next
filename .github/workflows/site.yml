@@ -57,6 +57,8 @@ jobs:
         run: npm run check:paths
       - name: Kit pin matches the published tag (SRI, anti-flash, logo)
         run: npm run check:kit
+      - name: Pages CMS config matches the content schema (DECISIONS D13)
+        run: npm run check:cms
       - name: Type check
         run: npm run check
       - name: Newsletter renderer (fixture post, no network)

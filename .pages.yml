@@ -1,0 +1,80 @@
+# GENERATED FILE. DO NOT EDIT.
+# Source: src/content/_fields.ts and scripts/generate-pages-yml.mjs
+# Regenerate: npm run gen:cms (CI runs npm run check:cms)
+# Pages CMS docs: https://pagescms.org/docs/configuration/
+
+settings:
+  content:
+    merge: true # DO NOT REMOVE. Without it Pages CMS deletes unlisted fields on save (DECISIONS D14).
+media:
+  input: public/images/news
+  output: /images/news
+  extensions:
+    - jpg
+    - jpeg
+    - png
+    - webp
+    - gif
+content:
+  - name: news
+    label: News
+    type: collection
+    path: src/content/news
+    format: yaml-frontmatter
+    filename: "{year}-{month}-{day}-{primary}.md"
+    view:
+      fields:
+        - title
+        - date
+        - category
+        - draft
+        - email
+    description: Header image alt text is required whenever a header image is set. The CMS cannot check this; the site build fails without it.
+    fields:
+      - name: title
+        type: string
+        required: true
+      - name: date
+        type: date
+        description: Publication date. A post dated in the future is not emailed until that day.
+        required: true
+      - name: category
+        type: select
+        label: Category
+        required: true
+        options:
+          values:
+            - newsletter
+            - announcement
+            - event-report
+            - research
+      - name: summary
+        type: text
+        description: One or two sentences. Shown in the news list, search results and link previews, and as the email preview line.
+        required: true
+      - name: image
+        type: image
+        label: Header image
+        description: Optional. Shown above the post and as the email banner.
+      - name: imageAlt
+        type: string
+        label: Header image alt text
+        description: Required whenever a header image is set. Say what the image shows.
+      - name: draft
+        type: boolean
+        description: A draft is left out of the site and never emailed.
+        default: false
+      - name: email
+        type: select
+        label: Email to subscribers
+        description: Choose "pending" to email this post to the MCO News list once it is published and not a draft. The newsletter workflow changes it to "sent" after sending. Never choose "sent" yourself. Leave it empty for a post that should not be emailed.
+        options:
+          values:
+            - pending
+            - sent
+      - name: slug
+        type: string
+        label: URL slug
+        description: Optional. Overrides the address taken from the file name. Changing it on a published post breaks links to it.
+      - name: body
+        type: rich-text
