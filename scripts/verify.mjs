@@ -7,10 +7,23 @@
 //
 // KIT_DIR is a checkout of mco-web-style at the KIT_VERSION tag. dist/ must
 // have been built with the same BASE_PATH.
+//
+// VERIFY_ENGINES picks the browsers (comma-separated, chromium and/or webkit).
+// Default is both, the full set; pull requests narrow it to chromium (D17).
+// The kit harness reads it as BROWSERS.
 import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { site, stage, stageDist } from './stage.mjs';
+
+const ENGINES = ['chromium', 'webkit'];
+const engines = (process.env.VERIFY_ENGINES || ENGINES.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
+const unknown = engines.filter((e) => !ENGINES.includes(e));
+if (!engines.length || unknown.length) {
+  console.error(`verify: VERIFY_ENGINES must list ${ENGINES.join(' and/or ')}; got "${process.env.VERIFY_ENGINES}"`);
+  process.exit(2);
+}
+console.log(`verify: engines ${engines.join(', ')}`);
 
 const kitDir = process.env.KIT_DIR;
 if (!kitDir) { console.error('verify: set KIT_DIR to a mco-web-style checkout at the pinned tag'); process.exit(2); }
@@ -24,7 +37,7 @@ mkdirSync(lint);
 cpSync('src/styles/site.css', join(lint, 'site.css'));
 writeFileSync(join(lint, 'index.html'), '<!doctype html><link rel="stylesheet" href="site.css">\n');
 
-const env = { ...process.env, VERIFY_MODULES: resolve('node_modules') };
+const env = { ...process.env, VERIFY_MODULES: resolve('node_modules'), BROWSERS: engines.join(',') };
 let failed = 0;
 function run(script, ...args) {
   console.log(`\n▶ ${script} ${args.join(' ')}`);

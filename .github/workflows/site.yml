@@ -3,6 +3,12 @@
 # verify runs on every pull request and push. deploy runs on main only, after
 # verify passes. Actions are pinned to commit SHAs; npm packages are pinned
 # exactly in package-lock.json.
+#
+# Tiers (DECISIONS D17). Pull requests: every cheap gate, the kit harness in
+# Chromium only (axe still runs in all three themes at both widths), and
+# Lighthouse on the homepage, one run. Push to main, the nightly schedule and
+# a manual run: the full set, Chromium and WebKit, Lighthouse on every page at
+# three runs, before deploy. The scripts default to the full set locally.
 name: site
 
 on:
@@ -31,6 +37,10 @@ jobs:
       # A base path no deploy uses, so any link that ignores the base path
       # 404s in the browser pass. The deploy base comes from configure-pages.
       BASE_PATH: /verify-base/
+      # D17 tiers, read by scripts/verify.mjs and scripts/lighthouse.mjs.
+      VERIFY_ENGINES: ${{ github.event_name == 'pull_request' && 'chromium' || 'chromium,webkit' }}
+      LH_PAGES: ${{ github.event_name == 'pull_request' && 'home' || 'all' }}
+      LH_RUNS: ${{ github.event_name == 'pull_request' && '1' || '3' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -65,12 +75,35 @@ jobs:
           ref: v${{ steps.kit.outputs.version }}
           path: .kit
           persist-credentials: false
-      - run: npx playwright install --with-deps chromium webkit
-      - name: Kit gates (head, lint-css, axe × 3 themes × 2 widths × 2 engines, keyboard)
+
+      # Browsers: cached per Playwright version and engine set, and installed
+      # in two timed steps so a hung download or apt mirror fails fast under
+      # a name that says which. Lighthouse uses Playwright's Chromium too.
+      - id: pw
+        name: Playwright version and engines
+        run: |
+          echo "version=$(node -p "require('./package-lock.json').packages['node_modules/playwright'].version")" >> "$GITHUB_OUTPUT"
+          echo "engines=${VERIFY_ENGINES//,/ }" >> "$GITHUB_OUTPUT"
+      - name: Restore Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}-${{ env.VERIFY_ENGINES }}
+          # A PR can start from main's full cache; install adds nothing it has.
+          restore-keys: |
+            playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}-
+      - name: Install browsers (${{ steps.pw.outputs.engines }})
+        timeout-minutes: 5
+        run: npx playwright install ${{ steps.pw.outputs.engines }}
+      - name: Install browser system dependencies (apt)
+        timeout-minutes: 8
+        run: npx playwright install-deps ${{ steps.pw.outputs.engines }}
+
+      - name: Kit gates (head, lint-css, axe × 3 themes × 2 widths, keyboard; ${{ env.VERIFY_ENGINES }})
         run: npm run verify
         env:
           KIT_DIR: .kit
-      - name: Lighthouse budgets (accessibility 100, performance ≥ 90 mobile, homepage JS < 150 KB)
+      - name: Lighthouse budgets (accessibility 100, performance ≥ 90 mobile, homepage JS < 150 KB; ${{ env.LH_PAGES }} × ${{ env.LH_RUNS }})
         run: npm run lighthouse
 
   deploy:
