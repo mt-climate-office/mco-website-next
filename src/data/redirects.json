@@ -80,8 +80,8 @@
     { "from": "/projects/normals/atlas/", "to": "https://data.climate.umt.edu/mt-normals/", "status": 301, "reason": "Montana Climate Atlas; the data directory the old page linked.", "source": "sitemap", "todo": "As /projects/normals/." },
 
     { "from": "/research/", "to": "/research/", "status": 200, "reason": "Section hub, same path.", "source": "sitemap" },
-    { "from": "/research/irrmapper/", "to": "/research/", "status": 301, "reason": "Highlighted publication; listed on the research page.", "source": "sitemap", "todo": "Point at its page under /research/publications/ when the portal lands." },
-    { "from": "/research/timescales/", "to": "/research/", "status": 301, "reason": "Highlighted publication; listed on the research page.", "source": "sitemap", "todo": "Point at its page under /research/publications/ when the portal lands." },
+    { "from": "/research/irrmapper/", "to": "/research/publications/ketchum-2020-irrmapper-machine/", "status": 301, "reason": "Highlighted publication (IrrMapper, Ketchum et al. 2020); now its page in the publications portal.", "source": "sitemap" },
+    { "from": "/research/timescales/", "to": "/research/publications/hoylman-2022-drought-assessment/", "status": 301, "reason": "Highlighted publication (Drought assessment has been outpaced by climate change, Hoylman et al. 2022); now its page in the publications portal.", "source": "sitemap" },
 
     { "from": "/ETo/", "to": "https://mt-climate-office.github.io/ETo/", "status": 301, "reason": "Old short link (redirect_to) to the ETo R package site; kept.", "source": "_pages/redirects/ETo.md" },
     { "from": "/cskt-air-quality/", "to": "https://mt-climate-office.github.io/cskt-air-quality/", "status": 301, "reason": "Old short link (redirect_to); kept.", "source": "_pages/redirects/air-quality.md" },
