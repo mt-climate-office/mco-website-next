@@ -1,0 +1,49 @@
+---
+// The Montana Mesonet app's privacy policy, at the address the app's store
+// listings name (redirects.json keeps this path). Text copied word for word
+// from mco-website/_pages/mesonet/app/privacy.md; only the API link moved to
+// the new site's API section, and the site address comes from the canonical
+// helper (no host is written into source). Change the policy text only with
+// the app's owner, and update "Last updated" when it changes.
+import Base from '../../../layouts/Base.astro';
+import { canonicalUrl, url } from '../../../lib/paths';
+
+const home = canonicalUrl('/');
+---
+<Base short="Mesonet app privacy policy"
+      description="Privacy policy for the Montana Mesonet app.">
+  <div class="prose">
+    <h1>Privacy Policy for Montana Mesonet App</h1>
+    <p><em>Last updated: January 12, 2026</em></p>
+
+    <h2>Information Collection and Use</h2>
+    <p>
+      The Montana Mesonet App is provided by the Montana Climate Office at the University of
+      Montana. This privacy policy describes how we handle information in the app.
+    </p>
+    <p>
+      <strong>We do not collect any personal information through the Montana Mesonet App. If you
+      choose to provide feedback, there are optional fields for your name and email address, but
+      neither are required.</strong>
+    </p>
+
+    <h2>Weather Data</h2>
+    <p>
+      All weather and climate data displayed in the app is public information from the Montana
+      Mesonet network and is freely available through our <a href={url('mesonet/') + '#mesonet-data'}>API</a>.
+    </p>
+
+    <h2>Changes to This Privacy Policy</h2>
+    <p>
+      We may update our Privacy Policy from time to time. We will notify you of any changes by
+      posting the new Privacy Policy on this page and updating the "Last updated" date.
+    </p>
+
+    <h2>Contact Us</h2>
+    <p>If you have any questions about this Privacy Policy, please contact us:</p>
+    <ul>
+      <li>Email: <a href="mailto:james.seielstad@mso.umt.edu">james.seielstad@mso.umt.edu</a></li>
+      <li>Website: <a href={home}>{home}</a></li>
+    </ul>
+  </div>
+</Base>
