@@ -1,0 +1,43 @@
+---
+// /research/ (rebuild plan §4.2): the publications the current site lists,
+// as a plain list until the portal (§4.7) replaces it, and the climate
+// assessments. Titles are the link text (WCAG 2.4.4; the current page
+// repeats "Read Article"). Entries and their sources: src/lib/publications.ts.
+import Base from '../../layouts/Base.astro';
+import { doiUrl, PUBLICATIONS } from '../../lib/publications';
+---
+<Base short="Research"
+      description="Papers with Montana Climate Office authors, and the Montana Climate Assessment.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <h1 class="section-title">Research</h1>
+  <p class="section-lede">
+    Papers with Montana Climate Office authors, and the Montana Climate Assessment reports the office worked on.
+  </p>
+
+  <section class="hub-section" aria-labelledby="research-pubs">
+    <h2 id="research-pubs" class="hub-h2">Publications</h2>
+    {/* Each title links to its DOI, so the link text says where it goes. */}
+    <ul class="pub-list">
+      {PUBLICATIONS.map((p) => (
+        <li>
+          <p class="pub-title"><a href={doiUrl(p.doi)}>{p.title}</a></p>
+          <p class="pub-meta">{p.authors}. <cite>{p.venue}</cite>, {p.year}. DOI {p.doi}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="hub-section" aria-labelledby="research-mca">
+    <h2 id="research-mca" class="hub-h2">Montana Climate Assessment</h2>
+    {/* mco-website/_pages/climate.md lists both as climate projects of the
+        office. Both URLs answered 200 on 22 Oct 2026. */}
+    <ul class="pub-list">
+      <li>
+        <p class="pub-title"><a href="https://montanaclimate.org/chapter/title-page">2017 Montana Climate Assessment</a></p>
+      </li>
+      <li>
+        <p class="pub-title"><a href="https://montanaclimate.org/c2h2_1introduction">2021 Report on Climate Change and Human Health</a></p>
+      </li>
+    </ul>
+  </section>
+</Base>

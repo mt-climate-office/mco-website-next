@@ -58,6 +58,13 @@ export default {
         document.querySelector('#st-table th[aria-sort="descending"]') != null,
     },
     { name: 'search', query: 'search/', ready: chromeReady },
+    // Section hubs and the accessibility statement (static pages).
+    { name: 'conditions', query: 'conditions/', ready: chromeReady },
+    { name: 'drought', query: 'drought/', ready: chromeReady },
+    { name: 'mesonet', query: 'mesonet/', ready: chromeReady },
+    { name: 'research', query: 'research/', ready: chromeReady },
+    { name: 'about', query: 'about/', ready: chromeReady },
+    { name: 'accessibility', query: 'accessibility/', ready: chromeReady },
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
   probes: async ({ open, check }) => {

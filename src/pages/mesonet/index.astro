@@ -1,0 +1,122 @@
+---
+// /mesonet/ (rebuild plan §4.2): the network, its tools, and how to get and
+// cite its data. Copy follows docs/VOICE.md.
+//
+// Every count on this page is read at build time: station, network and
+// reporting figures from the mesonet-compliance summary (D5, D10), the camera
+// count from the station catalog (src/lib/stations.ts). None is typed in
+// prose. No maintenance figure (D4, D15).
+import Base from '../../layouts/Base.astro';
+import ToolList from '../../components/content/ToolList.astro';
+import { loadSummary } from '../../lib/compliance';
+import { getCatalog } from '../../lib/stations';
+import { count, isoTime, stampMT } from '../../lib/format';
+import { tools } from '../../lib/hubs';
+import { url } from '../../lib/paths';
+
+const [summary, catalog] = await Promise.all([loadSummary(), getCatalog()]);
+
+const hours = summary.reporting.threshold_minutes / 60;
+const windowLabel = Number.isInteger(hours)
+  ? `${hours} hour${hours === 1 ? '' : 's'}`
+  : `${summary.reporting.threshold_minutes} minutes`;
+const inNetwork = (name: string) => summary.stations.by_network[name];
+const stationsLabel = (n: number | undefined) =>
+  n === undefined ? '' : ` (${count(n)} ${n === 1 ? 'station' : 'stations'})`;
+
+const API_BASE = 'https://mesonet2.climate.umt.edu/api/v2';
+const API_DOCS = `${API_BASE}/docs`;
+
+// This site's own pages; descriptions from each page's own description.
+const PAGES = [
+  {
+    name: 'Mesonet stations',
+    href: url('mesonet/stations/'),
+    description: 'Every station, with its network, county, elevation and install date. Each station page links to its data.',
+  },
+  {
+    name: 'Station status',
+    href: url('mesonet/status/'),
+    description: 'Whether each station is reporting, and which of its sensors are not, with the full table as CSV.',
+  },
+];
+---
+<Base short="Mesonet"
+      description="The Montana Mesonet: its stations, the tools that show their data, and how to download and cite it.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <h1 class="section-title">Montana Mesonet</h1>
+  {/* "weather, soil moisture and snow monitoring stations that the MCO
+      operates across Montana": mco-website/index.md. Figures: summary.json. */}
+  <p class="section-lede">
+    Weather, soil moisture and snow stations run by the Montana Climate Office.{' '}
+    {count(summary.stations.total)} stations, and {count(summary.reporting.reporting)} of them
+    ({summary.reporting.pct}%) reported in the last {windowLabel}.
+  </p>
+  <p class="stamp hub-stamp">
+    As of <time datetime={isoTime(summary.generated_at)}>{stampMT(summary.generated_at)}</time>.{' '}
+    <a href={url('mesonet/status/')}>Station status</a> has the detail.
+  </p>
+
+  <section class="hub-section" aria-labelledby="mesonet-tools">
+    <h2 id="mesonet-tools" class="hub-h2">Tools</h2>
+    <ToolList tools={tools('Mesonet Explorer', 'Photo Explorer', 'Station Dashboard',
+                           'Station Status', 'Station Maintenance', 'UMRB Build Status')} />
+  </section>
+
+  <section class="hub-section" aria-labelledby="mesonet-pages">
+    <h2 id="mesonet-pages" class="hub-h2">On this site</h2>
+    <ToolList tools={PAGES} />
+  </section>
+
+  <section class="hub-section" aria-labelledby="mesonet-networks">
+    <h2 id="mesonet-networks" class="hub-h2">Two networks</h2>
+    {/* Purposes and sensors: mco-website/_pages/mesonet/mesonet.md, "Mesonet
+        Networks" and the AgriMet / HydroMet configuration tables. Camera
+        count: stations in /stations/ with a public view in schedule.json. */}
+    <p>
+      AgriMet stations{stationsLabel(inNetwork('AgriMet'))} are built for precision agriculture.
+      HydroMet stations{stationsLabel(inNetwork('HydroMet'))} are built for hydrology and water management.
+    </p>
+    <p>
+      Both measure air temperature, humidity, air pressure, solar radiation, wind, precipitation,
+      and soil temperature and moisture at several depths. HydroMet stations add a snow depth sensor,
+      and their precipitation gauge measures snow as well as rain.{' '}
+      {count(catalog.cameras.size)} HydroMet stations have a camera.
+    </p>
+  </section>
+
+  <section class="hub-section" aria-labelledby="mesonet-history">
+    <h2 id="mesonet-history" class="hub-h2">How the network grew</h2>
+    {/* mco-website/_pages/mesonet/mesonet.md, "Background". */}
+    <p>
+      The office installed the first six stations in 2016, under the Montana Research and Economic
+      Development Initiative. In 2020 the U.S. Army Corps of Engineers contracted the office to add
+      stations in central and eastern Montana, about one every 500 square miles.
+      The <a href={tools('UMRB Build Status')[0].href}>UMRB Build Status</a> map tracks that work.
+    </p>
+  </section>
+
+  <section class="hub-section" aria-labelledby="mesonet-data">
+    <h2 id="mesonet-data" class="hub-h2">Get the data</h2>
+    {/* Free, and what the API serves: mco-website/_pages/mesonet/mesonet_api.md.
+        Base URL: CLAUDE.md (mesonet2, the public AWS API). Docs page:
+        /api/v2/docs answered 200 on 22 Oct 2026. Subject to change:
+        mco-website/_pages/mesonet_citation.md; /latest/ rows carry
+        provisional: true (rebuild plan §1.3). */}
+    <p>
+      Mesonet data are free. The Montana Mesonet API serves station metadata, the latest readings
+      and historical observations as JSON or CSV. Its <a href={API_DOCS}>interactive documentation</a> lists
+      every endpoint.
+    </p>
+    <p>
+      Recent readings are provisional. Values can change as quality checks and backfilling run.
+    </p>
+  </section>
+
+  <section class="hub-section" aria-labelledby="mesonet-cite">
+    <h2 id="mesonet-cite" class="hub-h2">Cite the data</h2>
+    {/* mco-website/_pages/mesonet_citation.md, verbatim form. */}
+    <p>If you use Mesonet data in research, cite it as</p>
+    <p class="hub-cite">Montana Mesonet, Montana Climate Office {'{Year Accessed}'}. Data accessed from {'{URL Used for Data Download}'} on {'{Access Date}'}.</p>
+  </section>
+</Base>
