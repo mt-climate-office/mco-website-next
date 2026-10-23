@@ -18,6 +18,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
 import { chromium } from 'playwright';
@@ -48,6 +49,12 @@ const MIME = {
   '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain',
 };
 
+// Text is served gzipped, as GitHub Pages serves it, so page weight and the
+// JS budget ("150 KB gzipped", CLAUDE.md) are measured as a visitor gets
+// them. Uncompressed, a page's HTML costs Lighthouse's slow-4G simulation
+// several times what it costs in production.
+const COMPRESS = /^(text\/|image\/svg)/;
+
 stageDist();
 const server = createServer(async (req, res) => {
   try {
@@ -55,8 +62,14 @@ const server = createServer(async (req, res) => {
     if (p.endsWith('/')) p += 'index.html';
     const f = normalize(join(stage, p));
     if (!f.startsWith(stage)) { res.writeHead(403).end(); return; }
-    const body = await readFile(f);
-    res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' });
+    let body = await readFile(f);
+    const type = MIME[extname(f)] || 'application/octet-stream';
+    const headers = { 'content-type': type, vary: 'accept-encoding' };
+    if (COMPRESS.test(type) && /\bgzip\b/.test(req.headers['accept-encoding'] || '')) {
+      body = gzipSync(body);
+      headers['content-encoding'] = 'gzip';
+    }
+    res.writeHead(200, headers);
     res.end(body);
   } catch { res.writeHead(404).end(); }
 });
