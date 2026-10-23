@@ -42,9 +42,13 @@ interface Props {
       (`canonical`), so search engines move the old URL's standing to it.
       Always noindex. */
   redirect?: { href: string; canonical: string };
+  /** The page has the conditions line (the homepage conditions card): it
+      loads the kit's summary/mco-summary.js after core, and its CSP lets it
+      read the NWS forecast (csp.ts). Only the homepage does. */
+  summary?: boolean;
 }
 
-const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false, places = false, redirect } = Astro.props;
+const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false, places = false, redirect, summary = false } = Astro.props;
 const { searchable = indexable } = Astro.props;
 const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
 const FAMILY_SHORT = 'MCO';
@@ -54,7 +58,7 @@ const title = short ? `${short} · ${FAMILY_SHORT}` : FAMILY_LONG;
 const cardTitle = short ? `${short} · ${FAMILY_LONG}` : FAMILY_LONG;
 const canonical = canonicalUrl(Astro.url.pathname);
 const ogImage = kit('assets/og-card.png');
-const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, photos, map, places });
+const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, photos, map, places, summary });
 ---
 <!doctype html>
 <html lang="en">
@@ -115,6 +119,10 @@ const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [anti
   {places && (
     <script is:inline src={kit('places/mco-places.js')}
             integrity={KIT_SRI['places/mco-places.js']} crossorigin="anonymous"></script>
+  )}
+  {summary && (
+    <script is:inline src={kit('summary/mco-summary.js')}
+            integrity={KIT_SRI['summary/mco-summary.js']} crossorigin="anonymous"></script>
   )}
   <script>
     import '../scripts/chrome';

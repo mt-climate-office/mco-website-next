@@ -355,6 +355,22 @@ export default {
         zip.focus === 'cond-q', JSON.stringify(zip));
       check('conditions: the card is announced once, in words',
         zip.live.includes(`${zip.station}, ${zip.from}.`), zip.live);
+
+      // The kit's conditions line (MCO.summary): one sentence under the
+      // temperature once its parts are in, or hidden when nothing is known;
+      // never an error string. Its announcement is the card's, above.
+      await page.waitForFunction(() => {
+        const s = document.getElementById('cond-summary');
+        return s.hidden || s.textContent.trim().length > 0;
+      }, null, { timeout: 30000 }).catch(() => {});
+      const line = await page.evaluate(() => {
+        const s = document.getElementById('cond-summary');
+        return { hidden: s.hidden, text: s.textContent };
+      });
+      check('conditions: the conditions line is one plain sentence, or hidden',
+        (line.hidden && line.text === '') ||
+        (!line.hidden && /^[A-Z][a-z].*\.$/.test(line.text) && !/error|undefined|null|NaN|—/i.test(line.text)),
+        JSON.stringify(line));
       await close();
     }
     {
