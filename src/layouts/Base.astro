@@ -46,9 +46,14 @@ interface Props {
       loads the kit's summary/mco-summary.js after core, and its CSP lets it
       read the NWS forecast (csp.ts). Only the homepage does. */
   summary?: boolean;
+  /** The page opens on a dark photo hero (a kit theme island, D23): the
+      header starts dark too, and src/scripts/hero-theme.ts hands it back to
+      the page theme once the hero has scrolled out from under it. Only the
+      homepage does. */
+  darkHero?: boolean;
 }
 
-const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false, places = false, redirect, summary = false } = Astro.props;
+const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false, places = false, redirect, summary = false, darkHero = false } = Astro.props;
 const { searchable = indexable } = Astro.props;
 const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
 const FAMILY_SHORT = 'MCO';
@@ -102,7 +107,7 @@ const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [anti
 </head>
 <body>
   <a class="mco-skip-link" href="#main">Skip to main content</a>
-  <Header />
+  <Header overHero={darkHero} />
   <!-- Pagefind indexes only <main>, and only on pages that carry
        data-pagefind-body (scripts: build). -->
   <main id="main" tabindex="-1" class:list={[{ 'is-full-bleed': fullBleed }]}

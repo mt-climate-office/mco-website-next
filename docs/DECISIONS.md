@@ -476,7 +476,7 @@ supersede the "A + C" instrument-panel direction. Where the spec and
   good. No entry carries a `todo`, so `check:redirects -- --strict` passes.
 - **The photo hero stays dark in every theme.** The kit gains theme
   islands (`data-theme` on any element; kit v0.18.0, mco-web-style #73), and
-  the hero becomes a dark island once the site pins that release.
+  the hero is a dark island (a high-contrast one on a high-contrast page).
   The header is dark only while it sits over the hero, switched by a small
   script; without scripts it stays dark. Supersedes D21's "the hero scrim
   follows the theme"; the scrim's 90% floor where text sits still holds.

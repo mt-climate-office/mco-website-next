@@ -8,6 +8,11 @@
 // default public range (first date 2026-10-22, DECISIONS D16), facing West.
 // With JS, src/scripts/photo-hero.ts swaps in a newer set once it is in.
 //
+// The hero is a dark theme island in every page theme (kit 0.18.0,
+// DECISIONS D23): photographs read best on a dark ground, and the copy over
+// them keeps the dark theme's contrast. On a high-contrast page it is a
+// high-contrast island instead (src/scripts/hero-theme.ts).
+//
 // The mosaic is one image to assistive technology (role="img", one
 // sentence): ninety-six alt texts would be a list nobody wants read out.
 //
@@ -36,7 +41,7 @@ const cells = Array.from({ length: TILE_COUNT }, (_, i) => tiles[i] ?? null);
 // Thumbnail WebP size on data2 (the kit's frameUrl, size 'thumb').
 const THUMB = { width: 320, height: 180 };
 ---
-<section class="hero" aria-labelledby="hero-title">
+<section class="hero" data-theme="dark" aria-labelledby="hero-title">
   {set ? (
     <div class="hero-mosaic" id="hero-mosaic" role="img" aria-label={mosaicLabel(set)}
          data-slot-at={set.slotAt}
@@ -82,6 +87,7 @@ const THUMB = { width: 320, height: 180 };
 </section>
 
 <script>
+  import '../../scripts/hero-theme';
   import '../../scripts/photo-hero';
 </script>
 
@@ -121,8 +127,8 @@ const THUMB = { width: 320, height: 180 };
   }
   .hero-mosaic[aria-busy="true"] img { opacity: 0.6; }
 
-  /* Scrim, built from --bg-deep so it follows the theme: in light the wash
-     is light and the copy dark. Bottom-up, so the photographs show. Where
+  /* Scrim, built from the island's --bg-deep, so it is dark in every page
+     theme (D23). Bottom-up, so the photographs show. Where
      text sits it is at least 90% opaque, so contrast never depends on what
      a photo shows (HOUSE-STYLE §3): under the navbar (the spec's 28% fails
      the brand title over a bright sky), and behind the copy (.hero-body).
