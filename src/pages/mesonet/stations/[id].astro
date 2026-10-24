@@ -47,7 +47,7 @@ const otherIds = [
       description={`${s.name} (${s.station}), a ${s.sub_network} station in ${s.county} County: location, elevation, install date and identifiers.`}>
   <p class="station-back"><a href={url('mesonet/stations/')}>All stations</a></p>
 
-  <h1 class="page-title">{s.name}</h1>
+  <h1 class="section-title station-title">{s.name}</h1>
   <p class="section-lede">{s.sub_network} station in {s.county} County</p>
 
   <p class="station-actions">
@@ -58,7 +58,7 @@ const otherIds = [
   </p>
 
   <section class="station-facts" aria-labelledby="facts-title">
-    <h2 id="facts-title" class="facts-title">Station details</h2>
+    <h2 id="facts-title" class="section-title">Station details</h2>
     <dl class="facts">
       <div>
         <dt>Station ID</dt>
@@ -97,36 +97,26 @@ const otherIds = [
 
 <style>
   .station-back { font-size: var(--fs-base); }
-  .page-title {
-    margin-top: var(--space-5);
-    font-size: calc(var(--fs-2xl) * 1.25);
-    line-height: var(--lh-tight);
-    font-weight: var(--fw-bold);
-    letter-spacing: -0.02em;
-  }
+  .station-title { margin-top: var(--space-5); }
   .station-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
+    gap: var(--space-3) var(--space-6);
+    align-items: center;
     margin-top: var(--space-6);
   }
   /* kit-override: .nav-btn is nowrap for toolbars; these labels carry a
      station name and must wrap on a phone rather than overflow. */
   .station-actions .nav-btn { white-space: normal; flex-shrink: 1; }
   .station-facts {
-    margin-top: var(--space-7);
-    max-width: 40rem;
-  }
-  .facts-title {
-    font-size: var(--fs-xl);
-    line-height: var(--lh-tight);
-    font-weight: var(--fw-semibold);
+    margin-top: var(--site-section);
+    max-width: 44rem;
   }
   .facts {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
-    margin-top: var(--space-4);
-    font-size: var(--fs-base);
+    margin-top: var(--site-head-gap);
+    font-size: 1rem;
   }
   .facts > div { display: contents; }
   .facts dt,

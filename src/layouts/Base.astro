@@ -25,8 +25,8 @@ interface Props {
   /** The page runs Pagefind: its CSP gains what Pagefind needs (csp.ts). */
   search?: boolean;
   /** The page shows station photos: it loads the kit's photos/mco-photos.js
-      after core, and its CSP allows what the photo controls need (csp.ts).
-      Only the homepage does. */
+      after core, so the hero can look for a newer set. Data2, where the
+      photos live, is in every page's CSP. Only the homepage does. */
   photos?: boolean;
   /** The page has the station map: its head carries the kit's MapLibre
       import map (SRI for the lazy import), and its CSP allows what MapLibre
@@ -58,7 +58,7 @@ const title = short ? `${short} · ${FAMILY_SHORT}` : FAMILY_LONG;
 const cardTitle = short ? `${short} · ${FAMILY_LONG}` : FAMILY_LONG;
 const canonical = canonicalUrl(Astro.url.pathname);
 const ogImage = kit('assets/og-card.png');
-const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, photos, map, places, summary });
+const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, map, places, summary });
 ---
 <!doctype html>
 <html lang="en">

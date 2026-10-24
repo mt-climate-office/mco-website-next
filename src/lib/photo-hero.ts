@@ -7,9 +7,10 @@
 // slots, the 2026-10-22 public start, frame URLs, labels) is the kit's
 // MCO.photos; this file only decides which stations to ask and how to lay
 // out the answer. The hero uses the kit's default audience: no `since`, no
-// `fullHistory` (DECISIONS D16).
+// `fullHistory` (DECISIONS D16). It shows one view, West (D22).
 
 import type { PhotoDirection, PhotoSet, PhotoTile } from '../components/data/types';
+import { count, stampMT } from './format';
 
 // ── The parts of MCO.photos this site calls (mco-web-style v0.15+) ────────
 
@@ -27,15 +28,6 @@ export interface PhotoSchedule {
   minDate: string | null;
 }
 export interface Slot { date: string; time: string }
-export interface ControlState { date: string | null; time: string | null; view: string | null; ms: number | null }
-export interface Roll { kind: 'time' | 'date' | 'view'; reason?: string; from: string; to: string; date?: string }
-export interface PhotoControls {
-  state(): ControlState;
-  set(next: Partial<Slot & { view: string }>, o?: { silent?: boolean }): ControlState;
-  refresh(): void;
-  params(): Record<string, string>;
-  pinned: boolean;
-}
 export interface McoPhotos {
   DEFAULT_VIEW: string;
   load(opts?: object): Promise<PhotoSchedule>;
@@ -49,8 +41,6 @@ export interface McoPhotos {
   utcYmd(ms: number): string;
   label(token: string): string;
   stampLabel(ms: number): string;
-  rollMessage(r: Roll): string;
-  initPhotoControls(opts: object): PhotoControls;
 }
 export interface Mco {
   photos: McoPhotos;
@@ -62,8 +52,13 @@ export interface Mco {
 /** A station the hero may show: from /stations/, ordered west to east. */
 export interface HeroStation { id: string; name: string }
 
-/** Tiles the mosaic draws: ten columns of three on wide screens. */
-export const TILE_COUNT = 30;
+/** The one view the hero shows (DECISIONS D22). Every other view, date and
+    time is in the Photo Explorer. */
+export const HERO_VIEW = 'W';
+
+/** Tiles the mosaic draws: twelve columns of eight on wide screens, every
+    other one on a phone. */
+export const TILE_COUNT = 96;
 
 /** 'N' → 'north', in the kit's own words. */
 export const directionOf = (P: McoPhotos, token: string): PhotoDirection =>
@@ -168,3 +163,8 @@ export async function latestSet(
   }
   return best;
 }
+
+/** The mosaic's name. It is one image made of many photographs, so a
+    screen reader hears one sentence, not a list of every camera. */
+export const mosaicLabel = (set: HeroSet): string =>
+  `Photos from ${count(set.reportedCount)} station cameras facing ${set.direction}, ${stampMT(set.slotAt)}, laid out west to east across Montana`;

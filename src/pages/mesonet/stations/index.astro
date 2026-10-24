@@ -28,7 +28,7 @@ const keywords = (s: (typeof stations)[number]) =>
 ---
 <Base short="Mesonet stations"
       description="Every Montana Mesonet station, with its network, county, elevation and install date.">
-  <h1 class="stations-title">Mesonet stations</h1>
+  <h1 class="section-title">Mesonet stations</h1>
   <p class="section-lede">
     {count(stations.length)} stations. {networkList}. Each station's page lists its location
     and identifiers, with links to its data.
@@ -48,7 +48,7 @@ const keywords = (s: (typeof stations)[number]) =>
     <p id="station-count" class="stamp station-count">{count(stations.length)} stations</p>
   </div>
 
-  <section class="table-scroll" aria-labelledby="stations-caption" tabindex="0">
+  <section class="table-region table-scroll" aria-labelledby="stations-caption" tabindex="0">
     <table class="station-table" id="station-table">
       <caption id="stations-caption" class="sr-only">Mesonet stations by name ({count(stations.length)})</caption>
       <thead>
@@ -84,12 +84,6 @@ const keywords = (s: (typeof stations)[number]) =>
 <style is:global>
   /* Global, not scoped: scoping stamps an attribute on each of the table's
      ~2,000 elements. Every selector names a class only this page uses. */
-  .stations-title {
-    font-size: calc(var(--fs-2xl) * 1.25);
-    line-height: var(--lh-tight);
-    font-weight: var(--fw-bold);
-    letter-spacing: -0.02em;
-  }
   .stations-stamp { margin-top: var(--space-4); }
 
   .station-filter { margin-top: var(--space-6); }
@@ -99,20 +93,14 @@ const keywords = (s: (typeof stations)[number]) =>
   .station-filter-label {
     display: block;
     margin-bottom: var(--space-2);
-    font-size: var(--fs-base);
+    font-size: 1rem;
     color: var(--text-secondary);
   }
   .station-count { margin-top: var(--space-2); }
 
   /* The table scrolls sideways inside its own region on narrow screens, so
      the page never does. Focusable so keyboard users can scroll it. */
-  .table-scroll {
-    margin-top: var(--space-6);
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--bg-surface);
-  }
+  .table-scroll { margin-top: var(--space-6); }
   .station-table {
     width: 100%;
     border-collapse: collapse;
@@ -126,6 +114,8 @@ const keywords = (s: (typeof stations)[number]) =>
     border-bottom: 1px solid var(--border);
   }
   .station-table tbody tr:last-child > * { border-bottom: 0; }
+  /* No frame, so the first column lines up with the text above it. */
+  .station-table tr > :first-child { padding-left: 0; }
   .station-table thead th {
     font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);

@@ -45,8 +45,8 @@ const groups = [
     Titles, authors and abstracts are as {registries} {registries.includes(" and ") ? "record" : "records"} them.
   </p>
   <ul class="pub-downloads">
-    <li><a class="nav-btn" href={url('research/publications/publications.bib')} download="mco-publications.bib">BibTeX for all {count(total)}</a></li>
-    <li><a class="nav-btn" href={url('research/publications/publications.json')} download="mco-publications.json">CSL-JSON for all {count(total)}</a></li>
+    <li><a class="nav-btn site-cta" href={url('research/publications/publications.bib')} download="mco-publications.bib">BibTeX for all {count(total)}</a></li>
+    <li><a class="nav-btn site-cta" href={url('research/publications/publications.json')} download="mco-publications.json">CSL-JSON for all {count(total)}</a></li>
   </ul>
 
   {groups.length > 0 && (
@@ -69,7 +69,7 @@ const groups = [
 
   <div class="pub-bar">
     <p id="pub-count" class="pub-count">{count(total)} {noun(total)}</p>
-    <button type="button" id="pub-clear" class="nav-btn" hidden>Show all publications</button>
+    <button type="button" id="pub-clear" class="nav-btn site-cta" hidden>Show all publications</button>
   </div>
 
   <ol class="pub-items" id="pub-items" aria-label="Publications, newest first">

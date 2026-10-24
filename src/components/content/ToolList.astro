@@ -19,7 +19,7 @@ const { tools } = Astro.props;
 <ul class="tool-list">
   {tools.map((t) => (
     <li>
-      <a href={t.href}>{t.name}</a>{t.status && <span class="tool-status"> ({t.status})</span>}
+      <a class="site-link" href={t.href}>{t.name}</a>{t.status && <span class="tool-status"> ({t.status})</span>}
       <p>{t.description}</p>
     </li>
   ))}
@@ -29,14 +29,16 @@ const { tools } = Astro.props;
   .tool-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-5) var(--space-7);
+    gap: var(--site-grid-gap) var(--site-grid-gap-wide);
     list-style: none;
   }
-  .tool-list li { padding-top: var(--space-4); border-top: 1px solid var(--border); min-width: 0; }
-  .tool-list a { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+  /* Held by space alone; no rule between tools (VISUAL-SYSTEM). */
+  .tool-list li { min-width: 0; }
+  .tool-list a { font-size: 1.25rem; }
   .tool-status { color: var(--text-secondary); }
-  .tool-list p { margin-top: var(--space-1); font-size: var(--fs-base); color: var(--text-secondary); }
-  @media (max-width: 750px) {
+  .tool-list p { margin-top: var(--space-2); font-size: 1rem; line-height: var(--lh-body); color: var(--text-muted); }
+  /* Tools go one-up at the 1060 rung (VISUAL-SYSTEM, Breakpoints). */
+  @media (max-width: 1060px) {
     .tool-list { grid-template-columns: minmax(0, 1fr); }
   }
 </style>

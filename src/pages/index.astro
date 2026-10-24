@@ -1,6 +1,7 @@
 ---
-// Homepage, direction "A + C" (docs/design/homepage-reference.html): the
-// instrument chassis with the station-camera mosaic as the hero.
+// Homepage, per docs/VISUAL-SYSTEM.md and its comp
+// (docs/design/homepage-reference.html): frameless, the station-camera
+// mosaic as the hero, every section on the page ground.
 //
 // Each data component takes typed props (src/components/data/types.ts) and
 // renders its empty state when they are absent. The status bar reads the
@@ -120,26 +121,28 @@ const QUESTIONS = [
 </Base>
 
 <style>
-  .readings { border-bottom: 1px solid var(--border); }
   .readings-inner {
     display: grid;
-    /* Copy and the conditions card beside the map, as in the reference
-       comp; the map takes the wider share. */
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    gap: var(--space-7);
+    /* Copy and the conditions beside the map, as in the reference comp.
+       Near-even columns, so the map is not twice the height of the copy
+       while no station is picked. */
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--site-grid-gap-wide);
     align-items: start;
-    padding-block: var(--space-7);
+    padding-block: var(--site-section);
   }
-  .readings-side { display: grid; gap: var(--space-6); align-content: start; min-width: 0; }
+  .readings-side { display: grid; gap: var(--site-grid-gap); align-content: start; min-width: 0; }
+  /* Two by two: four across left each question about thirty characters a
+     line. */
   .card-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-5);
-    margin-top: var(--space-6);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--site-head-gap) var(--site-grid-gap);
+    margin-top: var(--site-head-gap);
   }
-  #tools-title { margin-bottom: var(--space-6); }
+  #tools-title { margin-bottom: var(--site-head-gap); }
   @media (max-width: 1060px) {
-    .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .readings-inner { gap: var(--site-grid-gap); }
   }
   @media (max-width: 750px) {
     .readings-inner, .card-grid { grid-template-columns: minmax(0, 1fr); }

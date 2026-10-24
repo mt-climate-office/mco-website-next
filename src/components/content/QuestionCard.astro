@@ -15,26 +15,24 @@ interface Props {
 
 const { question, body, tool, href, status } = Astro.props;
 ---
-<article class="mco-card question">
-  <div class="mco-card-body">
-    <h3>{question}</h3>
-    <p>{body}</p>
-    <p class="question-link">
-      <a href={href}>{tool}</a>{status && <span class="question-status"> ({status})</span>}
-    </p>
-  </div>
+<article class="question">
+  <h3>{question}</h3>
+  <p>{body}</p>
+  <p class="question-link">
+    <a class="site-link" href={href}>{tool}</a>{status && <span class="question-status"> ({status})</span>}
+  </p>
 </article>
 
 <style>
-  .question > .mco-card-body {
+  /* A block, not a card: the grid gap is the separator (VISUAL-SYSTEM). */
+  .question {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-4);
     height: 100%;
-    padding: var(--space-6);
   }
-  .question h3 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); }
-  .question p { font-size: var(--fs-base); color: var(--text-secondary); }
-  .question-link { margin-top: auto; font-weight: var(--fw-semibold); }
+  .question h3 { font-size: var(--fs-xl); font-weight: var(--fw-semibold); line-height: 1.25; }
+  .question p { max-width: 52ch; font-size: var(--fs-lg); line-height: var(--lh-body); color: var(--text-secondary); }
+  .question-link { margin-top: auto; }
   .question-status { font-weight: var(--fw-regular); color: var(--text-secondary); }
 </style>

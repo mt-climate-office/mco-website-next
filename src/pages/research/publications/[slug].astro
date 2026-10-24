@@ -95,8 +95,8 @@ const filterLink = (key: string, value: string) => url(`research/publications/?$
       <h2 id="pub-cite" class="hub-h2">Cite this {kind}</h2>
       <p class="pub-cite">{reference(p)}</p>
       <ul class="pub-downloads">
-        <li><a class="nav-btn" href={url(`research/publications/${p.slug}.bib`)} download={`${p.slug}.bib`}>BibTeX for this {kind}</a></li>
-        <li><a class="nav-btn" href={url(`research/publications/${p.slug}.json`)} download={`${p.slug}.json`}>CSL-JSON for this {kind}</a></li>
+        <li><a class="nav-btn site-cta" href={url(`research/publications/${p.slug}.bib`)} download={`${p.slug}.bib`}>BibTeX for this {kind}</a></li>
+        <li><a class="nav-btn site-cta" href={url(`research/publications/${p.slug}.json`)} download={`${p.slug}.json`}>CSL-JSON for this {kind}</a></li>
       </ul>
     </section>
 

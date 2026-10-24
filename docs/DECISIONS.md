@@ -406,3 +406,79 @@ Consequences:
 - The website can join the kit's canary matrix (D3).
 - Staff and partner content comes from the current public site (owner,
   23 Oct 2026).
+
+---
+
+## D21 — Visual system, and where it meets the house style
+
+**Decided 24 October 2026**, adopting `docs/VISUAL-SYSTEM.md` (approved the
+same day) and its comp `docs/design/homepage-reference.html`. They
+supersede the "A + C" instrument-panel direction. Where the spec and
+`HOUSE-STYLE.md` disagree:
+
+- **Breakpoints stay on the kit ladder**, 1060 and 750, not the spec's 1080
+  and 760 (HOUSE-STYLE §3). The container widens fluidly to 1440px rather
+  than stepping at 1700 and 2200.
+- **Header section links are plain 15px text**, not `.nav-btn` pills, with a
+  2px `--accent-line` rule under the current page. A site `kit-override`,
+  and a HOUSE-STYLE §3 exception like the 22 Oct navbar one, to be written
+  into HOUSE-STYLE as its own kit-docs change. Search, theme and menu stay
+  kit buttons. The bar stays one row from 751px up.
+- **A link inside a sentence keeps its underline everywhere**, not only in
+  `.prose` (WCAG 1.4.1). Standalone links (`.site-link`, links that are a
+  heading, a table's row header, the footer) are underlined on hover only.
+- **The hero scrim follows the theme**: built from `--bg-deep`, so light
+  theme gets a light wash with dark text. It is at least 90% opaque wherever
+  text sits, so contrast never depends on a photograph.
+- **The navbar overlays the hero on the homepage**, clear at the top and
+  glass again once the page scrolls (a scroll-driven animation; engines
+  without it, and `prefers-reduced-transparency`, keep the glass bar).
+- **Data components go frameless too**: the boxes, borders and radii around
+  them go; their kit colour, type and spacing tokens stay. Text inputs keep
+  a hairline underneath. Table row rules and the legend ramp's outline stay,
+  being part of reading the data.
+- **The shared rules apply site-wide** (nav, links, scale, containers);
+  pages other than the homepage are reviewed after it.
+
+---
+
+## D22 — The photo hero faces West, with no controls
+
+**Decided 24 October 2026**, reviewing the homepage after D21.
+
+- **The hero shows West only**, the most recent capture on the kit's default
+  public schedule (D16 still holds: no `since`, no `fullHistory`). Visitors
+  who want another direction, date or time go to the Photo Explorer, which
+  defaults to West as well. Supersedes D19's "the homepage hero keeps North".
+  The kit's clamp still applies, so every set is from after the 2026-10-21
+  re-aim (D7).
+- **The photo controls are removed** from the homepage. With them goes the
+  homepage's `style-src-attr 'unsafe-inline'`, as D18 required once no native
+  `<select>` remained.
+- **More, smaller photos**: 96 tiles, twelve columns of eight, every other
+  one on a phone. The mosaic is one image to assistive technology
+  (`role="img"` and one sentence naming the count, direction and time), not
+  96 alt texts.
+- The hero still swaps in a newer West set in the browser once at least half
+  its cameras are in, as before.
+
+---
+
+## D23 — The last old URLs, and a dark hero in every theme
+
+**Decided 24 October 2026.**
+
+- **Old URLs with no page** (`src/data/redirects.json`): `/about/support/`
+  (the donation page) is dropped and redirects to `/about/`;
+  `/streamflow/` goes to the drought hub until
+  `streamflow.climate.umt.edu` has an owner (O7); `/mesonet/app/` goes to
+  the Mesonet hub; the three normals URLs go to the data directory for
+  good. No entry carries a `todo`, so `check:redirects -- --strict` passes.
+- **The photo hero stays dark in every theme.** The kit gains theme
+  islands (`data-theme` on any element; kit v0.18.0, mco-web-style #73), and
+  the hero becomes a dark island once the site pins that release.
+  The header is dark only while it sits over the hero, switched by a small
+  script; without scripts it stays dark. Supersedes D21's "the hero scrim
+  follows the theme"; the scrim's 90% floor where text sits still holds.
+- **HOUSE-STYLE records both navbar exceptions** (22 Oct and D21) as a
+  docs-only kit change (mco-web-style #74).
