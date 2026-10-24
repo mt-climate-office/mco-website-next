@@ -5,6 +5,9 @@
 // scrolled out from under it. Both carry data-theme="dark" in the HTML, so
 // without scripts the hero and the header stay dark.
 
+// A module, so this declaration stays local to the file.
+export {};
+
 declare const MCO: { getTheme(): string };
 
 const hero = document.querySelector<HTMLElement>('.hero[data-theme]');
