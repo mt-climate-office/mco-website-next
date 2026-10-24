@@ -5,7 +5,7 @@
 // snippets/head.html, re-vendor anti-flash.inline.js and public/mco-logo.png
 // from the same tag, and run `npm run check:kit`. CI fails on any mismatch.
 
-export const KIT_VERSION = '0.17.0';
+export const KIT_VERSION = '0.18.0';
 
 const KIT_BASE = `https://cdn.jsdelivr.net/gh/mt-climate-office/mco-web-style@${KIT_VERSION}/`;
 
@@ -29,7 +29,7 @@ export const kit = (path: string): string => KIT_BASE + path;
  * jsDelivr serves, like the others.
  */
 export const KIT_SRI = {
-  'theme/mco-theme.css': 'sha384-s6MS3mtowaDBNrYl8BzVKW+tkporVrIEixS7kjvHZ67k4syUXk0rKKMCHO2pNjNu',
+  'theme/mco-theme.css': 'sha384-Y3Af72mJzyNFhgHqTGuOp4ffmybfrGcCxc34ayOgf/rU7jepus1xCI2n8V2wIBgK',
   'core/mco-core.js': 'sha384-5LuIiruVjXsc4aJP9psEF1MLhfwow4XrNztT4Sn1OSCbbY7wkqTpgWbX+ucBlUlC',
   'photos/mco-photos.js': 'sha384-VepbbKE6CKKljLPjOlw1TATvqOZH73WIWtFXmpSR5RAgYVEphm1rE2fkGa+vK17C',
   'places/mco-places.js': 'sha384-4Amo71pLoRONH4SjB2I+Ai9FpSNqDDGGqQVxq4z0Yu/0c7GtGgLUYtNX/wQDUHVg',

@@ -5,10 +5,16 @@
 import { NAV } from '../../lib/nav';
 import { sitePath, url } from '../../lib/paths';
 
+interface Props {
+  /** Over a dark photo hero at first paint (Base `darkHero`, D23). */
+  overHero?: boolean;
+}
+
+const { overHero = false } = Astro.props;
 const here = sitePath(Astro.url.pathname);
 const current = (path: string) => here === path || here.startsWith(path);
 ---
-<header class="mco-navbar is-sticky">
+<header class="mco-navbar is-sticky" data-theme={overHero ? 'dark' : undefined}>
   <a href={url()} class="logo-link" aria-label="Montana Climate Office">
     <img class="logo-img" src={url('mco-logo.png')} alt="" width="40" height="40">
   </a>

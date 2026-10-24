@@ -35,7 +35,7 @@ change the kit and bump the pinned version here; never patch a local copy.
 
 ## Design system (D1)
 
-**Pinned jsDelivr tag + SRI + `crossorigin`, v0.17.0.** Favicons and
+**Pinned jsDelivr tag + SRI + `crossorigin`, v0.18.0.** Favicons and
 `og-card.png` hot-linked from the pinned tag. Do not vendor, do not add a
 `package.json` to the kit, **do not self-host the fonts** — the kit uses
 `font-display: block` plus preload deliberately.
@@ -163,6 +163,7 @@ src/lib/                paths.ts (url(), canonicalUrl()), nav.ts (sections),
 src/scripts/chrome.ts   theme toggle, drawer, MCO.ready()
 src/scripts/search.ts   /search/ on Pagefind's JS API (loaded on first query)
 src/scripts/photo-hero.ts  homepage hero: swaps in a newer West set once it is in
+src/scripts/hero-theme.ts  homepage hero and header as a dark theme island (D23)
 src/styles/site.css     site layer over the kit; tokens only
 src/pages/              routes, robots.txt endpoint, 404
 public/mco-logo.png     navbar badge, vendored from the kit tag
