@@ -37,18 +37,6 @@ export interface CspOptions {
    */
   search?: boolean;
   /**
-   * The page shows the kit's photo controls (the homepage hero). Their time
-   * menu is a <select>, which initPhotoControls requires, and WebKit draws a
-   * <select> with inline style attributes in its shadow tree. Under
-   * style-src 'self' those are refused (a CSP console error on every load)
-   * and the control collapses to about 20px, under the 40px touch target.
-   * `style-src-attr 'unsafe-inline'` allows style attributes only: no
-   * <style> element and no stylesheet from anywhere else, and a style
-   * attribute cannot run script. Checked in Playwright's WebKit, 22 Oct 2026.
-   * The status page avoids <select> for this reason; this page cannot.
-   */
-  photos?: boolean;
-  /**
    * The page has the station map (the homepage). MapLibre 6 per the kit
    * README's CSP notes and HOUSE-STYLE §7, plus the map's own data hosts:
    *   - script-src https://unpkg.com: the pinned MapLibre modules, imported
@@ -93,7 +81,7 @@ const NWS = 'https://api.weather.gov';
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
 export function contentSecurityPolicy(
   inlineScripts: string[],
-  { search = false, photos = false, map = false, places = false, summary = false }: CspOptions = {},
+  { search = false, map = false, places = false, summary = false }: CspOptions = {},
 ): string {
   const hashes = inlineScripts.map(hash).join(' ');
   return [
@@ -101,7 +89,6 @@ export function contentSecurityPolicy(
     `script-src 'self' ${JSDELIVR}${map ? ` ${UNPKG}` : ''} ${hashes}${search ? " 'wasm-unsafe-eval'" : ''}`,
     ...(map ? [`worker-src blob: ${UNPKG}`] : []),
     `style-src 'self' ${JSDELIVR}${map ? ` ${UNPKG}` : ''}`,
-    ...(photos ? ["style-src-attr 'unsafe-inline'"] : []),
     `font-src ${JSDELIVR}`,
     // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
     // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.

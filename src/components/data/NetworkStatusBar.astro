@@ -7,6 +7,10 @@
 // Not shown: maintenance compliance (D4, unresolved) and UMRB cells (not in
 // D10). Figures are plain text; colour carries nothing here.
 //
+// Each figure comes before its label (.figures in site.css, shared with
+// /mesonet/status/). A list, not a <dl>: a <dl> cannot put the value
+// before its term.
+//
 // The homepage passes the build-time snapshot of the summary, shown with its
 // timestamp (CLAUDE.md, "Fetch, don't frame"); the nightly rebuild keeps it
 // fresh. Absent `summary`: a short notice, no figures.
@@ -22,37 +26,34 @@ const { summary = null } = Astro.props;
 const pct = summary ? percent(summary.reporting, summary.stations) : null;
 const windowLabel = summary ? `${summary.reportingWindowHours} hour${summary.reportingWindowHours === 1 ? "" : "s"}` : "";
 ---
-<section class="net band" aria-labelledby="net-title">
+<section class="net" aria-labelledby="net-title">
   <div class="wrap net-inner">
-    <h2 id="net-title" class="net-title">Station status</h2>
+    <h2 id="net-title" class="section-title">Station status</h2>
 
     {summary ? (
       <div class="net-body">
-        <dl class="net-figures">
-          <div>
-            <dt>Stations</dt>
-            <dd class="mco-num-display">{count(summary.stations)}</dd>
-          </div>
-          <div>
-            <dt>Reported in the last {windowLabel}</dt>
-            <dd>
-              <span class="mco-num-display">{count(summary.reporting)}</span>
-              {pct != null && <span class="net-pct">{pct}%</span>}
-            </dd>
-          </div>
-          <div>
-            <dt>Operational</dt>
-            <dd class="mco-num-display">{count(summary.health.operational)}</dd>
-          </div>
-          <div>
-            <dt>Partial sensor outage</dt>
-            <dd class="mco-num-display">{count(summary.health.partial)}</dd>
-          </div>
-          <div>
-            <dt>Total outage</dt>
-            <dd class="mco-num-display">{count(summary.health.outage)}</dd>
-          </div>
-        </dl>
+        <ul class="figures">
+          <li>
+            <span class="figure mco-num-display">{count(summary.stations)}</span>
+            <span class="figure-label">Stations</span>
+          </li>
+          <li>
+            <span class="figure mco-num-display">{count(summary.reporting)}</span>
+            <span class="figure-label">Reported in the last {windowLabel}{pct != null && ` (${pct}%)`}</span>
+          </li>
+          <li>
+            <span class="figure mco-num-display">{count(summary.health.operational)}</span>
+            <span class="figure-label">Operational</span>
+          </li>
+          <li>
+            <span class="figure mco-num-display">{count(summary.health.partial)}</span>
+            <span class="figure-label">Partial sensor outage</span>
+          </li>
+          <li>
+            <span class="figure mco-num-display">{count(summary.health.outage)}</span>
+            <span class="figure-label">Total outage</span>
+          </li>
+        </ul>
         <p class="net-note">
           A station with a partial sensor outage is still reporting. At least one of its
           sensors is not.
@@ -64,45 +65,24 @@ const windowLabel = summary ? `${summary.reportingWindowHours} hour${summary.rep
     )}
 
     <p class="net-links">
-      <a class="nav-btn site-cta" href={url('mesonet/status/')}>Every station's status</a>
+      <a class="site-link" href={url('mesonet/status/')}>Every station's status</a>
     </p>
   </div>
 </section>
 
 <style>
-  .net-inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-6) var(--space-7);
-    padding-block: var(--space-7);
-  }
-  .net-title {
-    font-size: var(--fs-lg);
-    font-weight: var(--fw-semibold);
-    color: var(--text-secondary);
-  }
-  .net-body { flex: 1 1 32rem; min-width: 0; }
-  .net-figures {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-5) var(--space-7);
-  }
-  .net-figures dt { font-size: var(--fs-md); color: var(--text-muted); }
-  .net-figures dd { font-size: var(--fs-2xl); }
-  .net-pct {
-    margin-left: var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-base);
-    color: var(--text-secondary);
-  }
+  /* Numerals on the page ground: no band, no border (VISUAL-SYSTEM). The
+     homepage puts this after the readings, so it takes only the space
+     below; the readings section's own padding is the gap above. */
+  .net-inner { padding-block: 0 var(--site-section); }
+  .net-body { margin-top: var(--site-head-gap); }
   .net-note {
-    margin-top: var(--space-4);
-    font-size: var(--fs-base);
+    margin-top: 2.25rem;
+    max-width: 60ch;
+    font-size: var(--fs-lg);
     color: var(--text-secondary);
-    max-width: 62ch;
   }
-  .net-body .stamp { margin-top: var(--space-2); }
-  .net-empty { flex: 1 1 20rem; justify-content: flex-start; text-align: left; }
-  .net-links { margin-left: auto; }
+  .net-body .stamp { margin-top: var(--space-3); }
+  .net-empty { margin-top: var(--site-head-gap); justify-content: flex-start; text-align: left; }
+  .net-links { margin-top: var(--space-6); font-size: var(--fs-lg); }
 </style>

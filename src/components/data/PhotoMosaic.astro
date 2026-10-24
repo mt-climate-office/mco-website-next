@@ -1,52 +1,55 @@
 ---
-// Homepage hero: a station-camera set as a mosaic, with the page's <h1>
-// over it, and the photo controls below it.
+// Homepage hero: the most recent West-facing station-camera set as a
+// mosaic, with the page's <h1> over it (DECISIONS D22). No controls: every
+// other view, date and time is in the Photo Explorer.
 //
 // The set arrives as a prop, computed at build time by the kit's
 // MCO.photos (src/lib/photo-snapshot.ts): the most recent slot in the kit's
-// default public range (first date 2026-10-22, DECISIONS D16), facing North.
-// With JS, src/scripts/photo-hero.ts wires MCO.photos.initPhotoControls
-// under it and swaps tiles in place when a visitor changes the date, time or
-// direction. Without JS the build-time mosaic and its stamp show, and the
-// controls stay hidden: absent, not dead.
+// default public range (first date 2026-10-22, DECISIONS D16), facing West.
+// With JS, src/scripts/photo-hero.ts swaps in a newer set once it is in.
+//
+// The mosaic is one image to assistive technology (role="img", one
+// sentence): ninety-six alt texts would be a list nobody wants read out.
 //
 // Absent `set`: a neutral, token-coloured grid and copy with no figures.
 // Never fake photographs. The schedule and the counts are never written
 // here; they come from the set.
 import type { HeroSet, HeroStation } from '../../lib/photo-hero';
-import { spread, TILE_COUNT } from '../../lib/photo-hero';
+import { mosaicLabel, spread, TILE_COUNT } from '../../lib/photo-hero';
 import { count, isoTime, stampMT } from '../../lib/format';
+import { PHOTO_EXPLORER } from '../../lib/tools';
 
 interface Props {
   set?: HeroSet | null;
-  /** Every station with a public camera, west to east (the controls' lookup table). */
+  /** Every station with a public camera, west to east (the refresh's lookup table). */
   stations?: HeroStation[];
 }
 
 const { set = null, stations = [] } = Astro.props;
-const direction = set?.direction ?? 'north';
+const direction = set?.direction ?? 'west';
 
 // Tiles spread evenly across the state, west to east. The grid fills by
 // column, so columns run west to east; below 750px every other tile hides,
 // which keeps the spread.
 const tiles = set ? spread(set.tiles, TILE_COUNT) : [];
 const cells = Array.from({ length: TILE_COUNT }, (_, i) => tiles[i] ?? null);
-const PHOTO_EXPLORER = 'https://mesonet.climate.umt.edu/photos/';
 // Thumbnail WebP size on data2 (the kit's frameUrl, size 'thumb').
 const THUMB = { width: 320, height: 180 };
 ---
 <section class="hero" aria-labelledby="hero-title">
   {set ? (
-    <ul class="hero-mosaic" id="hero-mosaic" aria-label={`Station photos, west to east, facing ${direction}`}>
+    <div class="hero-mosaic" id="hero-mosaic" role="img" aria-label={mosaicLabel(set)}
+         data-slot-at={set.slotAt}
+         data-stations={JSON.stringify(stations.map((s) => [s.id, s.name]))}>
       {cells.map((t, i) => (
-        <li>
+        <span>
           {t && (
-            <img src={t.src} alt={t.alt} width={THUMB.width} height={THUMB.height}
-                 loading={i % 3 === 0 ? 'eager' : 'lazy'} decoding="async">
+            <img src={t.src} alt="" width={THUMB.width} height={THUMB.height}
+                 loading={i % 8 === 0 ? 'eager' : 'lazy'} decoding="async">
           )}
-        </li>
+        </span>
       ))}
-    </ul>
+    </div>
   ) : (
     <div class="hero-mosaic is-empty" aria-hidden="true">
       {cells.map(() => <span></span>)}
@@ -58,19 +61,13 @@ const THUMB = { width: 320, height: 180 };
     <div class="wrap">
       <div class="hero-copy">
         <h1 id="hero-title">Montana, looking <span data-hero="direction">{direction}</span></h1>
-        {set ? (
-          <p class="hero-lede">
-            Cameras on <span data-hero="cameras">{count(set.cameraCount)}</span> stations photograph north,
-            south, east and west through the day. This set has photos from <span data-hero="reported">{count(set.reportedCount)}</span> of them.
-          </p>
-        ) : (
-          <p class="hero-lede">
-            Station cameras photograph north, south, east and west through the day.
-          </p>
-        )}
+        <p class="hero-lede">
+          The latest photo from each station camera, laid out west to east.
+          Every direction and date is in the Photo Explorer.
+        </p>
         <p class="hero-actions">
           <a class="nav-btn is-primary site-cta" href={PHOTO_EXPLORER}>Open the Photo Explorer</a>
-          <a class="nav-btn site-cta" href="#readings">See current readings</a>
+          <a class="site-link" href="#readings">See current readings</a>
         </p>
         {set && (
           <p class="stamp">
@@ -84,59 +81,33 @@ const THUMB = { width: 320, height: 180 };
   </div>
 </section>
 
-{set && (
-  <section class="photo-controls is-pending" id="photo-controls" aria-label="Photo controls"
-           data-date={set.slot.date} data-time={set.slot.time} data-view={set.view}
-           data-stations={JSON.stringify(stations.map((s) => [s.id, s.name]))}>
-    <div class="wrap pc-row">
-      <div class="pc-field">
-        <label for="pc-date">Date</label>
-        <div class="pc-date">
-          <button type="button" class="nav-btn mco-step" id="pc-prev" aria-label="Previous day">‹</button>
-          <input type="date" id="pc-date" class="pc-input">
-          <button type="button" class="nav-btn mco-step" id="pc-next" aria-label="Next day">›</button>
-        </div>
-      </div>
-      <div class="pc-field">
-        <label for="pc-time">Time</label>
-        <select id="pc-time" class="pc-input"></select>
-      </div>
-      <div class="pc-field">
-        <span class="pc-label" aria-hidden="true">Direction</span>
-        <fieldset class="seg-btns is-radio" id="pc-views">
-          <legend class="sr-only">Direction</legend>
-        </fieldset>
-        <label class="sr-only" for="pc-view">Direction</label>
-        <select id="pc-view" class="pc-input" hidden></select>
-      </div>
-    </div>
-  </section>
-)}
-
 <script>
   import '../../scripts/photo-hero';
 </script>
 
 <style>
-  /* Mosaic, scrim and copy share one grid cell, so the hero is as tall as
-     whichever is taller and the copy can never spill out of it. */
+  /* Hero (VISUAL-SYSTEM, Hero): the mosaic full-bleed behind everything, at
+     min(70vh, 760px), copy bottom-aligned, and the navbar over the top of
+     it. Mosaic, scrim and copy share one grid cell, so the hero is as tall
+     as whichever is taller and the copy can never spill out of it. It pulls
+     up under the sticky navbar by the bar's height (--chrome-h, published
+     by mco-core). */
   .hero {
     display: grid;
+    min-height: min(70svh, 47.5rem);
+    margin-top: calc(-1 * var(--chrome-h, 52px));
     background: var(--bg-deep);
-    border-bottom: 1px solid var(--border);
   }
   .hero > * { grid-area: 1 / 1; min-width: 0; }
+  /* Twelve columns of eight, filled by column, so columns run west to
+     east. Small tiles: the mosaic reads as the state, not as photos to
+     study (those are in the Photo Explorer). */
   .hero-mosaic {
     display: grid;
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-    grid-template-rows: repeat(3, minmax(0, 1fr));
-    /* Columns run west to east. */
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: repeat(8, minmax(0, 1fr));
     grid-auto-flow: column;
-    /* Ten 4:3 tiles across, three down. */
-    aspect-ratio: 40 / 9;
-    min-height: 100%;
-    gap: 3px;
-    padding: 3px;
+    gap: 2px;
     list-style: none;
   }
   .hero-mosaic > * { min-width: 0; min-height: 0; background: var(--bg-raised); }
@@ -149,101 +120,94 @@ const THUMB = { width: 320, height: 180 };
     transition: opacity var(--transition);
   }
   .hero-mosaic[aria-busy="true"] img { opacity: 0.6; }
-  /* Empty state: plain surface tiles, so nothing reads as a photograph. */
-  .hero-mosaic.is-empty > span {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-  }
 
-  /* The copy sits on a near-opaque wash of the page ground, so its contrast
-     never depends on what a photo shows (HOUSE-STYLE §3: legibility never
-     depends on a translucent fill). Solid across the copy column, fading
-     only past it. */
+  /* Scrim, built from --bg-deep so it follows the theme: in light the wash
+     is light and the copy dark. Bottom-up, so the photographs show. Where
+     text sits it is at least 90% opaque, so contrast never depends on what
+     a photo shows (HOUSE-STYLE §3): under the navbar (the spec's 28% fails
+     the brand title over a bright sky), and behind the copy (.hero-body).
+     Between the two the photos are left alone. */
   .hero-scrim {
-    background: linear-gradient(90deg,
-      color-mix(in srgb, var(--bg-deep) 96%, transparent) 0,
-      color-mix(in srgb, var(--bg-deep) 96%, transparent) min(42rem, 70%),
-      color-mix(in srgb, var(--bg-deep) 40%, transparent) min(60rem, 88%),
-      color-mix(in srgb, var(--bg-deep) 60%, transparent) 100%);
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--bg-deep) 90%, transparent) 0,
+      color-mix(in srgb, var(--bg-deep) 90%, transparent) var(--chrome-h, 52px),
+      color-mix(in srgb, var(--bg-deep) 10%, transparent) calc(var(--chrome-h, 52px) + 6rem),
+      color-mix(in srgb, var(--bg-deep) 10%, transparent) 100%);
   }
+  /* Behind the copy the wash rises from clear to 70% where the <h1> starts
+     (large text: 3:1 over a white sky needs about 60%), and to 88% by the
+     lede, so the lede, links and stamp clear 4.5:1 over any photo. */
   .hero-body {
-    align-self: center;
-    padding-block: var(--space-7);
+    align-self: end;
+    padding-block: 4rem;
+    background: linear-gradient(180deg,
+      transparent 0,
+      color-mix(in srgb, var(--bg-deep) 70%, transparent) 4rem,
+      color-mix(in srgb, var(--bg-deep) 88%, transparent) 10rem,
+      color-mix(in srgb, var(--bg-deep) 96%, transparent) 100%);
   }
-  .hero-copy { max-width: 36rem; }
   .hero h1 {
     margin-bottom: var(--space-5);
-    font-size: calc(var(--fs-2xl) * 1.5);
-    line-height: var(--lh-tight);
+    font-size: var(--site-fs-h1);
+    line-height: 1.02;
     font-weight: var(--fw-bold);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
   }
   .hero-lede {
+    max-width: 50ch;
     margin-bottom: var(--space-6);
-    font-size: var(--fs-lg);
-    line-height: var(--lh-body);
+    font-size: var(--site-fs-lede);
+    line-height: 1.65;
     color: var(--text-secondary);
-    max-width: 48ch;
   }
-  .hero-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-7); }
+  .hero-actions .site-link { font-size: var(--fs-lg); }
   .hero .stamp { margin-top: var(--space-5); }
 
-  /* Photo controls: a bar under the hero. */
-  .photo-controls {
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border);
+  /* The navbar over the hero: clear at the top of the page, its glass back
+     once the page scrolls (a scroll-driven animation; the navbar is sticky,
+     and over the readings below it needs the glass). Engines without
+     scroll timelines, and visitors who ask for less transparency, keep the
+     kit's glass bar throughout. */
+  @supports (animation-timeline: scroll()) {
+    @media not (prefers-reduced-transparency: reduce) {
+      /* kit-override: the navbar's glass, border and gradient underline
+         start clear on the homepage, so the photographs reach the top. */
+      :global(.mco-navbar:has(~ main .hero)) {
+        background: transparent;
+        backdrop-filter: blur(0);
+        border-bottom-color: transparent;
+        animation: hero-nav-glass linear both;
+      }
+      :global(.mco-navbar:has(~ main .hero))::after {
+        opacity: 0;
+        animation: hero-nav-rule linear both;
+      }
+      /* The timeline in its own, more specific rule: the minifier folds a
+         timeline into the animation shorthand, a form Chromium drops. */
+      :global(html .mco-navbar:has(~ main .hero)),
+      :global(html .mco-navbar:has(~ main .hero))::after {
+        animation-timeline: scroll(root);
+        animation-range: 0 4rem;
+      }
+    }
   }
-  .photo-controls[hidden] { display: none; }
-  /* The bar takes its space from first paint and stays invisible until the
-     controls are built, so the page below does not shift when it appears
-     (Lighthouse measured a 0.066 layout shift on #readings). Without JS it
-     is gone (only the anti-flash boot sets data-theme); if the schedule
-     fails to load, the script hides it. */
-  .photo-controls.is-pending { visibility: hidden; }
-  :global(html:not([data-theme])) .photo-controls { display: none; }
-  .pc-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: var(--space-4) var(--space-6);
-    padding-block: var(--space-5);
+  @keyframes hero-nav-glass {
+    to {
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      border-bottom-color: var(--border);
+    }
   }
-  .pc-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
-  .pc-field > label, .pc-label {
-    font-size: var(--fs-md);
-    font-weight: var(--fw-medium);
-    color: var(--text-secondary);
-  }
-  .pc-date { display: flex; gap: var(--space-2); align-items: stretch; }
-  /* 40px tall at every width: the touch-target minimum (HOUSE-STYLE §5.5). */
-  .pc-input {
-    min-height: 40px;
-    padding: 0 var(--space-3);
-    background-color: var(--input-bg);
-    color: var(--text-primary);
-    border: 1px solid var(--ctrl-border);
-    border-radius: var(--radius-md);
-    font: inherit;
-    font-size: var(--fs-md);
-  }
-  .pc-input[hidden] { display: none; }
-  /* WebKit lowers a native <select>'s min-height to its font box (21px at
-     390 with touch); an explicit height holds, and keeps the native arrow. */
-  select.pc-input { min-width: 9rem; height: 40px; }
-  .photo-controls .seg-btn { min-height: 40px; min-width: 40px; justify-content: center; }
+  @keyframes hero-nav-rule { to { opacity: 1; } }
 
-  /* Below 1060 the copy would cover most of the mosaic: stack it below. */
-  @media (max-width: 1060px) {
-    .hero-scrim { display: none; }
-    .hero > .hero-body { grid-area: 2 / 1; }
-  }
   @media (max-width: 750px) {
     .hero-mosaic {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      aspect-ratio: 20 / 9;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(12, minmax(0, 1fr));
     }
-    /* Every other tile, so fifteen still span the state. */
+    /* Every other tile, so forty-eight still span the state. */
     .hero-mosaic > :nth-child(even) { display: none; }
-    .hero h1 { font-size: var(--fs-2xl); }
+    .hero-body { padding-bottom: 3rem; }
   }
 </style>

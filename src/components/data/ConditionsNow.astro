@@ -76,9 +76,9 @@ const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
         {conditions?.provisional && ' · Provisional'}
       </p>
       <ul class="cond-links">
-        <li><a id="cond-page" href={conditions ? url(stationPath(conditions.station.id)) : undefined}>
+        <li><a id="cond-page" class="site-link" href={conditions ? url(stationPath(conditions.station.id)) : undefined}>
           <span class="cond-link-name">{conditions?.station.name}</span> station page</a></li>
-        <li><a id="cond-dash" href={conditions ? dashFor(conditions.station.id) : undefined}>
+        <li><a id="cond-dash" class="site-link" href={conditions ? dashFor(conditions.station.id) : undefined}>
           <span class="cond-link-name">{conditions?.station.name}</span> on the Station Dashboard</a></li>
       </ul>
       <div class="cond-near-list" id="cond-near-list" hidden>
@@ -95,6 +95,10 @@ const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
 
 <style>
   .conditions { max-width: 30rem; }
+  /* kit-override: frameless (VISUAL-SYSTEM, DECISIONS D21). The kit card's
+     surface, border and padding go; its type and colour tokens stay. */
+  .conditions.mco-card { background: none; border: 0; border-radius: 0; }
+  .conditions > .mco-card-body { padding: 0; }
 
   /* No scripts, no search: data-theme is only ever set by the kit's
      anti-flash boot, which runs before first paint. */
@@ -108,9 +112,28 @@ const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
      on every pointer, not only on touch (the kit's .mco-search-input is a
      220px, 32px toolbar field). */
   .cond-field :global(.mco-search-input) { width: 100%; min-height: 40px; font-size: var(--fs-base); }
+  /* kit-override: a hairline under the field only, the one border a text
+     input keeps (VISUAL-SYSTEM). --ctrl-border holds the 3:1 a control
+     boundary needs (WCAG 1.4.11). */
+  .cond-field :global(.mco-search-input) {
+    background-color: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--ctrl-border);
+    border-radius: 0;
+  }
   .cond-field :global(.mco-search-list) { max-width: min(360px, calc(100vw - 2rem)); }
-  /* kit-override: 40px like the field beside it. */
-  .cond-near { min-height: 40px; font-size: var(--fs-base); }
+  /* kit-override: 40px like the field beside it, and a text button, not a
+     bordered one: --accent-line at 600, as a standalone link. */
+  .cond-near {
+    min-height: 40px;
+    padding-inline: var(--space-3);
+    border-color: transparent;
+    background: none;
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    color: var(--accent-line);
+  }
+  .cond-near:hover { background: none; border-color: transparent; color: var(--accent-line); text-decoration: underline; }
   .cond-msg { margin-top: var(--space-3); font-size: var(--fs-base); color: var(--text-secondary); }
 
   .cond-empty { font-size: var(--fs-base); color: var(--text-secondary); }
@@ -132,7 +155,7 @@ const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
   .cond-links { list-style: none; margin-top: var(--space-3); padding: 0; font-size: var(--fs-base); }
   .cond-links li + li { margin-top: var(--space-2); }
 
-  .cond-near-list { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+  .cond-near-list { margin-top: var(--space-6); }
   .cond-near-title { font-size: var(--fs-base); color: var(--text-secondary); }
   .cond-near-list ul { list-style: none; margin-top: var(--space-2); padding: 0; display: grid; gap: var(--space-2); }
   /* kit-override: a full-width row of the list, 40px tall, name left and
@@ -141,6 +164,9 @@ const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
     width: 100%; min-height: 40px; justify-content: space-between;
     font-size: var(--fs-base); white-space: normal; text-align: left;
   }
+  /* Frameless rows: only the pressed one keeps the kit's border, so the
+     border marks the state rather than enclosing every row. */
+  .cond-near-list :global(.nav-btn:not([aria-pressed="true"])) { border-color: transparent; }
   .cond-near-list :global(.cond-dist) { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
 
   @media (hover: none) {

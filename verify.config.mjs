@@ -15,14 +15,11 @@ const chromeReady = () =>
   !document.documentElement.classList.contains('mco-booting') &&
   /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '');
 
-// The photo controls are wired (they stay hidden until MCO.photos has the
-// schedule) and no set is loading.
+// The photo hero has its tiles (it has no controls; DECISIONS D22).
 const photosReady = () =>
   !document.documentElement.classList.contains('mco-booting') &&
   /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
-  document.getElementById('photo-controls')?.hidden === false &&
-  document.querySelectorAll('#pc-views input[type="radio"]').length > 0 &&
-  !document.getElementById('hero-mosaic')?.hasAttribute('aria-busy');
+  document.querySelectorAll('#hero-mosaic img').length > 0;
 
 // The station map island has drawn (canvas, legend) and its tiles settled.
 // It loads when the map reaches the viewport, so this scrolls it there, and
@@ -57,12 +54,6 @@ export default {
   ready: chromeReady,
   scenarios: [
     { name: 'home', query: '', ready: photosReady },
-    // A linked direction: the mosaic, h1 and stamp follow ?dir=.
-    { name: 'home-east', query: '?dir=E',
-      ready: () => !document.documentElement.classList.contains('mco-booting') &&
-        document.getElementById('photo-controls')?.hidden === false &&
-        !document.getElementById('hero-mosaic')?.hasAttribute('aria-busy') &&
-        /_E_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || '') },
     // The station map, loaded, with its table twin open.
     { name: 'home-map', query: '', ready: mapReady },
     // The conditions card, filled from a linked station (?s=).
@@ -121,78 +112,33 @@ export default {
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
   probes: async ({ open, check }) => {
-    // Photo hero: the controls change the set in place, announce it once,
-    // and write the URL (date and time kept, North elided).
+    // Photo hero: West only, no controls, one image to assistive
+    // technology, and the h1, stamp and label agree with the tiles (D22).
     {
       const { page, close } = await open('');
-      await page.waitForFunction(() => document.getElementById('photo-controls')?.hidden === false &&
-        !document.getElementById('hero-mosaic')?.hasAttribute('aria-busy'), null, { timeout: 30000 });
-      const before = await page.evaluate(() => ({
-        srcs: [...document.querySelectorAll('#hero-mosaic img')].map((i) => i.getAttribute('src')),
-        url: location.search,
-        views: [...document.querySelectorAll('#pc-views input')].map((i) => i.value).join(','),
-      }));
-      check('photos: North by default, public views only, homepage URL left clean',
-        before.srcs.length > 0 && before.srcs.every((s) => /_N_/.test(s)) && before.views === 'N,E,S,W' && before.url === '',
-        JSON.stringify({ n: before.srcs.length, views: before.views, url: before.url }));
-
-      await page.locator('#pc-views label', { hasText: /^E$/ }).click();
-      await page.waitForFunction(() => /_E_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || '') &&
-        !document.getElementById('hero-mosaic').hasAttribute('aria-busy'), null, { timeout: 30000 });
-      await page.waitForFunction(() => [...document.querySelectorAll('[aria-live="polite"]')]
-        .some((e) => /facing east/.test(e.textContent)), null, { timeout: 3000 }).catch(() => {});
-      const east = await page.evaluate(() => ({
-        tiles: [...document.querySelectorAll('#hero-mosaic img')].length,
-        allEast: [...document.querySelectorAll('#hero-mosaic img')].every((i) => /_E_/.test(i.src) && /^Looking east from /.test(i.alt)),
-        h1: document.querySelector('h1').textContent,
-        stamp: document.querySelector('.hero .stamp').textContent,
-        live: [...document.querySelectorAll('[aria-live="polite"]')].map((e) => e.textContent).join(' '),
-        q: Object.fromEntries(new URLSearchParams(location.search)),
-      }));
-      check('photos: East swaps every tile in place, with the h1 and stamp',
-        east.tiles > 0 && east.allEast && /looking east/.test(east.h1) && /facing east/.test(east.stamp), JSON.stringify(east));
-      check('photos: the change is announced once, in words',
-        /cameras, facing east,/.test(east.live), east.live);
-      check('photos: the URL carries date, time and dir=E',
-        east.q.dir === 'E' && /^\d{4}-\d{2}-\d{2}$/.test(east.q.date || '') && !!east.q.time, JSON.stringify(east.q));
-
-      // Move the set: another ready slot that day if the kit's menu offers
-      // one, else the previous day. Early in the Mountain day only one slot
-      // is ready, and on the first public date there is no previous day, so
-      // the probe takes whichever move exists (a fixed choice timed out on
-      // 2026-10-23 at 9:40 MDT, when the menu held one time).
-      const pick = await page.evaluate(() => {
-        const s = document.getElementById('pc-time');
-        const other = [...s.options].find((o) => !o.disabled && o.value !== s.value)?.value ?? '';
-        const prev = document.getElementById('pc-prev');
-        return { other, prevOk: !!prev && !prev.disabled && prev.getAttribute('aria-disabled') !== 'true',
-          date: new URLSearchParams(location.search).get('date') };
+      await page.waitForFunction(() => document.querySelectorAll('#hero-mosaic img').length > 0, null, { timeout: 30000 });
+      const hero = await page.evaluate(() => {
+        const m = document.getElementById('hero-mosaic');
+        const imgs = [...m.querySelectorAll('img')];
+        return {
+          n: imgs.length,
+          west: imgs.every((i) => /_W_/.test(i.getAttribute('src'))),
+          decorative: imgs.every((i) => i.getAttribute('alt') === ''),
+          role: m.getAttribute('role'),
+          label: m.getAttribute('aria-label'),
+          h1: document.querySelector('h1').textContent,
+          stamp: document.querySelector('.hero .stamp').textContent,
+          controls: !!document.querySelector('#photo-controls, .hero input, .hero select'),
+          url: location.search,
+        };
       });
-      const stamp = east.stamp;
-      if (pick.other) await page.locator('#pc-time').selectOption(pick.other);
-      else if (pick.prevOk) await page.locator('#pc-prev').click();
-      if (pick.other || pick.prevOk) {
-        await page.waitForFunction((s) => document.querySelector('.hero .stamp').textContent !== s &&
-          !document.getElementById('hero-mosaic').hasAttribute('aria-busy'), stamp, { timeout: 30000 });
-      }
-      const moved = await page.evaluate(() => ({
-        time: new URLSearchParams(location.search).get('time'),
-        date: new URLSearchParams(location.search).get('date'),
-        select: document.getElementById('pc-time').value,
-        stamp: document.querySelector('.hero .stamp').textContent,
-        dir: new URLSearchParams(location.search).get('dir'),
-      }));
-      const movedOk = pick.other
-        ? moved.select === pick.other && moved.time === (pick.other.endsWith(':00') ? String(Number(pick.other.slice(0, 2))) : pick.other)
-        : pick.prevOk && moved.date !== pick.date;
-      check('photos: a new time or day moves the set and the URL together, keeping the direction',
-        movedOk && moved.stamp !== stamp && moved.dir === 'E' && /facing east/.test(moved.stamp),
-        JSON.stringify({ pick, ...moved }));
-
-      await page.locator('#pc-views label', { hasText: /^N$/ }).click();
-      await page.waitForFunction(() => /_N_/.test(document.querySelector('#hero-mosaic img')?.getAttribute('src') || ''), null, { timeout: 30000 });
-      const north = await page.evaluate(() => new URLSearchParams(location.search).has('dir'));
-      check('photos: back to North drops dir= from the URL', !north);
+      check('photos: every tile faces west, and the h1, stamp and label say so',
+        hero.n > 30 && hero.west && /looking west/.test(hero.h1) && /facing west/.test(hero.stamp) &&
+        /facing west/.test(hero.label || ''), JSON.stringify(hero));
+      check('photos: the mosaic is one named image; its tiles are not read out one by one',
+        hero.role === 'img' && /^Photos from \d+ station cameras/.test(hero.label || '') && hero.decorative,
+        JSON.stringify({ role: hero.role, label: hero.label }));
+      check('photos: no controls, and the homepage URL is left clean', !hero.controls && hero.url === '');
       await close();
     }
 

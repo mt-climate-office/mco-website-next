@@ -1,354 +1,343 @@
 <!doctype html>
 <!--
-  climate.umt.edu — homepage, chosen visual direction
-  Reference comp. Not production code. Translate into Astro components.
+  climate.umt.edu homepage — REFERENCE COMP, frameless direction (D).
+  Supersedes the earlier instrument-panel comp of 21 Oct 2026.
+  Approved by R. Kyle Bocinsky, 24 Oct 2026.
 
-  WHAT THIS IS
-  Direction "A + C": the dark instrument-panel chassis, continuous with the
-  Mesonet tools, with the station-camera mosaic as the hero.
+  This is a comp, not production code. Translate it into Astro components.
+  The SYSTEM it encodes is what matters, not these pixels — see
+  docs/VISUAL-SYSTEM.md, which is the authoritative spec.
 
-  WHAT IS REAL
-  All colours are mco-web-style dark-theme tokens, read from the live
-  stylesheet (see the rebuild brief §1.2). All figures are real and verified
-  on 21 Oct 2026: 253 stations, 251 reported within 2 h, 0 maintenance
-  overdue, 187 basin cells operational, 152 stations with cameras, 126
-  reporting a photo. The Lolo Lower readings are a real observation.
+  REAL      every colour is an mco-web-style token value; every figure was
+            verified against the API on 23 Oct 2026.
+  PLACEHOLD hero tiles stand in for station photographs; the map is a CSS
+            grid standing in for a MapLibre island; the logo approximates
+            the real MCO mark.
 
-  WHAT IS A PLACEHOLDER
-  - The hero mosaic is CSS gradient tiles standing in for real station
-    photographs. Replace with real imagery from /api/v2/photos/.
-  - The map is a CSS grid of dots standing in for a MapLibre island.
-  - The logo is an approximation. Use the real MCO mark.
-
-  RULES THAT MUST SURVIVE TRANSLATION
-  - Colours become mco-web-style custom properties, not these hex literals.
-    They are inlined here only so the file renders standalone.
-  - Link text on dark uses --accent-light #5aaee8, never --accent #1a6faf,
-    which is ~3.25:1 and fails AA for body text.
-  - One <h1>. Landmarks and skip link as written.
-  - Every input has a real <label>. Icon-only controls carry aria-label.
-  - Do not restate the station count, camera count, or capture schedule in
-    prose — read them from data. See docs/VOICE.md.
-  - Photo controls: North / South / East / West only, defaulting to North and
-    the most recent capture. Ideally these come from a shared
-    MCO.initPhotoControls rather than being rebuilt here (brief §3.0.1).
+  MUST SURVIVE TRANSLATION
+    - Hex literals here become mco-web-style custom properties. They are
+      inlined only so this file stands alone. If they ship as hex, the light
+      and high-contrast themes break.
+    - Text, borders and icons on dark use --accent-line, never --accent.
+    - One <h1>. Landmarks and skip link as written, skip target #main.
+    - Every input keeps a real <label>; the e-mail label is visually hidden,
+      not absent.
+    - Photo directions are N/S/E/W, default North, most recent capture.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
 <title>Montana Climate Office</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap">
 <style>
-  :root {
-    --accent: #1a6faf;
-    --accent-light: #5aaee8;
-    --bg-deep: #161b22;
-    --bg-surface: #1e2530;
-    --bg-sunken: #0f1319;
-    --input-bg: #232a35;
-    --border: #3a4558;
-    --ctrl-border: #6a7996;
-    --text-primary: #e8ecf0;
-    --text-secondary: #c0cad6;
-    --text-muted: #8a99b0;
-    --success: #36ba6d;
-    --warning: #df9412;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --font-ui: 'Outfit', system-ui, -apple-system, sans-serif;
-    --font-mono: 'Space Mono', ui-monospace, monospace;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: var(--font-ui);
-    background: var(--bg-deep);
-    color: var(--text-primary);
-    line-height: 1.6;
-  }
-  a { color: var(--accent-light); }
-  a:hover { color: #93d0ff; }
-  :focus-visible { outline: 3px solid var(--accent-light); outline-offset: 2px; border-radius: 2px; }
-  .skip-link { position: absolute; left: -9999px; top: 0; background: var(--accent); color: #fff; padding: 10px 18px; z-index: 50; text-decoration: none; }
-  .skip-link:focus { left: 0; }
-  .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 32px; }
-  .site-header { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; min-height: 54px; padding-inline: 32px; background: var(--bg-surface); border-bottom: 1px solid var(--border); }
-  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-primary); padding-block: 8px; font-weight: 600; font-size: 15px; }
-  .site-nav { display: flex; flex-wrap: wrap; gap: 22px; margin-left: auto; }
-  .site-nav a { color: var(--text-secondary); text-decoration: none; font-size: 14px; padding-block: 8px; }
-  .btn { font-family: inherit; font-size: 15px; font-weight: 600; padding: 12px 20px; min-height: 46px; background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: var(--radius-md); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
-  .btn-ghost { background: transparent; color: var(--text-primary); border-color: var(--ctrl-border); font-weight: 500; }
-  .field label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
-  .field input, .field select { width: 100%; padding: 11px 13px; font-family: inherit; font-size: 15px; background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--ctrl-border); border-radius: var(--radius-md); }
-  .card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-  .stamp { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin: 0; }
-  h2.section { margin: 0 0 8px; font-size: 32px; font-weight: 700; letter-spacing: -0.01em; }
-  .hero { position: relative; background: var(--bg-sunken); }
-  .hero-mosaic { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; padding: 3px; }
-  .hero-mosaic span { aspect-ratio: 4 / 3; }
-  .hero-scrim { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(15,19,25,.96) 0%, rgba(15,19,25,.90) 40%, rgba(15,19,25,.35) 74%, rgba(15,19,25,.60) 100%); }
-  .hero-body { position: absolute; inset: 0; display: flex; align-items: center; }
-  .map-stub { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-sunken); height: 420px; display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); grid-template-rows: repeat(8, minmax(0,1fr)); padding: 18px; }
-  .map-stub i { width: 9px; height: 9px; border-radius: 50%; align-self: center; justify-self: center; background: var(--accent-light); }
-  @media (max-width: 900px) {
-    .grid-4, .grid-3 { grid-template-columns: 1fr; }
-    .hero-body { position: static; padding-block: 32px; }
-    .hero-scrim { display: none; }
-    .hero-mosaic { grid-template-columns: repeat(5, minmax(0,1fr)); }
-  }
+:root { color-scheme: dark; }
+html, body { margin:0; padding:0; }
+*, *::before, *::after { box-sizing: border-box; }
+img { max-width: 100%; }
+:focus-visible { outline: 3px solid #5aaee8; outline-offset: 3px; }
+
+/* --- responsive scale: the comp holds from 360 to 2560 --- */
+.fl .wrap { max-width: 1180px; }
+@media (min-width: 1700px) { .fl .wrap { max-width: 1320px; } }
+@media (min-width: 2200px) { .fl .wrap { max-width: 1440px; } }
+
+.fl h1.hero-h { font-size: clamp(38px, 5.4vw, 86px); }
+.fl h2.sec    { font-size: clamp(30px, 3.1vw, 46px); }
+.fl .big-num  { font-size: clamp(42px, 4.2vw, 64px); }
+
+@media (max-width: 1080px) {
+  .fl .q-grid  { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  .fl .s-grid  { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  .fl .t-grid  { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 760px) {
+  .fl .wrap   { padding-inline: 20px !important; }
+  .fl section { padding-block: 64px !important; }
+  .fl .q-grid, .fl .s-grid { grid-template-columns: 1fr !important; }
+  .fl nav     { display: none !important; }
+}
+
+body { margin: 0; }
+.fl { font-family: 'Outfit', system-ui, sans-serif; background: #161b22; color: #e8ecf0; line-height: 1.6; }
+.fl a { color: inherit; text-decoration: none; }
+.fl .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 48px; }
+.fl .tick { display: block; width: 28px; height: 2px; background: #5aaee8; margin-bottom: 18px; }
+.fl .mono { font-family: 'Space Mono', ui-monospace, monospace; color: #8a99b0; }
+.fl .lede { font-size: 19px; color: #c0cad6; line-height: 1.65; }
+.fl h2.sec { font-size: 42px; line-height: 1.12; font-weight: 700; letter-spacing: -0.025em; margin: 0 0 16px; }
+.fl h3.blk { font-size: 22px; line-height: 1.25; font-weight: 600; margin: 0 0 12px; }
+.fl .go { color: #5aaee8; font-weight: 600; font-size: 15px; }
+.fl .go:hover { text-decoration: underline; }
+.fl section { padding-block: 112px; }
 </style>
 </head>
 <body>
+<div class="fl">
 
-<a class="skip-link" href="#main-content">Skip to main content</a>
+  <a href="#main" style="position:absolute;left:-9999px;top:0;background:#1a6faf;color:#fff;padding:10px 18px;z-index:60">Skip to main content</a>
 
-<header class="site-header">
-  <a class="brand" href="/">
-    <svg width="30" height="30" viewBox="0 0 30 30" role="img" aria-label="Montana Climate Office">
-      <rect width="30" height="30" rx="6" fill="#1a6faf"></rect>
-      <path d="M5 20c4-5 7-5 10 0s6 3 10-2" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
-      <path d="M5 13c4-5 7-5 10 0" stroke="#93d0ff" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
-    </svg>
-    <span>Montana Climate Office</span>
-  </a>
-  <nav class="site-nav" aria-label="Main navigation">
-    <a href="/conditions/">Conditions</a>
-    <a href="/drought/">Drought</a>
-    <a href="/mesonet/">The Mesonet</a>
-    <a href="/research/">Research</a>
-    <a href="/news/">News</a>
-    <a href="/about/">About</a>
-  </nav>
-</header>
-
-<main id="main-content">
-
-  <section class="hero" aria-labelledby="hero-h">
-    <div class="hero-mosaic" role="img" aria-label="Photographs from Montana Mesonet station cameras at the most recent capture, arranged across the state">
-      <span style="background:linear-gradient(#4b7fae 0 52%,#8a7f5c 52%)"></span>
-      <span style="background:linear-gradient(#6d9cc4 0 48%,#6f6f4e 48%)"></span>
-      <span style="background:linear-gradient(#3f6f9d 0 56%,#9a8e67 56%)"></span>
-      <span style="background:linear-gradient(#7fa9cd 0 50%,#7d7352 50%)"></span>
-      <span style="background:linear-gradient(#5583ad 0 46%,#8d8460 46%)"></span>
-      <span style="background:linear-gradient(#6893bb 0 54%,#736a4c 54%)"></span>
-      <span style="background:linear-gradient(#456f99 0 50%,#968a63 50%)"></span>
-      <span style="background:linear-gradient(#74a2c8 0 44%,#6b6449 44%)"></span>
-      <span style="background:linear-gradient(#52809f 0 52%,#857c58 52%)"></span>
-      <span style="background:linear-gradient(#6a97c0 0 48%,#797053 48%)"></span>
-      <span style="background:linear-gradient(#3f6f9d 0 54%,#8f845f 54%)"></span>
-      <span style="background:#11161d"></span>
-      <span style="background:linear-gradient(#78a5ca 0 50%,#6e674b 50%)"></span>
-      <span style="background:linear-gradient(#4e7ca9 0 46%,#928868 46%)"></span>
-      <span style="background:linear-gradient(#6590b8 0 56%,#746c4f 56%)"></span>
-      <span style="background:linear-gradient(#437296 0 50%,#9b9070 50%)"></span>
-      <span style="background:linear-gradient(#7cabd0 0 48%,#6a6348 48%)"></span>
-      <span style="background:linear-gradient(#5988b2 0 52%,#8b8161 52%)"></span>
-      <span style="background:linear-gradient(#486f94 0 44%,#7f7656 44%)"></span>
-      <span style="background:linear-gradient(#719ec6 0 54%,#726a4d 54%)"></span>
-      <span style="background:linear-gradient(#5b8bb4 0 50%,#8d8362 50%)"></span>
-      <span style="background:linear-gradient(#3d6b92 0 48%,#776e51 48%)"></span>
-      <span style="background:linear-gradient(#80add1 0 56%,#968b6a 56%)"></span>
-      <span style="background:linear-gradient(#4f7fa8 0 50%,#6c6549 50%)"></span>
-      <span style="background:#11161d"></span>
-      <span style="background:linear-gradient(#6b96bd 0 46%,#8a8060 46%)"></span>
-      <span style="background:linear-gradient(#44739a 0 54%,#756d50 54%)"></span>
-      <span style="background:linear-gradient(#77a4c9 0 50%,#938969 50%)"></span>
-      <span style="background:linear-gradient(#55849f 0 48%,#6f684c 48%)"></span>
-      <span style="background:linear-gradient(#6498c1 0 52%,#887e5e 52%)"></span>
+  <header style="position:absolute;top:0;left:0;right:0;z-index:40">
+    <div class="wrap" style="display:flex;align-items:center;gap:40px;padding-block:26px">
+      <a href="/" style="display:flex;align-items:center;gap:11px">
+        <svg width="30" height="30" viewBox="0 0 30 30" role="img" aria-label="Montana Climate Office" style="flex:none">
+          <rect width="30" height="30" rx="7" fill="#1a6faf"></rect>
+          <path d="M5 20c4-5 7-5 10 0s6 3 10-2" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+          <path d="M5 13c4-5 7-5 10 0" stroke="#93d0ff" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+        </svg>
+        <span style="font-weight:600;font-size:15px;letter-spacing:.01em">Montana Climate Office</span>
+      </a>
+      <nav aria-label="Main navigation" style="display:flex;gap:30px;margin-left:auto;font-size:15px">
+        <a href="/conditions/" style="color:#e8ecf0;padding-block:6px;border-bottom:2px solid #5aaee8">Conditions</a>
+        <a href="/drought/" style="color:#c0cad6;padding-block:6px;border-bottom:2px solid transparent">Drought</a>
+        <a href="/mesonet/" style="color:#c0cad6;padding-block:6px;border-bottom:2px solid transparent">Mesonet</a>
+        <a href="/research/" style="color:#c0cad6;padding-block:6px;border-bottom:2px solid transparent">Research</a>
+        <a href="/news/" style="color:#c0cad6;padding-block:6px;border-bottom:2px solid transparent">News</a>
+        <a href="/about/" style="color:#c0cad6;padding-block:6px;border-bottom:2px solid transparent">About</a>
+      </nav>
     </div>
-    <div class="hero-scrim" aria-hidden="true"></div>
-    <div class="hero-body">
-      <div class="wrap" style="width:100%">
-        <div style="max-width:540px">
-          <h1 id="hero-h" style="margin:0 0 18px;font-size:50px;line-height:1.08;font-weight:700;letter-spacing:-.02em">Montana, looking north</h1>
-          <p style="margin:0 0 26px;font-size:18px;color:var(--text-secondary);max-width:48ch">Cameras on 152 stations photograph north, south, east and west through the day. This is the most recent set: 126 cameras reported.</p>
-          <p style="display:flex;flex-wrap:wrap;gap:10px;margin:0">
-            <a class="btn" href="https://mesonet.climate.umt.edu/photos/">Open the Photo Explorer</a>
-            <a class="btn btn-ghost" href="#readings">See current readings</a>
-          </p>
+  </header>
+
+  <main id="main">
+
+    <!-- HERO: full-bleed mosaic, gradient only in the lower third -->
+    <section style="position:relative;padding:0;min-height:min(70vh, 760px);display:flex;align-items:flex-end;background:#0f1319">
+      <div role="img" aria-label="North-facing photographs from the most recent capture at Montana Mesonet stations" aria-hidden="false"
+           style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(4,1fr)">
+        <span style="background:linear-gradient(#5a8cb8 0 56%,#9c8f66 56%)"></span>
+        <span style="background:linear-gradient(#7fa9cd 0 52%,#7d7352 52%)"></span>
+        <span style="background:linear-gradient(#3f6f9d 0 60%,#8a7f5c 60%)"></span>
+        <span style="background:linear-gradient(#6d9cc4 0 50%,#6f6f4e 50%)"></span>
+        <span style="background:linear-gradient(#4b7fae 0 58%,#968a63 58%)"></span>
+        <span style="background:linear-gradient(#80add1 0 54%,#6b6449 54%)"></span>
+        <span style="background:linear-gradient(#52809f 0 50%,#857c58 50%)"></span>
+        <span style="background:linear-gradient(#6a97c0 0 56%,#797053 56%)"></span>
+        <span style="background:linear-gradient(#456f99 0 54%,#8f845f 54%)"></span>
+        <span style="background:linear-gradient(#78a5ca 0 50%,#6e674b 50%)"></span>
+        <span style="background:linear-gradient(#4e7ca9 0 58%,#928868 58%)"></span>
+        <span style="background:linear-gradient(#6590b8 0 52%,#746c4f 52%)"></span>
+        <span style="background:linear-gradient(#437296 0 56%,#9b9070 56%)"></span>
+        <span style="background:linear-gradient(#7cabd0 0 50%,#6a6348 50%)"></span>
+        <span style="background:linear-gradient(#5988b2 0 54%,#8b8161 54%)"></span>
+        <span style="background:linear-gradient(#486f94 0 60%,#7f7656 60%)"></span>
+        <span style="background:linear-gradient(#719ec6 0 52%,#726a4d 52%)"></span>
+        <span style="background:linear-gradient(#5b8bb4 0 56%,#8d8362 56%)"></span>
+        <span style="background:linear-gradient(#3d6b92 0 50%,#776e51 50%)"></span>
+        <span style="background:linear-gradient(#77a4c9 0 58%,#968b6a 58%)"></span>
+        <span style="background:linear-gradient(#4f7fa8 0 54%,#6c6549 54%)"></span>
+        <span style="background:linear-gradient(#6b96bd 0 50%,#8a8060 50%)"></span>
+        <span style="background:linear-gradient(#44739a 0 56%,#756d50 56%)"></span>
+        <span style="background:linear-gradient(#7aa8cd 0 52%,#938969 52%)"></span>
+        <span style="background:linear-gradient(#55849f 0 58%,#6f684c 58%)"></span>
+        <span style="background:linear-gradient(#6498c1 0 54%,#887e5e 54%)"></span>
+        <span style="background:linear-gradient(#416e95 0 50%,#736b4e 50%)"></span>
+        <span style="background:linear-gradient(#74a2c8 0 56%,#998e6d 56%)"></span>
+        <span style="background:linear-gradient(#5886b0 0 52%,#6d6648 52%)"></span>
+        <span style="background:linear-gradient(#49769c 0 58%,#8c8261 58%)"></span>
+        <span style="background:linear-gradient(#6d9ac2 0 54%,#776f52 54%)"></span>
+        <span style="background:linear-gradient(#5283ab 0 50%,#948a6a 50%)"></span>
+      </div>
+      <!-- gradient only at the bottom: the photographs stay visible -->
+      <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,19,25,.28) 0%,rgba(15,19,25,.10) 26%,rgba(15,19,25,.72) 62%,rgba(15,19,25,.96) 100%)"></div>
+
+      <div class="wrap" style="position:relative;padding-bottom:64px;width:100%;box-sizing:border-box">
+        <h1 class="hero-h" style="margin:0 0 20px;font-size:76px;line-height:1.02;font-weight:700;letter-spacing:-.035em;max-width:14ch">Montana, looking north</h1>
+        <p class="lede" style="margin:0 0 28px;max-width:50ch">Cameras on 165 stations photograph north, south, east and west through the day. This set has photos from 160 of them.</p>
+        <p style="display:flex;flex-wrap:wrap;gap:28px;align-items:center;margin:0 0 22px">
+          <a href="/photos/" style="background:#1a6faf;color:#fff;font-weight:600;font-size:16px;padding:14px 26px;border-radius:2px">Open the Photo Explorer</a>
+          <a href="#readings" class="go" style="font-size:16px">See current readings &nbsp;↓</a>
+        </p>
+        <p class="mono" style="margin:0;font-size:13px">Oct 23, 3:00 PM MDT · facing north · 160 of 165 cameras</p>
+      </div>
+    </section>
+
+    <!-- PHOTO CONTROLS: text, not a form band -->
+    <section style="padding-block:28px">
+      <div class="wrap" style="display:flex;flex-wrap:wrap;gap:40px;align-items:center">
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <label for="d-date" class="mono" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase">Date</label>
+          <input id="d-date" type="date" value="2026-10-23" style="font-family:inherit;font-size:16px;color:#e8ecf0;background:transparent;border:0;border-bottom:1px solid #3a4558;padding:6px 2px">
+        </div>
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <label for="d-time" class="mono" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase">Time</label>
+          <select id="d-time" style="font-family:inherit;font-size:16px;color:#e8ecf0;background:transparent;border:0;border-bottom:1px solid #3a4558;padding:6px 2px">
+            <option>9:00 AM</option><option>12:00 PM</option><option selected="selected">3:00 PM</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px">
+          <span class="mono" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase">Facing</span>
+          <span style="display:flex;gap:18px;font-size:16px">
+            <a href="?dir=N" style="color:#e8ecf0;font-weight:600;border-bottom:2px solid #5aaee8;padding-bottom:4px">North</a>
+            <a href="?dir=S" style="color:#8a99b0;padding-bottom:4px">South</a>
+            <a href="?dir=E" style="color:#8a99b0;padding-bottom:4px">East</a>
+            <a href="?dir=W" style="color:#8a99b0;padding-bottom:4px">West</a>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- READINGS -->
+    <section id="readings">
+      <div class="wrap" style="display:flex;flex-wrap:wrap;gap:72px">
+        <div style="flex:1 1 380px;min-width:0;max-width:440px">
+          <span class="tick" aria-hidden="true"></span>
+          <h2 class="sec">What the stations are reading</h2>
+          <p class="lede" style="margin:0 0 36px">Air temperature, humidity, wind, precipitation and soil moisture at four depths. Every hour, from 253 stations, checked before it is published.</p>
+
+          <label for="d-search" style="display:block;font-size:15px;color:#c0cad6;margin-bottom:10px">Find conditions near you</label>
+          <div style="display:flex;gap:0;align-items:stretch;border-bottom:1px solid #6a7996;max-width:400px">
+            <input id="d-search" type="search" placeholder="Town, county or ZIP" style="flex:1 1 auto;min-width:0;font-family:inherit;font-size:17px;color:#e8ecf0;background:transparent;border:0;padding:12px 2px">
+            <button type="button" style="font-family:inherit;font-size:15px;font-weight:600;color:#5aaee8;background:transparent;border:0;padding:12px 4px;cursor:pointer">Search</button>
+          </div>
+
+          <div style="margin-top:44px">
+            <p class="mono" style="margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Nearest · Lolo Lower</p>
+            <p style="margin:0;font-size:64px;font-weight:700;line-height:1;letter-spacing:-.03em">41<span style="font-size:28px;font-weight:500;color:#c0cad6">°F</span></p>
+            <p style="margin:10px 0 0;font-size:17px;color:#c0cad6">Calm, no precipitation in 3 days</p>
+            <p class="mono" style="margin:10px 0 0;font-size:12px">Updated 17 min ago · provisional</p>
+          </div>
+        </div>
+
+        <div style="flex:999 1 480px;min-width:0">
+          <div aria-hidden="true" style="background:#0f1319;height:520px;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(9,1fr);padding:24px">
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-column:2"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#7fc0ee;align-self:center;justify-self:center;grid-column:5"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#df9412;align-self:center;justify-self:center;grid-column:8"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-column:11"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#36ba6d;align-self:center;justify-self:center;grid-row:3;grid-column:3"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-row:3;grid-column:6"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#7fc0ee;align-self:center;justify-self:center;grid-row:3;grid-column:9"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-row:3;grid-column:12"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#df9412;align-self:center;justify-self:center;grid-row:5;grid-column:2"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-row:5;grid-column:5"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-row:5;grid-column:7"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#7fc0ee;align-self:center;justify-self:center;grid-row:5;grid-column:10"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-row:7;grid-column:4"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#36ba6d;align-self:center;justify-self:center;grid-row:7;grid-column:6"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#df9412;align-self:center;justify-self:center;grid-row:7;grid-column:9"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-row:7;grid-column:11"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#7fc0ee;align-self:center;justify-self:center;grid-row:9;grid-column:5"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#5aaee8;align-self:center;justify-self:center;grid-row:9;grid-column:8"></span>
+          </div>
+          <p class="mono" style="margin:16px 0 0;font-size:12px">Air temperature · 4:37 PM MDT · 3 stations hidden (no air temperature in the latest report)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATION STATUS: numerals on the page, no band, no border -->
+    <section style="padding-block:0 112px">
+      <div class="wrap">
+        <span class="tick" aria-hidden="true"></span>
+        <h2 class="sec" style="margin-bottom:40px">Station status</h2>
+        <dl class="s-grid" style="margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:48px 40px">
+          <div>
+            <dd class="big-num" style="margin:0;font-weight:700;line-height:1;letter-spacing:-.03em">253</dd>
+            <dt class="mono" style="margin-top:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Stations</dt>
+          </div>
+          <div>
+            <dd class="big-num" style="margin:0;font-weight:700;line-height:1;letter-spacing:-.03em;color:#36ba6d">250</dd>
+            <dt class="mono" style="margin-top:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Reported in last 2 h</dt>
+          </div>
+          <div>
+            <dd class="big-num" style="margin:0;font-weight:700;line-height:1;letter-spacing:-.03em">45</dd>
+            <dt class="mono" style="margin-top:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Partial sensor outage</dt>
+          </div>
+          <div>
+            <dd class="big-num" style="margin:0;font-weight:700;line-height:1;letter-spacing:-.03em">3</dd>
+            <dt class="mono" style="margin-top:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Total outage</dt>
+          </div>
+        </dl>
+        <p style="margin:36px 0 0;font-size:17px;color:#c0cad6;max-width:60ch">A station with a partial sensor outage is still reporting. At least one of its sensors is not.</p>
+        <p style="margin:22px 0 0"><a href="/mesonet/status/" class="go" style="font-size:16px">Every station's status &nbsp;→</a></p>
+      </div>
+    </section>
+
+    <!-- QUESTIONS: blocks, not cards -->
+    <section style="padding-block:0 112px">
+      <div class="wrap">
+        <span class="tick" aria-hidden="true"></span>
+        <h2 class="sec" style="margin-bottom:12px">Start with a question</h2>
+        <p class="lede" style="margin:0 0 56px;max-width:52ch">Each one links to the tool that answers it.</p>
+        <div class="q-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:56px 44px">
+          <div>
+            <h3 class="blk">How dry is it?</h3>
+            <p style="margin:0 0 18px;font-size:16px;color:#c0cad6;line-height:1.6">SPI, SPEI, EDDI and SVPDI for the contiguous US, computed daily from gridMET. Timescales run from 15 days to two years.</p>
+            <a href="https://d3drought.org/" class="go">D³ Drought Data Dashboard</a>
+          </div>
+          <div>
+            <h3 class="blk">Is the snow where it should be?</h3>
+            <p style="margin:0 0 18px;font-size:16px;color:#c0cad6;line-height:1.6">Snow water equivalent compared with the same day in every year since 2003, from NOAA SNODAS.</p>
+            <a href="https://snow.climate.umt.edu/" class="go">Snowpack Explorer</a>
+          </div>
+          <div>
+            <h3 class="blk">How wet is the soil?</h3>
+            <p style="margin:0 0 18px;font-size:16px;color:#c0cad6;line-height:1.6">Shallow, mid-depth and deep soil moisture at each Mesonet station, with growing degree days and reference ET.</p>
+            <a href="https://mesonet.climate.umt.edu/explorer/" class="go">Mesonet Explorer</a>
+          </div>
+          <div>
+            <h3 class="blk">Is this normal for the time of year?</h3>
+            <p style="margin:0 0 18px;font-size:16px;color:#c0cad6;line-height:1.6">Daily values at one station plotted against gridMET normals, with the National Weather Service forecast for that spot.</p>
+            <a href="/conditions/" class="go">Station Dashboard</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOOLS: a list held by space, with one hairline above the set -->
+    <section style="padding-block:0 112px">
+      <div class="wrap">
+        <span class="tick" aria-hidden="true"></span>
+        <h2 class="sec" style="margin-bottom:48px">Tools</h2>
+        <div class="t-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:44px 72px">
+          <div><h3 class="blk" style="font-size:20px"><a href="https://mesonet.climate.umt.edu/explorer/" class="go" style="font-size:20px">Mesonet Explorer</a></h3><p style="margin:0;font-size:16px;color:#8a99b0">Every station on one map, with latest, hourly and daily values for each variable.</p></div>
+          <div><h3 class="blk" style="font-size:20px"><a href="https://mesonet.climate.umt.edu/photos/" class="go" style="font-size:20px">Photo Explorer</a></h3><p style="margin:0;font-size:16px;color:#8a99b0">Station camera photos on one map, by date, time and direction.</p></div>
+          <div><h3 class="blk" style="font-size:20px"><a href="/conditions/" class="go" style="font-size:20px">Station Dashboard</a></h3><p style="margin:0;font-size:16px;color:#8a99b0">One station in detail, with the National Weather Service forecast for that spot.</p></div>
+          <div><h3 class="blk" style="font-size:20px"><a href="/mesonet/status/" class="go" style="font-size:20px">Station Status</a></h3><p style="margin:0;font-size:16px;color:#8a99b0">When each station last reported, and which sensors are not reporting.</p></div>
+          <div><h3 class="blk" style="font-size:20px"><a href="https://snow.climate.umt.edu/" class="go" style="font-size:20px">Snowpack Explorer</a></h3><p style="margin:0;font-size:16px;color:#8a99b0">Snow water equivalent percentiles for the contiguous US, from NOAA SNODAS.</p></div>
+          <div><h3 class="blk" style="font-size:20px"><a href="https://mesonet.climate.umt.edu/umrb/" class="go" style="font-size:20px">UMRB Build Status</a></h3><p style="margin:0;font-size:16px;color:#8a99b0">Station build-out in the Upper Missouri River Basin, cell by cell. Cell assignments are provisional.</p></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer style="padding-block:72px 56px;border-top:1px solid #262f3d">
+    <div class="wrap" style="display:flex;flex-wrap:wrap;gap:56px">
+      <div style="flex:1 1 300px;min-width:0">
+        <p style="margin:0 0 14px;font-weight:600;font-size:16px">Montana Climate Office</p>
+        <p style="margin:0 0 8px;font-size:15px;color:#8a99b0;line-height:1.7">W.A. Franke College of Forestry &amp; Conservation<br>University of Montana, Missoula, MT 59812</p>
+        <p style="margin:0;font-size:15px"><a href="mailto:state.climatologist@umontana.edu" class="go" style="font-weight:400">state.climatologist@umontana.edu</a></p>
+      </div>
+      <div style="flex:0 1 180px;min-width:0">
+        <p class="mono" style="margin:0 0 16px;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Data</p>
+        <p style="margin:0;display:flex;flex-direction:column;gap:11px;font-size:15px;color:#c0cad6">
+          <a href="/mesonet/data/">Mesonet API</a><a href="/mesonet/data/">Quality control</a><a href="/mesonet/data/">Bulk downloads</a><a href="/mesonet/request/">Request a station</a>
+        </p>
+      </div>
+      <div style="flex:0 1 180px;min-width:0">
+        <p class="mono" style="margin:0 0 16px;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Office</p>
+        <p style="margin:0;display:flex;flex-direction:column;gap:11px;font-size:15px;color:#c0cad6">
+          <a href="/about/">About</a><a href="/about/">Staff</a><a href="/research/publications/">Publications</a><a href="/accessibility/">Accessibility</a>
+        </p>
+      </div>
+      <div style="flex:1 1 240px;min-width:0">
+        <p class="mono" style="margin:0 0 16px;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Montana Drought &amp; Climate</p>
+        <p style="margin:0 0 14px;font-size:15px;color:#8a99b0">One email a month.</p>
+        <div style="display:flex;border-bottom:1px solid #6a7996">
+          <label for="d-email" style="position:absolute;left:-9999px">Email address</label>
+          <input id="d-email" type="email" placeholder="you@example.com" style="flex:1 1 auto;min-width:0;font-family:inherit;font-size:16px;color:#e8ecf0;background:transparent;border:0;padding:10px 2px">
+          <button type="button" style="font-family:inherit;font-size:15px;font-weight:600;color:#5aaee8;background:transparent;border:0;padding:10px 4px;cursor:pointer">Subscribe</button>
         </div>
       </div>
     </div>
-  </section>
+    <div class="wrap" style="margin-top:56px;display:flex;flex-wrap:wrap;gap:16px">
+      <p class="mono" style="margin:0;font-size:12px">253 stations · 250 reported in the last two hours</p>
+      <p class="mono" style="margin:0;margin-left:auto;font-size:12px">© 2026 Montana Climate Office, University of Montana</p>
+    </div>
+  </footer>
 
-  <section style="background:var(--bg-surface);border-block:1px solid var(--border)" aria-label="Photo controls">
-    <div class="wrap" style="padding-block:18px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end">
-      <div class="field" style="flex:0 1 170px"><label for="p-date">Date</label><input id="p-date" type="date" value="2026-10-21"></div>
-      <div class="field" style="flex:0 1 140px"><label for="p-time">Time</label><select id="p-time"><option>9:00 AM</option><option selected>3:00 PM</option></select></div>
-      <div class="field" style="flex:0 1 160px"><label for="p-dir">Direction</label><select id="p-dir"><option selected>North</option><option>South</option><option>East</option><option>West</option></select></div>
-      <p class="stamp" style="margin-left:auto;margin-bottom:10px;font-size:13px">Most recent set · Oct 21, 3:00 PM · facing north · 126 of 152 cameras reported</p>
-    </div>
-  </section>
-
-  <section id="readings" style="border-bottom:1px solid var(--border)" aria-labelledby="read-h">
-    <div class="wrap" style="padding-block:60px;display:flex;flex-wrap:wrap;gap:40px">
-      <div style="flex:1 1 380px;max-width:470px;min-width:0">
-        <h2 id="read-h" class="section">What the stations are reading</h2>
-        <p style="margin:0 0 24px;font-size:17px;color:var(--text-secondary);max-width:50ch">Air temperature, humidity, wind, precipitation, and soil moisture at four depths. Every hour, from 253 stations, checked before it is published.</p>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:22px">
-          <div class="field" style="flex:1 1 240px;min-width:0"><label for="s-search">Find conditions near you</label><input id="s-search" type="search" placeholder="Town, county or ZIP"></div>
-          <button class="btn" type="button">Search</button>
-        </div>
-        <div class="card" style="padding:18px 20px">
-          <p style="margin:0 0 4px;font-size:13px;color:var(--text-muted)">Nearest station · Lolo Lower</p>
-          <p style="margin:0 0 2px;font-size:40px;font-weight:700;line-height:1">41°F</p>
-          <p style="margin:0 0 12px;font-size:14px;color:var(--text-secondary)">Calm, no precipitation in 3 days</p>
-          <dl style="margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;font-size:13px">
-            <div><dt style="margin:0;color:var(--text-muted)">Humidity</dt><dd style="margin:2px 0 0;font-weight:600;font-size:15px">88%</dd></div>
-            <div><dt style="margin:0;color:var(--text-muted)">Soil 10 cm</dt><dd style="margin:2px 0 0;font-weight:600;font-size:15px">21%</dd></div>
-            <div><dt style="margin:0;color:var(--text-muted)">Wind</dt><dd style="margin:2px 0 0;font-weight:600;font-size:15px">Calm</dd></div>
-          </dl>
-          <p class="stamp" style="margin-top:12px;font-size:11px">Updated 17 min ago · provisional</p>
-        </div>
-      </div>
-      <div style="flex:999 1 460px;min-width:0">
-        <div class="map-stub" aria-hidden="true">
-          <i style="grid-column:2"></i><i style="grid-column:4;background:#7fc0ee"></i><i style="grid-column:6;background:var(--warning)"></i><i style="grid-column:8"></i><i style="grid-column:10;background:var(--success)"></i><i style="grid-column:12"></i>
-          <i style="grid-row:3;grid-column:3;background:#7fc0ee"></i><i style="grid-row:3;grid-column:5"></i><i style="grid-row:3;grid-column:7"></i><i style="grid-row:3;grid-column:9;background:var(--warning)"></i><i style="grid-row:3;grid-column:11;background:#7fc0ee"></i>
-          <i style="grid-row:5;grid-column:2;background:var(--success)"></i><i style="grid-row:5;grid-column:4"></i><i style="grid-row:5;grid-column:6"></i><i style="grid-row:5;grid-column:8;background:#7fc0ee"></i><i style="grid-row:5;grid-column:10"></i><i style="grid-row:5;grid-column:12"></i>
-          <i style="grid-row:7;grid-column:5;background:var(--warning)"></i><i style="grid-row:7;grid-column:7"></i><i style="grid-row:7;grid-column:9;background:#7fc0ee"></i><i style="grid-row:7;grid-column:11"></i>
-        </div>
-        <p class="stamp" style="margin-top:12px">Air temperature · 9:35 PM MDT · 1 station hidden (no report in 3 h)</p>
-      </div>
-    </div>
-  </section>
-
-  <section style="background:var(--bg-surface);border-bottom:1px solid var(--border)" aria-labelledby="net-h">
-    <div class="wrap" style="padding-block:34px;display:flex;flex-wrap:wrap;gap:28px;align-items:center">
-      <h2 id="net-h" style="margin:0;font-size:15px;font-weight:600;color:var(--text-secondary)">Station status</h2>
-      <dl style="margin:0;display:flex;flex-wrap:wrap;gap:36px;flex:1 1 auto">
-        <div><dt style="margin:0;font-size:13px;color:var(--text-muted)">Stations</dt><dd style="margin:2px 0 0;font-size:26px;font-weight:700">253</dd></div>
-        <div><dt style="margin:0;font-size:13px;color:var(--text-muted)">Reported &lt; 2 h ago</dt><dd style="margin:2px 0 0;font-size:26px;font-weight:700;color:var(--success)">251</dd></div>
-        <div><dt style="margin:0;font-size:13px;color:var(--text-muted)">Maintenance overdue</dt><dd style="margin:2px 0 0;font-size:26px;font-weight:700;color:var(--success)">0</dd></div>
-        <div><dt style="margin:0;font-size:13px;color:var(--text-muted)">Basin cells operational</dt><dd style="margin:2px 0 0;font-size:26px;font-weight:700">187</dd></div>
-      </dl>
-      <a class="btn btn-ghost" href="/mesonet/status/" style="font-size:14px;padding:11px 17px;min-height:44px">Station status and maintenance</a>
-    </div>
-  </section>
-
-  <section class="wrap" style="padding-top:72px" aria-labelledby="cond-h">
-    <h2 id="cond-h" class="section">The questions we get asked</h2>
-    <p style="margin:0 0 32px;font-size:17px;color:var(--text-secondary);max-width:62ch">Each one has a tool behind it. Pick the question, not the acronym.</p>
-    <div class="grid-4">
-      <article class="card">
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600">How dry is it?</h3>
-        <p style="margin:0 0 16px;font-size:14px;color:var(--text-secondary)">Four drought indices at ten timescales, run daily. The same ones the Governor's Drought and Water Supply Advisory Committee works from.</p>
-        <a href="https://d3drought.org/" style="font-size:14px;font-weight:600;text-decoration:none">Drought Data Dashboard</a>
-      </article>
-      <article class="card">
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600">Is the snow where it should be?</h3>
-        <p style="margin:0 0 16px;font-size:14px;color:var(--text-secondary)">Snow water equivalent against every year since 2003, by 1 km grid cell or by watershed.</p>
-        <a href="https://snow.climate.umt.edu/" style="font-size:14px;font-weight:600;text-decoration:none">Snowpack Explorer</a>
-      </article>
-      <article class="card">
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600">Will there be grass?</h3>
-        <p style="margin:0 0 16px;font-size:14px;color:var(--text-secondary)">Soil moisture at four depths from every HydroMet station, plus growing degree days and reference ET for your own ground.</p>
-        <a href="https://mesonet.climate.umt.edu/explorer/" style="font-size:14px;font-weight:600;text-decoration:none">Mesonet Explorer</a>
-      </article>
-      <article class="card">
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600">Is this normal?</h3>
-        <p style="margin:0 0 16px;font-size:14px;color:var(--text-secondary)">This year set against the long-term record, for any point in the state.</p>
-        <a href="/climate/" style="font-size:14px;font-weight:600;text-decoration:none">Climate Explorer</a>
-      </article>
-    </div>
-  </section>
-
-  <section class="wrap" style="padding-top:72px" aria-labelledby="who-h">
-    <h2 id="who-h" class="section" style="margin-bottom:32px">Where people usually start</h2>
-    <div class="grid-4">
-      <a class="card" href="/for/producers/" style="text-decoration:none;color:var(--text-primary)">
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600;color:var(--accent-light)">Ranchers and farmers</h3>
-        <p style="margin:0;font-size:14px;color:var(--text-secondary)">Soil moisture before turnout, growing degree days through the season, and the record a Livestock Forage Program claim needs.</p>
-      </a>
-      <a class="card" href="/for/tribal-nations/" style="text-decoration:none;color:var(--text-primary)">
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600;color:var(--accent-light)">Tribal nations</h3>
-        <p style="margin:0;font-size:14px;color:var(--text-secondary)">Drought indices drawn to tribal boundaries, station data for reservation lands, and what hosting a station involves.</p>
-      </a>
-      <a class="card" href="/for/agencies/" style="text-decoration:none;color:var(--text-primary)">
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600;color:var(--accent-light)">Agencies and counties</h3>
-        <p style="margin:0;font-size:14px;color:var(--text-secondary)">The indicators the state drought committee reviews each month, aggregated by county or watershed, ready to put in a briefing.</p>
-      </a>
-      <a class="card" href="/for/researchers/" style="text-decoration:none;color:var(--text-primary)">
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600;color:var(--accent-light)">Researchers</h3>
-        <p style="margin:0;font-size:14px;color:var(--text-secondary)">A public API, the quality-control record behind every value, and bulk downloads back to each station's install date.</p>
-      </a>
-    </div>
-  </section>
-
-  <section class="wrap" style="padding-block:72px 80px" aria-labelledby="news-h">
-    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:baseline;margin-bottom:24px">
-      <h2 id="news-h" class="section" style="margin:0">From the office</h2>
-      <a href="/news/" style="margin-left:auto;font-size:15px;font-weight:600;text-decoration:none">All news and updates</a>
-    </div>
-    <ul class="grid-3" style="list-style:none;margin:0;padding:0">
-      <li class="card">
-        <p class="stamp" style="margin-bottom:8px">June 2026</p>
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600"><a href="/news/" style="text-decoration:none">Montana Drought &amp; Climate — June update</a></h3>
-        <p style="margin:0;font-size:14px;color:var(--text-secondary)">Temperature, precipitation, snowpack, soil moisture, streamflow and drought, month by month.</p>
-      </li>
-      <li class="card">
-        <p class="stamp" style="margin-bottom:8px">June 2026</p>
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600"><a href="/news/" style="text-decoration:none">Announcing EcoRestore Montana</a></h3>
-        <p style="margin:0;font-size:14px;color:var(--text-secondary)">A native plant restoration portal for Montana, now open to anyone.</p>
-      </li>
-      <li class="card">
-        <p class="stamp" style="margin-bottom:8px">March 2026</p>
-        <h3 style="margin:0 0 10px;font-size:17px;font-weight:600"><a href="/news/" style="text-decoration:none">Explore Montana's weather stations through a new lens</a></h3>
-        <p style="margin:0;font-size:14px;color:var(--text-secondary)">Every photo the stations have taken, on one map, searchable by direction and time.</p>
-      </li>
-    </ul>
-  </section>
-
-</main>
-
-<footer style="background:var(--bg-surface);border-top:1px solid var(--border)">
-  <div class="wrap" style="padding-block:48px;display:flex;flex-wrap:wrap;gap:40px">
-    <div style="flex:1 1 280px;min-width:0">
-      <p style="margin:0 0 12px;font-weight:600;font-size:16px">Montana Climate Office</p>
-      <p style="margin:0 0 6px;font-size:14px;color:var(--text-secondary)">W.A. Franke College of Forestry &amp; Conservation<br>University of Montana, Missoula, MT 59812</p>
-      <p style="margin:0;font-size:14px"><a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a></p>
-    </div>
-    <div style="flex:0 1 200px;min-width:0">
-      <h2 style="margin:0 0 12px;font-size:14px;font-weight:600;color:var(--text-secondary)">Data</h2>
-      <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14px">
-        <li><a href="/mesonet/data/">Mesonet API</a></li>
-        <li><a href="/mesonet/data/">Quality control notes</a></li>
-        <li><a href="/mesonet/data/">Bulk downloads</a></li>
-        <li><a href="/mesonet/request/">Request a station</a></li>
-      </ul>
-    </div>
-    <div style="flex:0 1 200px;min-width:0">
-      <h2 style="margin:0 0 12px;font-size:14px;font-weight:600;color:var(--text-secondary)">Office</h2>
-      <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14px">
-        <li><a href="/about/">About the office</a></li>
-        <li><a href="/about/">Staff and contacts</a></li>
-        <li><a href="/research/publications/">Publications</a></li>
-        <li><a href="/about/">Partners and funders</a></li>
-        <li><a href="/accessibility/">Accessibility statement</a></li>
-      </ul>
-    </div>
-    <div style="flex:1 1 260px;min-width:0">
-      <h2 style="margin:0 0 12px;font-size:14px;font-weight:600;color:var(--text-secondary)">Montana Drought &amp; Climate</h2>
-      <p style="margin:0 0 10px;font-size:13px;color:var(--text-muted)">One email a month.</p>
-      <div class="field">
-        <label for="f-email">Email address</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <input id="f-email" type="email" style="flex:1 1 150px;min-width:0">
-          <button class="btn" type="button" style="font-size:14px;padding:11px 17px;min-height:44px">Subscribe</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div style="border-top:1px solid var(--border)">
-    <div class="wrap" style="padding-block:20px;display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--text-muted)">
-      <p style="margin:0">253 stations · 251 reported in the last two hours</p>
-      <p style="margin:0;margin-left:auto">© 2026 Montana Climate Office, University of Montana</p>
-    </div>
-  </div>
-</footer>
-
+</div>
 </body>
 </html>

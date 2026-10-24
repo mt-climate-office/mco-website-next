@@ -6,7 +6,8 @@ Plan: @docs/mco-website-rebuild-plan.md
 Decisions (settled, do not reopen): @docs/DECISIONS.md
 Phase 0 facts: @docs/phase-0-report.md
 Voice, binding on all copy: @docs/VOICE.md
-Chosen design: `docs/design/homepage-reference.html`
+Visual system: @docs/VISUAL-SYSTEM.md (approved 24 Oct 2026)
+Chosen design: `docs/design/homepage-reference.html` (the comp it describes)
 CMS codegen reference: `docs/examples/cms-codegen/`
 
 ## House style
@@ -41,6 +42,15 @@ change the kit and bump the pinned version here; never patch a local copy.
 
 Use `snippets/head.html`, `snippets/anti-flash.html`, `snippets/skip-link.html`.
 
+**Visual system: `docs/VISUAL-SYSTEM.md`**, approved 24 Oct 2026, with its
+comp at `docs/design/homepage-reference.html`. It supersedes the earlier
+"A + C" instrument-panel direction. The spec wins where the two disagree;
+the comp's hex literals become kit tokens, never ship as hex. It is a
+content layer **above** the kit (`src/styles/site.css` and page/component
+styles): kit tokens stay untouched inside data components so they keep
+matching the tools. Frameless: space, type scale and alignment carry
+structure; the only ornament is the section-heading tick.
+
 - **Skip link targets `#main`**, not `#main-content`. `<main id="main"
   tabindex="-1">`.
 - **Text, borders and icons on dark use `--accent-line`.** `--accent` is
@@ -70,9 +80,10 @@ timeout**. Generate types from `/api/openapi.json`.
 - Photo times come from `data2.climate.umt.edu` `photos/schedule/schedule.json`
   and the monthly manifests (D6), not the API.
 - Photos go through the kit's `MCO.photos` (`photos/mco-photos.js`, D9),
-  never a local copy. The homepage hero uses the kit's **default** audience:
-  N/E/S/W, North, most recent capture, first date **2026-10-22**. Never pass
-  `since` or `fullHistory` here; the tools pass `fullHistory` (D16).
+  never a local copy. The homepage hero uses the kit's **default** audience
+  (most recent capture, first date **2026-10-22**) and shows **West only,
+  with no controls** (D22); every other view is in the Photo Explorer. Never
+  pass `since` or `fullHistory` here; the tools pass `fullHistory` (D16).
   Snow/Pluvio/Solar stay staff-only (D8).
 - The hero's build-time set is computed by the same pinned kit bytes, loaded
   in `node:vm` after an SRI check (`src/lib/kit-node.ts`), through
@@ -151,7 +162,7 @@ src/lib/                paths.ts (url(), canonicalUrl()), nav.ts (sections),
                         photo-snapshot.ts (hero build-time snapshot)
 src/scripts/chrome.ts   theme toggle, drawer, MCO.ready()
 src/scripts/search.ts   /search/ on Pagefind's JS API (loaded on first query)
-src/scripts/photo-hero.ts  homepage photo controls (MCO.photos.initPhotoControls)
+src/scripts/photo-hero.ts  homepage hero: swaps in a newer West set once it is in
 src/styles/site.css     site layer over the kit; tokens only
 src/pages/              routes, robots.txt endpoint, 404
 public/mco-logo.png     navbar badge, vendored from the kit tag
@@ -190,9 +201,8 @@ half of `npm run build`. It indexes only `<main data-pagefind-body>`, which
   `assetsInlineLimit: 0` and `inlineStylesheets: 'never'`. The CSP is written
   by hand because the kit's `head.mjs` matches only the
   `Content-Security-Policy` spelling, and Astro's built-in CSP emits it
-  lowercase. The homepage alone adds `style-src-attr 'unsafe-inline'`:
-  WebKit draws the photo controls' `<select>` with style attributes
-  (`csp.ts`, `photos`).
+  lowercase. No page allows `style-src-attr`: the homepage's allowance went
+  with the photo controls (D18, D22).
 - **noindex is automatic.** Only a deploy whose Pages origin is the production
   host is indexable. At cutover, set `EXPECT_INDEXABLE: '1'` in the deploy
   job in the same change that moves the domain. The production build also

@@ -42,29 +42,23 @@ const FIGURES = [
   </p>
 
   <section class="st-section" aria-labelledby="st-network">
-    <h2 id="st-network" class="st-h2">The network</h2>
-    <dl class="st-figures">
-      <div>
-        <dt>Stations</dt>
-        <dd><span class="mco-num-display" data-sum="total">{count(summary.stations.total)}</span></dd>
-      </div>
-      <div>
-        <dt>Reported in the last <span data-sum="window">{windowLabel}</span></dt>
-        <dd>
-          <span class="mco-num-display" data-sum="reporting">{count(summary.reporting.reporting)}</span>
-          <span class="st-pct" data-sum="reporting-pct">{summary.reporting.pct}%</span>
-        </dd>
-      </div>
+    <h2 id="st-network" class="section-title">The network</h2>
+    <ul class="figures">
+      <li>
+        <span class="figure mco-num-display" data-sum="total">{count(summary.stations.total)}</span>
+        <span class="figure-label">Stations</span>
+      </li>
+      <li>
+        <span class="figure mco-num-display" data-sum="reporting">{count(summary.reporting.reporting)}</span>
+        <span class="figure-label">Reported in the last <span data-sum="window">{windowLabel}</span> (<span data-sum="reporting-pct">{summary.reporting.pct}%</span>)</span>
+      </li>
       {FIGURES.map((f) => (
-        <div>
-          <dt>{f.label}</dt>
-          <dd>
-            <span class="mco-num-display" data-sum={f.key}>{count(summary.health[f.key])}</span>
-            <span class="st-pct" data-sum={`${f.key}-pct`}>{summary.health.pct[f.key]}%</span>
-          </dd>
-        </div>
+        <li>
+          <span class="figure mco-num-display" data-sum={f.key}>{count(summary.health[f.key])}</span>
+          <span class="figure-label">{f.label} (<span data-sum={`${f.key}-pct`}>{summary.health.pct[f.key]}%</span>)</span>
+        </li>
       ))}
-    </dl>
+    </ul>
     <p class="st-note">
       A station with a partial sensor outage is still reporting. At least one of its sensors is not.
     </p>
@@ -74,13 +68,13 @@ const FIGURES = [
     </p>
     <p class="stamp">As of <time data-sum="asof" datetime={isoTime(summary.generated_at)}>{stampMT(summary.generated_at)}</time></p>
     <ul class="st-links">
-      <li><a class="nav-btn site-cta" href={STATUS_TOOL}>Map view in Station Status</a></li>
-      <li><a class="nav-btn site-cta" href={MAINTENANCE_TOOL}>Visit history in Station Maintenance</a></li>
+      <li><a class="site-link" href={STATUS_TOOL}>Map view in Station Status</a></li>
+      <li><a class="site-link" href={MAINTENANCE_TOOL}>Visit history in Station Maintenance</a></li>
     </ul>
   </section>
 
   <section class="st-section" aria-labelledby="st-stations">
-    <h2 id="st-stations" class="st-h2">Every station</h2>
+    <h2 id="st-stations" class="section-title">Every station</h2>
     <p class="stamp">Station data as of <time id="st-asof" datetime={isoTime(table.fetchedAt)}>{stampMT(table.fetchedAt)}</time></p>
 
     <div class="st-controls" id="st-controls" hidden>
@@ -107,11 +101,11 @@ const FIGURES = [
 
     <div class="st-bar">
       <p id="st-count" class="st-count">{count(table.rows.length)} stations</p>
-      <a id="st-csv" class="nav-btn" href={url('mesonet/status/stations.csv')} download="mesonet-station-status.csv">Download CSV</a>
+      <a id="st-csv" class="site-link" href={url('mesonet/status/stations.csv')} download="mesonet-station-status.csv">Download CSV</a>
     </div>
 
     <!-- A labelled, focusable region so the table scrolls sideways by keyboard on a phone. -->
-    <section class="st-scroll" aria-labelledby="st-caption" tabindex="0">
+    <section class="table-region st-scroll" aria-labelledby="st-caption" tabindex="0">
       <table class="st-table" id="st-table">
         <caption id="st-caption">Montana Mesonet stations, by name</caption>
         <thead>
@@ -156,50 +150,32 @@ const FIGURES = [
 </script>
 
 <style is:global>
-  .st-section { margin-top: var(--space-7); }
-  .st-h2 {
-    font-size: var(--fs-xl);
-    line-height: var(--lh-tight);
-    font-weight: var(--fw-semibold);
-    margin-bottom: var(--space-4);
-  }
-
-  .st-figures {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-5) var(--space-7);
-  }
-  .st-figures dt { font-size: var(--fs-md); color: var(--text-muted); }
-  .st-figures dd { font-size: var(--fs-2xl); }
-  .st-pct {
-    margin-left: var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-base);
-    color: var(--text-secondary);
-  }
+  .st-section { margin-top: var(--site-section); }
+  .st-section > .section-title + * { margin-top: var(--site-head-gap); }
   .st-note {
-    margin-top: var(--space-4);
-    max-width: 62ch;
-    font-size: var(--fs-base);
+    margin-top: 2.25rem;
+    max-width: 60ch;
+    font-size: var(--fs-lg);
     line-height: var(--lh-body);
     color: var(--text-secondary);
   }
-  .st-note + .st-note { margin-top: var(--space-2); }
-  .st-section .stamp { margin-top: var(--space-2); }
+  .st-note + .st-note { margin-top: var(--space-3); }
+  .st-section .stamp { margin-top: var(--space-3); }
   .st-links {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
-    margin-top: var(--space-5);
+    gap: var(--space-3) var(--space-6);
+    margin-top: var(--space-6);
+    font-size: var(--fs-lg);
   }
 
   .st-controls {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
-    gap: var(--space-4) var(--space-6);
-    margin-top: var(--space-5);
+    gap: var(--space-5) var(--site-grid-gap);
+    margin-top: var(--space-6);
   }
   .st-controls[hidden] { display: none; }
   .st-field { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -208,18 +184,20 @@ const FIGURES = [
   /* Own field style rather than the kit's .mco-search-input, whose icon is
      a data: URI mask the page CSP (img-src) does not allow. 40px tall at
      every width: the touch-target minimum (HOUSE-STYLE §5.5). */
+  /* Frameless, with the one hairline a text input keeps (D21). */
   .st-input {
     min-height: 40px;
-    min-width: 12rem;
-    padding: 0 var(--space-3);
-    background-color: var(--input-bg);
+    min-width: 16rem;
+    padding: 0;
+    background: transparent;
     color: var(--text-primary);
-    border: 1px solid var(--ctrl-border);
-    border-radius: var(--radius-md);
+    border: 0;
+    border-bottom: 1px solid var(--ctrl-border);
+    border-radius: 0;
     font: inherit;
-    font-size: var(--fs-md);
+    font-size: var(--fs-lg);
   }
-  .st-input:hover { border-color: var(--accent-line); }
+  .st-input:hover { border-bottom-color: var(--accent-line); }
 
   .st-bar {
     display: flex;
@@ -227,17 +205,11 @@ const FIGURES = [
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    margin-top: var(--space-5);
+    margin-top: var(--space-6);
   }
-  .st-count { font-size: var(--fs-base); color: var(--text-secondary); }
+  .st-count { font-size: 1rem; color: var(--text-secondary); }
 
-  .st-scroll {
-    margin-top: var(--space-4);
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--bg-surface);
-  }
+  .st-scroll { margin-top: var(--space-4); }
   .st-table {
     width: 100%;
     border-collapse: collapse;
@@ -247,10 +219,9 @@ const FIGURES = [
   .st-table caption {
     caption-side: top;
     text-align: left;
-    padding: var(--space-3) var(--space-4);
+    padding-block: var(--space-3);
     font-size: var(--fs-md);
     color: var(--text-secondary);
-    border-bottom: 1px solid var(--border);
   }
   .st-table th, .st-table td {
     padding: var(--space-3) var(--space-4);
@@ -259,6 +230,9 @@ const FIGURES = [
     border-bottom: 1px solid var(--border);
   }
   .st-table tbody tr:last-child > * { border-bottom: 0; }
+  /* No frame, so the first column lines up with the text above it. */
+  .st-table tr > :first-child,
+  .st-table thead th:first-child .st-sort { padding-left: 0; }
   .st-table thead th {
     font-size: var(--fs-md);
     font-weight: var(--fw-semibold);

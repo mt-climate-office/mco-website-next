@@ -1,29 +1,52 @@
 ---
-// Kit footer: the wordmark pair from the pinned tag, and the theme shows one
-// (HOUSE-STYLE §1 Logo). The network-status line (rebuild plan §4.3) and the
-// newsletter signup (DECISIONS D11) wait on mesonet-compliance and on the
-// MCO News list existing.
+// Kit footer, as site columns (VISUAL-SYSTEM comp): the wordmark pair from
+// the pinned tag with the address (HOUSE-STYLE §1 Logo; DECISIONS D15),
+// the six sections, the data pages, and this site's own pages. Every link
+// is to a page that exists. Each nav is named "Footer: …", so no name
+// collides with a page's own nav (the search page has a "Sections" one). The newsletter signup (DECISIONS D11) waits on
+// the MCO News list existing.
 import { kit } from '../../kit/kit';
 import { url } from '../../lib/paths';
 import { NAV } from '../../lib/nav';
 
 const year = new Date().getFullYear();
+const DATA = [
+  { label: 'Station status', path: 'mesonet/status/' },
+  { label: 'Station directory', path: 'mesonet/stations/' },
+  { label: 'Publications', path: 'research/publications/' },
+];
+const SITE = [
+  { label: 'Search', path: 'search/' },
+  { label: 'Accessibility', path: 'accessibility/' },
+  { label: 'User agreement', path: 'about/agreement/' },
+];
 ---
 <footer class="mco-footer site-footer">
-  <nav class="site-footer-nav" aria-label="Footer">
-    <ul>
-      {NAV.map((n) => <li><a href={url(n.path)}>{n.label}</a></li>)}
-      <li><a href={url('search/')}>Search</a></li>
-      <li><a href={url('accessibility/')}>Accessibility</a></li>
-    </ul>
-  </nav>
-  <img class="mco-wordmark is-on-dark" src={kit('assets/mco-wordmark-on-dark.svg')}
-       alt="Montana Climate Office" width="130" height="48">
-  <img class="mco-wordmark is-on-light" src={kit('assets/mco-wordmark-on-light.svg')}
-       alt="Montana Climate Office" width="130" height="48">
-  <address>
-    <p>W.A. Franke College of Forestry &amp; Conservation<br>University of Montana, Missoula, MT 59812</p>
-    <p><a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a></p>
-  </address>
-  <p>© {year} Montana Climate Office, University of Montana</p>
+  <div class="wrap">
+    <div class="site-footer-cols">
+      <div>
+        <img class="mco-wordmark is-on-dark" src={kit('assets/mco-wordmark-on-dark.svg')}
+             alt="Montana Climate Office" width="130" height="48">
+        <img class="mco-wordmark is-on-light" src={kit('assets/mco-wordmark-on-light.svg')}
+             alt="Montana Climate Office" width="130" height="48">
+        <address>
+          <p>W.A. Franke College of Forestry &amp; Conservation<br>University of Montana, Missoula, MT 59812</p>
+          <p><a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a></p>
+        </address>
+      </div>
+      <nav class="site-footer-nav" aria-label="Footer: sections">
+        <h2 class="site-footer-head">Sections</h2>
+        <ul>{NAV.map((n) => <li><a href={url(n.path)}>{n.label}</a></li>)}</ul>
+      </nav>
+      <nav aria-label="Footer: data">
+        <h2 class="site-footer-head">Data</h2>
+        <ul>{DATA.map((n) => <li><a href={url(n.path)}>{n.label}</a></li>)}</ul>
+      </nav>
+      <nav aria-label="Footer: this site">
+        <h2 class="site-footer-head">This site</h2>
+        <ul>{SITE.map((n) => <li><a href={url(n.path)}>{n.label}</a></li>)}</ul>
+      </nav>
+    </div>
+    <p class="stamp site-footer-meta">© {year} Montana Climate Office, University of Montana</p>
+  </div>
 </footer>
