@@ -14,6 +14,11 @@
   --site-head-gap: 3.5rem;         /* section heading to its content (56px) */
   --site-grid-gap: 2.75rem;        /* grid gaps run 44-72px; the gap is the separator */
   --site-grid-gap-wide: 4.5rem;
+  /* The sticky navbar's height, one row at every width (D21). mco-core
+     publishes the measured height as --chrome-h, but only once it runs; the
+     kit's theme sets it to 0px until then. Layout that must not move when
+     the script runs reads max(--chrome-h, this) instead. */
+  --site-nav-h: 54px;
   /* Container: 1180px, widening with the window to 1440px without a
      breakpoint (the spec's 1700 / 2200 steps are off the kit ladder). */
   --site-wrap: min(90rem, max(73.75rem, calc(73.75rem + (100vw - 87.5rem) / 3)));
