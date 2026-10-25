@@ -215,14 +215,14 @@ jobs:
         env:
           SITE_ORIGIN: ${{ steps.pages.outputs.origin }}
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
-      # Fails a build that lost noindex. At cutover (rebuild plan Phase 5,
-      # step 17) set EXPECT_INDEXABLE: '1' here, deliberately, in the same
-      # change that moves the domain.
-      - name: Built pages are noindex
+      # Production is indexable (cutover, rebuild plan Phase 5 step 17;
+      # docs/cutover-checklist.md D4). Fails a build that is still noindex,
+      # or whose robots.txt or sitemap.xml is not the production one.
+      - name: Built pages are indexable
         run: npm run check:built
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
-          EXPECT_INDEXABLE: '0'
+          EXPECT_INDEXABLE: '1'
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist
