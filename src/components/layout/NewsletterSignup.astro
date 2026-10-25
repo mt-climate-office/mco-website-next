@@ -1,0 +1,58 @@
+---
+// Footer signup for MCO News (DECISIONS D11, D15, D28). A plain form that
+// posts to Listmonk's public subscription endpoint, so it works without
+// JavaScript; Listmonk answers with its own page and sends the
+// confirmation email (double opt-in). Anti-abuse is Listmonk's `nonce`
+// honeypot plus the Caddy rate limit in front of it (D15): no captcha.
+//
+// Rendered only once NEWS_LIST.uuid is set (src/lib/newsletter-list.ts).
+// The description is the list's own, approved in D15, with "this site"
+// for the host name (check:paths).
+import { NEWS_LIST } from '../../lib/newsletter-list';
+---
+{NEWS_LIST.uuid && (
+  <section class="site-signup" aria-labelledby="signup-title">
+    <h2 id="signup-title" class="site-footer-head">News by email</h2>
+    <p class="site-signup-note" id="signup-note">
+      Posts from this site by email, including the Montana Drought &amp; Climate update. Every
+      message has an unsubscribe link. You get one email first, to confirm.
+    </p>
+    <form method="post" action={NEWS_LIST.action} class="site-signup-form">
+      <label class="site-signup-label" for="signup-email">Email address</label>
+      <div class="site-signup-row">
+        <input id="signup-email" class="site-signup-input" type="email" name="email" required
+               autocomplete="email" spellcheck="false" aria-describedby="signup-note">
+        <button class="nav-btn site-signup-button" type="submit">Subscribe</button>
+      </div>
+      <input type="hidden" name="l" value={NEWS_LIST.uuid}>
+      {/* Listmonk's honeypot: a person never sees or fills it; a form-filling
+          script does, and Listmonk drops that subscription. */}
+      <div class="site-signup-trap" aria-hidden="true">
+        <label for="signup-nonce">Leave this empty</label>
+        <input id="signup-nonce" type="text" name="nonce" tabindex="-1" autocomplete="off" value="">
+      </div>
+    </form>
+  </section>
+)}
+
+<style>
+  .site-signup { margin-top: var(--site-head-gap); max-width: 34rem; }
+  .site-signup-note { color: var(--text-secondary); line-height: 1.6; }
+  .site-signup-form { margin-top: var(--space-5); }
+  .site-signup-label { display: block; margin-bottom: var(--space-2); color: var(--text-secondary); }
+  .site-signup-row { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: end; }
+  /* Frameless: a hairline under the input, nothing around it (D21). */
+  .site-signup-input {
+    flex: 1 1 16rem;
+    min-height: 40px;
+    padding: var(--space-2) 0;
+    border: 0;
+    border-bottom: 1px solid var(--ctrl-border);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+  }
+  .site-signup-button { min-height: 40px; }
+  .site-signup-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+</style>

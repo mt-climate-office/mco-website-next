@@ -3,8 +3,8 @@
 // the pinned tag with the address (HOUSE-STYLE §1 Logo; DECISIONS D15),
 // the six sections, the data pages, and this site's own pages. Every link
 // is to a page that exists. Each nav is named "Footer: …", so no name
-// collides with a page's own nav (the search page has a "Sections" one). The newsletter signup (DECISIONS D11) waits on
-// the MCO News list existing.
+// collides with a page's own nav (the search page has a "Sections" one). The newsletter signup (DECISIONS D11, D28) renders
+// once the MCO News list's UUID is set (src/lib/newsletter-list.ts).
 //
 // The network line (rebuild plan §4.3, D10): station count and reporting
 // percentage from the mesonet-compliance summary's build-time snapshot,
@@ -12,6 +12,7 @@
 import { kit } from '../../kit/kit';
 import { url } from '../../lib/paths';
 import { NAV } from '../../lib/nav';
+import NewsletterSignup from './NewsletterSignup.astro';
 import { loadSummary } from '../../lib/compliance';
 import { count, isoTime, stampMT } from '../../lib/format';
 
@@ -57,6 +58,7 @@ const SITE = [
         <ul>{SITE.map((n) => <li><a href={url(n.path)}>{n.label}</a></li>)}</ul>
       </nav>
     </div>
+    <NewsletterSignup />
     <p class="stamp site-footer-net">
       <a href={url('mesonet/status/')}>{count(summary.stations.total)} stations, {summary.reporting.pct}% reporting</a>{' '}
       as of <time datetime={isoTime(summary.generated_at)}>{stampMT(summary.generated_at)}</time>

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { API_ORIGIN } from '../lib/mesonet';
+import { NEWS_LIST_ORIGIN } from '../lib/newsletter-list';
 
 // A meta CSP, written here rather than by Astro's security.csp: the kit's
 // verify gate (tools/verify/head.mjs) matches the exact
@@ -78,6 +79,12 @@ export interface CspOptions {
    * reaches with navigator.sendBeacon. No script from it runs here.
    */
   count?: boolean;
+  /**
+   * The footer's newsletter form is on (src/lib/newsletter-list.ts has the
+   * list's UUID): form-action for Listmonk's public endpoint, where it
+   * posts. Every page has the footer, so every page gets it.
+   */
+  subscribe?: boolean;
 }
 
 const UNPKG = 'https://unpkg.com';
@@ -88,7 +95,7 @@ const GOATCOUNTER = 'https://mt-climate-office.goatcounter.com';
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
 export function contentSecurityPolicy(
   inlineScripts: string[],
-  { search = false, map = false, places = false, summary = false, count = false }: CspOptions = {},
+  { search = false, map = false, places = false, summary = false, count = false, subscribe = false }: CspOptions = {},
 ): string {
   const hashes = inlineScripts.map(hash).join(' ');
   return [
@@ -102,6 +109,6 @@ export function contentSecurityPolicy(
     `img-src 'self' data:${map ? ' blob:' : ''} ${JSDELIVR} ${DATA2}`,
     `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO}` : ''}${map || places ? ` ${JSDELIVR}` : ''}${summary ? ` ${NWS}` : ''}${count ? ` ${GOATCOUNTER}` : ''}`,
     "base-uri 'none'",
-    `form-action ${search ? "'self'" : "'none'"}`,
+    `form-action ${[search ? "'self'" : '', subscribe ? NEWS_LIST_ORIGIN : ''].filter(Boolean).join(' ') || "'none'"}`,
   ].join('; ');
 }
