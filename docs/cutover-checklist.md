@@ -180,11 +180,10 @@ links may have appeared since 23 Oct. **None link `next.climate.umt.edu`.**
 
 **PRs needed before cutover.** The method pages kept their old paths
 (#28), so the dashboard's links to `/mesonet/ag_tools/` and
-`/mesonet/variables/` stand. One link is left (25 Oct 2026):
-
-| Repo and file | Link | Change |
-|---|---|---|
-| `mesonet-dashboard/app/mdb/app.py:2579` (legacy Dash) | `/mesonet/funding_draft/` (404 at cutover) | Remove the link, or retire `/dash/` first. Its `/about/support/` link redirects to `/about/` (D23) and can stay |
+`/mesonet/variables/` stand. **None left (25 Oct 2026).** The legacy Dash
+app's `/mesonet/funding_draft/` and `/about/support/` links
+(`mesonet-dashboard/app/mdb/app.py:2579`) are inside a commented-out
+function, so no page renders them.
 
 **Optional, already broken today:** `mco-drought-conus/storage-browser/src/App.jsx:47`
 and `mcor`, `mcor.data` READMEs link old logos that were 404 before
