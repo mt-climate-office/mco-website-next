@@ -1,0 +1,146 @@
+---
+// /mesonet/data/ (rebuild plan §4.2: "API docs, QC notes, bulk downloads";
+// owner, 25 Oct 2026): where someone goes to get Mesonet data themselves.
+// The one home for the API facts; the hub's "Get the data" section points
+// here. Copy follows docs/VOICE.md. No counts in prose.
+//
+// Sources, each checked on 25 Oct 2026:
+// - Free, and what the API serves: mco-website/_pages/mesonet/mesonet_api.md
+//   and the OpenAPI info block ("free and easily accessed weather data").
+// - Base URL, docs and spec: src/lib/mesonet.ts (mesonet2, the public AWS
+//   API; CLAUDE.md). /api/docs, /api/v2/docs and /api/openapi.json each
+//   answered 200.
+// - Parameters (type default html; units us/si; tz default America/Denver;
+//   elements partial names; stations comma list; level 0/1/2 and the
+//   provisional column): /api/openapi.json, parameters of /latest/ and
+//   /observations/daily/.
+// - Epoch milliseconds in JSON (datetime 1792943100000) and local time with
+//   offset in CSV ("2026-10-01 00:00:00-06:00"): live responses.
+// - Display-string column names with units: live CSV header.
+// - 30 s limit: mesonet-db-rds/terraform/apigateway.tf
+//   (timeout_milliseconds = 30000); phase-0-report §6.1.
+// - CORS: access-control-allow-origin: * on a cross-origin GET.
+// - Station Dashboard download (CSV; Variables, Dates, Interval, Quality,
+//   Units rows): mesonet-dashboard/web/partials/downloader/index.html, and
+//   "Download data" in the live /dash/next/ page.
+// - Station status CSV: src/pages/mesonet/status/stations.csv.ts and
+//   csvRecord in src/lib/station-health.ts (last report, health columns).
+// - Terms: the OpenAPI termsOfService is /about/agreement/.
+//
+// Left out, for staff review: data.climate.umt.edu/mesonet/ lists fgb/,
+// misc/ and photos/ directories, but no page documents them as a public
+// download, so this page does not offer them. The old API page's /photos/
+// example is left out too: mesonet2's photo routes return 406 (D6).
+import Base from '../../layouts/Base.astro';
+import { API_BASE, API_ORIGIN, OPENAPI_URL } from '../../lib/mesonet';
+import { tool } from '../../lib/hubs';
+import { url } from '../../lib/paths';
+
+const API_DOCS = `${API_ORIGIN}/api/docs`;
+const EXAMPLE_STATION = 'aceabsar';
+// Both answered 200 with CSV on 25 Oct 2026.
+const EXAMPLE_LATEST = `${API_BASE}/latest/?stations=${EXAMPLE_STATION}&type=csv`;
+const EXAMPLE_DAILY = `${API_BASE}/observations/daily/?stations=${EXAMPLE_STATION}&elements=air_temp,ppt&start_time=2026-10-01&end_time=2026-10-07&type=csv`;
+const dashboard = tool('Station Dashboard');
+---
+<Base short="Mesonet data"
+      description="How to download Montana Mesonet data, through the API or without writing code, and how to cite it.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Montana Mesonet data</h1>
+    <p>
+      Mesonet data are free to download. The API serves every station's record.
+      The <a href={dashboard.href}>{dashboard.name}</a> saves one station's readings without code.
+    </p>
+
+    <h2 id="api">The API</h2>
+    <p>
+      The Montana Mesonet API serves station metadata and observations as CSV or JSON. Every
+      request starts from this address:
+    </p>
+    <p><code>{API_BASE}</code></p>
+    <p>
+      Its <a href={API_DOCS}>interactive documentation</a> lists every endpoint and parameter, and
+      lets you try a request in the browser. The <a href={OPENAPI_URL}>OpenAPI description</a> is
+      the same list in a form code can read.
+    </p>
+    <p>
+      Add <code>type=csv</code> or <code>type=json</code> to each request. Without it the API
+      returns an HTML table.
+    </p>
+
+    <h3>Examples</h3>
+    <p>The latest readings at Absarokee (<code>{EXAMPLE_STATION}</code>), as CSV:</p>
+    <pre tabindex="0"><code>{EXAMPLE_LATEST}</code></pre>
+    <p>Daily air temperature and precipitation at Absarokee for the first week of October 2026:</p>
+    <pre tabindex="0"><code>{EXAMPLE_DAILY}</code></pre>
+
+    <h3>What comes back</h3>
+    <ul>
+      <li>
+        Column names carry their units, for example <code>Air Temperature @ 2 m [°F]</code>.
+        Set <code>units=us</code> (the default) or <code>units=si</code>.
+      </li>
+      <li>
+        In JSON, <code>datetime</code> is milliseconds since 1 January 1970 UTC. CSV writes local
+        time with its UTC offset, in the time zone set by <code>tz</code>
+        (default <code>America/Denver</code>).
+      </li>
+      <li>
+        <code>stations</code> takes one station ID, or several separated by commas.
+        The <a href={url('mesonet/stations/')}>station directory</a> lists every ID.
+      </li>
+      <li>
+        <code>elements</code> takes element names such as <code>air_temp</code>.
+        A partial name such as <code>soil_vwc</code> returns every depth.
+        The <a href={url('mesonet/variables/')}>variables page</a> lists every element.
+      </li>
+    </ul>
+
+    <h3>Limits</h3>
+    <p>
+      A request that runs longer than 30 seconds fails. For a long record, ask for fewer stations
+      or a shorter date range in each request, and join the results.
+    </p>
+    <p>
+      The API accepts requests from any website, so a web page can call it from the browser.
+    </p>
+
+    <h2 id="quality">Quality control</h2>
+    <p>
+      The API serves fully checked values by default (<code>level=2</code>).
+      With <code>level=1</code> only out-of-range values are removed, and <code>level=0</code> is
+      the record exactly as each station sent it.
+    </p>
+    <p>
+      A row marked <code>provisional</code> has not been through the daily checks yet. Its values
+      can change after the next morning's run.
+    </p>
+    <p>
+      <a href={url('mesonet/qaqc/')}>Quality control</a> describes each test and its thresholds.
+    </p>
+
+    <h2 id="gis">GIS software</h2>
+    <p>
+      QGIS, ArcGIS, Python and R can read the latest observations as map features through
+      the <a href={url('mesonet/wfs/')}>Mesonet OGC API</a>.
+    </p>
+
+    <h2 id="without-code">Without code</h2>
+    <p>
+      The <a href={dashboard.href}>{dashboard.name}</a> saves one station's readings as CSV, for the
+      variables and dates you choose. Open a station, then choose Download data.
+    </p>
+    <p>
+      <a href={url('mesonet/status/')}>Station status</a> has the full station table as CSV,
+      with when each station last reported.
+    </p>
+
+    <h2 id="terms">Terms and citation</h2>
+    <p>
+      The <a href={url('about/agreement/')}>user agreement</a> covers use of the data. If you use
+      Mesonet data in research, <a href={url('mesonet/') + '#mesonet-cite'}>cite it</a> in the form
+      the Mesonet page gives.
+    </p>
+  </div>
+</Base>
