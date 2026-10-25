@@ -25,11 +25,13 @@ const inNetwork = (name: string) => summary.stations.by_network[name];
 const stationsLabel = (n: number | undefined) =>
   n === undefined ? '' : ` (${count(n)} ${n === 1 ? 'station' : 'stations'})`;
 
-const API_BASE = 'https://mesonet2.climate.umt.edu/api/v2';
-const API_DOCS = `${API_BASE}/docs`;
-
 // This site's own pages; descriptions from each page's own description.
 const PAGES = [
+  {
+    name: 'Mesonet data',
+    href: url('mesonet/data/'),
+    description: 'How to download the data, through the API or without writing code, and how to cite it.',
+  },
   {
     name: 'Mesonet stations',
     href: url('mesonet/stations/'),
@@ -104,19 +106,11 @@ const PAGES = [
 
   <section class="hub-section" aria-labelledby="mesonet-data">
     <h2 id="mesonet-data" class="hub-h2">Get the data</h2>
-    {/* Free, and what the API serves: mco-website/_pages/mesonet/mesonet_api.md.
-        Base URL: CLAUDE.md (mesonet2, the public AWS API). Docs page:
-        /api/v2/docs answered 200 on 22 Oct 2026. Subject to change:
-        mco-website/_pages/mesonet_citation.md; /latest/ rows carry
-        provisional: true (rebuild plan §1.3). */}
+    {/* Free: mco-website/_pages/mesonet/mesonet_api.md. The API, its
+        limits, QC levels and downloads live on /mesonet/data/ (one home). */}
     <p>
-      Mesonet data are free. The Montana Mesonet API serves station metadata, the latest readings
-      and historical observations as JSON or CSV. Its <a href={API_DOCS}>interactive documentation</a> lists
-      every endpoint. GIS software can read the latest observations through
-      the <a href={url('mesonet/wfs/')}>OGC API</a>.
-    </p>
-    <p>
-      Recent readings are provisional. Values can change as quality checks and backfilling run.
+      Mesonet data are free. <a href={url('mesonet/data/')}>Mesonet data</a> has the API, with
+      example requests, and the downloads that need no code.
     </p>
   </section>
 

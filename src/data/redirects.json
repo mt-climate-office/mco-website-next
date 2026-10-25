@@ -51,7 +51,7 @@
     { "from": "/mesonet/", "to": "/mesonet/", "status": 200, "reason": "Section hub, same path.", "source": "sitemap" },
     { "from": "/mesonet_dashboard/", "to": "https://mesonet.climate.umt.edu/dash/next/", "status": 301, "reason": "Pre-Jekyll dashboard address in the March 2020 Montana Drought & Climate newsletter; 404 on the old site too. The Station Dashboard.", "source": "inbound links (docs/cutover-inbound-links.md)" },
     { "from": "/mesonet/stations/", "to": "/mesonet/stations/", "status": 200, "reason": "Station directory, same path.", "source": "sitemap" },
-    { "from": "/mesonet/api/", "to": "/mesonet/#mesonet-data", "status": 301, "reason": "API guide; the hub's data section links the API documentation.", "source": "sitemap" },
+    { "from": "/mesonet/api/", "to": "/mesonet/data/", "status": 301, "reason": "API guide; /mesonet/data/ is now the API's page (base URL, example requests, limits, QC levels).", "source": "sitemap" },
     { "from": "/mesonet/citation/", "to": "/mesonet/#mesonet-cite", "status": 301, "reason": "Data citation, carried over verbatim to the hub.", "source": "sitemap" },
     { "from": "/mesonet/funding_draft/", "to": null, "status": 410, "reason": "A draft that was live by mistake (phase-0-report §7.12). The legacy Dash dashboard still links it (mesonet-dashboard/app/mdb/app.py:2579).", "source": "sitemap" },
     { "from": "/mesonet/qaqc/", "to": "/mesonet/qaqc/", "status": 200, "reason": "Quality-control procedures, migrated to the same path (papers may cite it).", "source": "sitemap" },

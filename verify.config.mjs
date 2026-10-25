@@ -100,6 +100,7 @@ export default {
     // logo) and the QA/QC thresholds table read from the kept CSV.
     { name: 'ag-gdds', query: 'mesonet/ag_tools/gdds/', ready: chromeReady },
     { name: 'qaqc', query: 'mesonet/qaqc/', ready: chromeReady },
+    { name: 'mesonet-data', query: 'mesonet/data/', ready: chromeReady },
     { name: 'about', query: 'about/', ready: chromeReady },
     // People, partners and projects: the team page (photos, a person with
     // none, contact links), the partners page, the project list, and a
