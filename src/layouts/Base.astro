@@ -3,6 +3,7 @@
 // snippets/head.html: metas, anti-flash inline, font preloads, stylesheets.
 import antiFlash from '../kit/anti-flash.inline.js?raw';
 import { contentSecurityPolicy } from '../kit/csp';
+import { NEWS_LIST } from '../lib/newsletter-list';
 import { kit, KIT_SRI, MAPLIBRE_IMPORT_MAP } from '../kit/kit';
 import { canonicalUrl } from '../lib/paths';
 import Header from '../components/layout/Header.astro';
@@ -67,7 +68,7 @@ const title = short ? `${short} · ${FAMILY_SHORT}` : FAMILY_LONG;
 const cardTitle = short ? `${short} · ${FAMILY_LONG}` : FAMILY_LONG;
 const canonical = canonicalUrl(Astro.url.pathname);
 const ogImage = kit('assets/og-card.png');
-const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, map, places, summary, count });
+const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, map, places, summary, count, subscribe: Boolean(NEWS_LIST.uuid) });
 ---
 <!doctype html>
 <html lang="en" data-count={count ? '' : undefined}>
