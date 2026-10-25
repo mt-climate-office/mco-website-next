@@ -23,6 +23,14 @@ privacy policy, `/mesonet/app/privacy/`. App-store listings require a
 working privacy-policy URL. The map retires it with a BLOCKER todo: migrate
 the policy to the same path before cutover.
 
+**Status, 25 Oct 2026.** The "new site" column below is as of 23 Oct.
+Every `todo` it names has since been cleared (`docs/cutover-checklist.md`
+P2): the privacy policy and `/about/agreement/` are migrated at the same
+paths (#23), `/mesonet/ag_tools/` and `/mesonet/variables/` too (#28),
+`/disclaimer/` redirects to `/about/agreement/`, and `/about/support/`
+redirects to `/about/` (D23). The one link still to change is the legacy
+Dash app's `/mesonet/funding_draft/` (checklist P5).
+
 ## Summary
 
 - 485 matches in 39 repos.
