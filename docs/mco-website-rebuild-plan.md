@@ -4,9 +4,11 @@
 **Owner:** R. Kyle Bocinsky, Montana Climate Office
 **Written:** 21 October 2026
 **Revised:** 22 October 2026, after Phase 0
-**Status:** Phase 1 complete, 22 October 2026; staging live at
-`next.climate.umt.edu`. Phase 2 item 5: homepage layout in place, data-free
-until the compliance summary and kit photo module ship (Phase 1.5).
+**Status, 25 October 2026:** Phases 1 to 4 built, and Phase 5's
+preparation done: the redirect map passes `--strict`, the cutover runbook
+is `docs/cutover-checklist.md`, and its two cutover PRs are open as drafts.
+What ships at launch from §4.2 is in `DECISIONS.md` D24. Launch waits on the
+owner's pre-launch items (checklist P1, P3, P4, P6, P7, P9).
 
 ## Read these first, in this order
 

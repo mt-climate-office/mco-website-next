@@ -5,9 +5,17 @@
 // is to a page that exists. Each nav is named "Footer: …", so no name
 // collides with a page's own nav (the search page has a "Sections" one). The newsletter signup (DECISIONS D11) waits on
 // the MCO News list existing.
+//
+// The network line (rebuild plan §4.3, D10): station count and reporting
+// percentage from the mesonet-compliance summary's build-time snapshot,
+// with its time. The nightly rebuild keeps it fresh; no script.
 import { kit } from '../../kit/kit';
 import { url } from '../../lib/paths';
 import { NAV } from '../../lib/nav';
+import { loadSummary } from '../../lib/compliance';
+import { count, isoTime, stampMT } from '../../lib/format';
+
+const summary = await loadSummary();
 
 const year = new Date().getFullYear();
 const DATA = [
@@ -48,6 +56,10 @@ const SITE = [
         <ul>{SITE.map((n) => <li><a href={url(n.path)}>{n.label}</a></li>)}</ul>
       </nav>
     </div>
+    <p class="stamp site-footer-net">
+      <a href={url('mesonet/status/')}>{count(summary.stations.total)} stations, {summary.reporting.pct}% reporting</a>{' '}
+      as of <time datetime={isoTime(summary.generated_at)}>{stampMT(summary.generated_at)}</time>
+    </p>
     <p class="stamp site-footer-meta">© {year} Montana Climate Office, University of Montana</p>
   </div>
 </footer>
