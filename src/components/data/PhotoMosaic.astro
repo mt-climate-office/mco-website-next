@@ -96,12 +96,15 @@ const THUMB = { width: 320, height: 180 };
      min(70vh, 760px), copy bottom-aligned, and the navbar over the top of
      it. Mosaic, scrim and copy share one grid cell, so the hero is as tall
      as whichever is taller and the copy can never spill out of it. It pulls
-     up under the sticky navbar by the bar's height (--chrome-h, published
-     by mco-core). */
+     up under the sticky navbar by the bar's height: the site's known
+     height, so it is right at first paint, or mco-core's measured
+     --chrome-h if that is larger. --chrome-h alone is 0px until the script
+     runs, and the hero jumped 54px when it did (CLS 0.066). */
   .hero {
+    --hero-pull: max(var(--chrome-h, 0px), var(--site-nav-h));
     display: grid;
     min-height: min(70svh, 47.5rem);
-    margin-top: calc(-1 * var(--chrome-h, 52px));
+    margin-top: calc(-1 * var(--hero-pull));
     background: var(--bg-deep);
   }
   .hero > * { grid-area: 1 / 1; min-width: 0; }
@@ -136,8 +139,8 @@ const THUMB = { width: 320, height: 180 };
   .hero-scrim {
     background: linear-gradient(180deg,
       color-mix(in srgb, var(--bg-deep) 90%, transparent) 0,
-      color-mix(in srgb, var(--bg-deep) 90%, transparent) var(--chrome-h, 52px),
-      color-mix(in srgb, var(--bg-deep) 10%, transparent) calc(var(--chrome-h, 52px) + 6rem),
+      color-mix(in srgb, var(--bg-deep) 90%, transparent) var(--hero-pull),
+      color-mix(in srgb, var(--bg-deep) 10%, transparent) calc(var(--hero-pull) + 6rem),
       color-mix(in srgb, var(--bg-deep) 10%, transparent) 100%);
   }
   /* Behind the copy the wash rises from clear to 70% where the <h1> starts
