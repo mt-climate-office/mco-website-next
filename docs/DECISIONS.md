@@ -504,3 +504,23 @@ supersede the "A + C" instrument-panel direction. Where the spec and
   build-time snapshot, with its time, linking to `/mesonet/status/`. No
   script; the nightly rebuild keeps it fresh.
 - The website is in the kit's canary (D3; mco-web-style #75).
+
+---
+
+## D25 — No DNS ticket before launch
+
+**Decided 25 October 2026.** The cutover checklist's P1 is dropped: no
+org domain verification (O5), no Search Console DNS record, and
+`www.climate.umt.edu` stays as it is (HTTP redirects, HTTPS fails).
+Launch needs no DNS change, since `climate.umt.edu` already points at the
+org's Pages host.
+
+What follows:
+- The domain is unclaimed for the minute between the checklist's D2 and
+  D3; do them back to back.
+- Search Console uses an existing property, or a URL-prefix one verified
+  by an HTML file.
+- **One UM IT request stays essential:** deleting the
+  `next.climate.umt.edu` record, asked for on launch day (checklist F3).
+  Unverified, a record pointing at GitHub Pages that no repo claims can be
+  taken over by any GitHub account.
