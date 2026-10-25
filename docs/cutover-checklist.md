@@ -61,7 +61,7 @@ BASE_PATH=/ npm run check:redirects -- --live
 | `check:built` (indexable) | Pass, 342 pages |
 | `check:html` | Pass |
 | `check:redirects --live` | Pass. 65 of 65 URLs in the old site's live sitemap covered |
-| `check:redirects --strict` | **Fails: 25 entries carry a `todo`** (listed in P2) |
+| `check:redirects --strict` | **Failed: 25 entries carried a `todo`.** All cleared by 24 Oct 2026; passes since (P2) |
 
 Two fixes to the check machinery came out of it, in the same PR as this
 document:
@@ -125,18 +125,15 @@ report §4 Q9).
 
 ### P2. Redirect map clean under `--strict` — Owner + Claude · T−7 to T−1 · Undo: yes
 
-`BASE_PATH=/ npm run check:redirects -- --strict` must pass. The 25 todos
-on 23 Oct 2026, by what clears them:
+`BASE_PATH=/ npm run check:redirects -- --strict` must pass. **It passes
+as of 25 Oct 2026**: 77 entries, none with a `todo`, 65 of 65 old sitemap
+URLs covered. The 25 todos of 23 Oct were cleared by the method pages at
+their old paths (#28), people, partners and projects (#29), the privacy
+policy and user agreement (#23), and the owner's decisions on the donation
+page, app page, streamflow and normals atlas (D23).
 
-| Waits on | Entries |
-|---|---|
-| People, partners, funders pages (Phase 4 item 14, in progress) | `/about/partnerships/`, `/about/sponsors/`, `/about/team/` |
-| Project pages (in progress) | `/projects/`, `/projects/mdc/overview/`, `/projects/mdc/team/`, `/projects/msl/`, `/projects/native-climate/` |
-| Method pages (in progress) | `/mesonet/qaqc/` and `/assets/tables/qaqc_vals.csv` (same path), `/mesonet/variables/`, `/mesonet/wfs/`, `/mesonet/ag_tools/` and its six method pages (`eto`, `feels_like`, `gdds`, `risk`, `soil_profile`, `swp`) |
-| **Owner decision** | `/about/support/` (keep a donation page or drop it), `/mesonet/app/` (an app page or the hub), `/streamflow/` (O7, owner of `streamflow.climate.umt.edu`), `/projects/normals/`, `/projects/normals/atlas/`, `/mt-normals/` (the atlas viewer at `mt-climate-office.github.io/mt-normals/` was 404: restore it, or keep the data directory) |
-
-A todo can also be cleared by accepting the current target and deleting the
-`todo` field. That is a decision, so the owner makes it.
+Re-run it in the final week. A new page at an old path changes its entry to
+200; an entry that gains a `todo` fails the check again.
 
 ### P3. Freeze the old site — Owner · T−7 · Undo: yes
 
@@ -181,15 +178,12 @@ links may have appeared since 23 Oct. **None link `next.climate.umt.edu`.**
 - `/mesonet/` (tool footers, READMEs, `mesonet-gateway` redirect function,
   `mesonet_app/Caddyfile:198`) and the bare host (330 links) are unchanged.
 
-**PRs needed before cutover.** Each one depends on the P2 row named:
-
-| Repo and file | Link | Change |
-|---|---|---|
-| `mesonet-dashboard/web/src/core/ag/view/learnMore.ts:8` | `/mesonet/ag_tools/` | Point at the new method pages once they exist, if their path differs |
-| `mesonet-dashboard/web/partials/charts/compare.html:66` | `/mesonet/variables/` | Point at the migrated variables table, if its path differs |
-| `mesonet-dashboard/app/mdb/layout.py:684` (legacy Dash) | `/mesonet/variables/` | As above, or leave it if `/dash/` is retiring |
-| `mesonet-dashboard/app/mdb/app.py:710` (legacy Dash) | `/mesonet/ag_tools/` | As the learnMore row |
-| `mesonet-dashboard/app/mdb/app.py:2579` (legacy Dash) | `/mesonet/funding_draft/` (404 at cutover), `/about/support/` | Remove the funding-draft link. Follow the `/about/support/` decision |
+**PRs needed before cutover.** The method pages kept their old paths
+(#28), so the dashboard's links to `/mesonet/ag_tools/` and
+`/mesonet/variables/` stand. **None left (25 Oct 2026).** The legacy Dash
+app's `/mesonet/funding_draft/` and `/about/support/` links
+(`mesonet-dashboard/app/mdb/app.py:2579`) are inside a commented-out
+function, so no page renders them.
 
 **Optional, already broken today:** `mco-drought-conus/storage-browser/src/App.jsx:47`
 and `mcor`, `mcor.data` READMEs link old logos that were 404 before
@@ -236,8 +230,7 @@ redirect map covers every old sitemap URL. After launch, Search Console's
 
 1. **Launch date and hour.** Off-hours, with the owner available for two
    hours after.
-2. **The P2 owner rows**: donation page, app page, streamflow (O7), normals
-   atlas.
+2. ~~**The P2 owner rows**~~: decided 24 Oct 2026 (D23).
 3. **Newsletter signup at launch** (D11 says ship it at launch; the list
    UUID is the blocker).
 4. **Analytics** (plan Part 7 Q8). The old site has GA4 on every page; this
@@ -247,9 +240,8 @@ redirect map covers every old sitemap URL. After launch, Search Console's
    one.
 6. **`www`**: fix (P1.3), or retire the record.
 7. **Repo rename** (plan §2.1), below in R1.
-8. **Repo visibility.** Private is fine for Pages. The kit's canary cannot
-   check out a private consumer, so joining the canary (D3) waits until the
-   repo is public.
+8. ~~**Repo visibility.**~~ Public since 23 Oct 2026 (D20); the site joined
+   the kit's canary on 25 Oct 2026 (mco-web-style #75).
 
 ---
 
