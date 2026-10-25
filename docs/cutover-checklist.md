@@ -79,49 +79,34 @@ document:
 
 | When | What |
 |---|---|
-| T−14 days | UM IT ticket (P1). Decisions (P9) |
+| T−14 days | Decisions (P9) |
 | T−7 days | Freeze new posts on the old site. Content and AI-disclosure review. Inbound-link PRs in other repos. Prepare the cutover PRs |
 | T−1 day | Dry run again, `--strict` clean, `--live` re-checked, PRs green |
 | T0 | Launch day, steps D1–D9, then verification V1–V8 |
-| T+1 to T+7 | Search Console, watch 404s, `www` |
-| T+7 | Retire `next.climate.umt.edu` DNS. Rename the repo if decided |
+| T0 | Also: ask UM IT to delete the `next.climate.umt.edu` record (F3, the one DNS request) |
+| T+1 to T+7 | Search Console, watch 404s |
+| T+7 | Rename the repo if decided |
 | T+30 | Archive `mco-website` |
 
 ---
 
 ## P — Pre-flight (before launch day)
 
-### P1. UM IT ticket, one request — UM IT · T−14 · Undo: yes
+### P1. ~~UM IT ticket~~ — dropped (owner, 25 Oct 2026; DECISIONS D25)
 
-Long lead, so send it first. Each record is in the **public view**; the
-`www` change also needs the **internal view** (split-horizon DNS, phase-0
-report §4 Q9).
+Launch needs no DNS change: `climate.umt.edu` already points at the org's
+Pages host. What dropping the ticket means:
 
-1. **O5, org domain verification.** In GitHub, org Settings → Pages →
-   Add a domain → `climate.umt.edu`. GitHub shows a TXT record named
-   `_github-pages-challenge-mt-climate-office.climate.umt.edu` and a value.
-   Ask UM IT to publish it, then press Verify. Verifying the domain also
-   protects every subdomain, so a dangling `next.` or `www.` record cannot be
-   claimed by another GitHub account. Do this before launch day. In the gap
-   between removing the domain from one repo and adding it to the other, an
-   unverified domain is claimable.
-2. **Search Console domain property.** A Google `google-site-verification`
-   TXT record on `climate.umt.edu`. A domain property covers `http`, `https`
-   and `www` at once and needs no change to the site. First check whether the
-   office already has a property for the old site (it ran GA4). If it does,
-   keep it.
-3. **`www.climate.umt.edu`.** It is a CNAME to `climate.umt.edu`. Over HTTP
-   GitHub already redirects it to `https://climate.umt.edu/`. Over HTTPS it
-   fails: the certificate names `climate.umt.edu` only. Ask UM IT to point
-   `www.climate.umt.edu` at `mt-climate-office.github.io.` directly, in both
-   views, **before launch day**. GitHub then has a chance to include `www`
-   when it issues the new certificate in D3. **Unsure:** GitHub documents the
-   `www` alternate name for apex domains. Whether it does the same for a
-   subdomain custom domain like this one is unverified. If `www` still fails
-   TLS at T+1 (V7), ask UM IT to delete the `www` record. Nothing in any repo
-   links it (`docs/cutover-inbound-links.md`).
-4. Do **not** touch `climate.umt.edu` or `next.climate.umt.edu` yet.
-   `next.` goes at T+7 (F3).
+- **No org domain verification (O5).** Between D2 and D3 the domain is
+  unclaimed and any GitHub account could add it to its own Pages site. Do
+  D3 straight after D2, in the same sitting; the gap is about a minute.
+- **Search Console** uses an existing property for the old site if there is
+  one, or a URL-prefix property for `https://climate.umt.edu/` verified by
+  an HTML file in `public/` (a site PR at T0), instead of a DNS record.
+- **`www.climate.umt.edu` stays as it is today:** HTTP redirects to the
+  site, HTTPS fails on the certificate. Nothing in any repo links it.
+- **F3 still needs UM IT**, after launch: the `next.` record must go. That
+  request is essential, not optional (F3).
 
 ### P2. Redirect map clean under `--strict` — Owner + Claude · T−7 to T−1 · Undo: yes
 
@@ -236,9 +221,9 @@ redirect map covers every old sitemap URL. After launch, Search Console's
 4. **Analytics** (plan Part 7 Q8). The old site has GA4 on every page; this
    site has none. Launching without it ends the old site's traffic series.
    Adding it changes the CSP and needs a consent and privacy review.
-5. **Search Console**: domain property via DNS (P1.2), or reuse an existing
-   one.
-6. **`www`**: fix (P1.3), or retire the record.
+5. **Search Console**: reuse an existing property, or a URL-prefix
+   property verified by an HTML file (P1). No DNS record.
+6. ~~**`www`**~~: left as it is (D25).
 7. **Repo rename** (plan §2.1), below in R1.
 8. ~~**Repo visibility.**~~ Public since 23 Oct 2026 (D20); the site joined
    the kit's canary on 25 Oct 2026 (mco-web-style #75).
@@ -260,9 +245,8 @@ BASE_PATH=/ npm run check:redirects -- --strict --live
 ```
 
 All pass. The last deploy of `main` is green, and `next.climate.umt.edu`
-serves the commit that is about to go live. If O5 is not verified yet (org
-Settings → Pages lists `climate.umt.edu` as Verified), stop and wait for
-it.
+serves the commit that is about to go live. The domain is not verified
+(D25), so have D2 and D3 open side by side and do them one after the other.
 
 ### D1. Stop the old site deploying — Owner · Undo: yes (Enable workflow)
 
@@ -297,7 +281,7 @@ gh api repos/mt-climate-office/mco-website-next/pages \
 ```
 
 Expected: `cname` `climate.umt.edu`, `cert` `approved`, and the domains
-include `climate.umt.edu` (and `www.climate.umt.edu` if P1.3 worked). This
+include `climate.umt.edu`. This
 takes minutes, sometimes an hour. Then tick **Enforce HTTPS** and confirm
 `url` is `https://climate.umt.edu/`.
 
@@ -371,7 +355,7 @@ Run from off campus and from campus or VPN (split-horizon DNS).
 | V4 | `curl -sI https://climate.umt.edu/feed.xml` | `200` (feed readers keep working) |
 | V5 | `curl -sI https://climate.umt.edu/no-such-page/` | `404` |
 | V6 | `curl -sI https://next.climate.umt.edu/` | GitHub `404` (staging is gone) |
-| V7 | `curl -sI https://www.climate.umt.edu/` | `301` to `https://climate.umt.edu/`. A TLS error means P1.3 did not take: follow its fallback |
+| V7 | `curl -sI http://www.climate.umt.edu/` | `301` to `https://climate.umt.edu/`. HTTPS on `www` fails as it does today (P1, D25) |
 | V8 | Every redirect, scripted (below) | No failures |
 
 V8, every map entry against the live host (Node 24, no dependencies, from
@@ -398,7 +382,8 @@ console.log(bad ? bad + ' failed' : 'all ' + data.redirects.length + ' ok');
 ```
 
 **Search Console** (Owner, T0 or T+1): add or open the `climate.umt.edu`
-domain property (P1.2) and submit `https://climate.umt.edu/sitemap.xml`. Use
+property (P1: an existing one, or a URL-prefix property verified by an
+HTML file) and submit `https://climate.umt.edu/sitemap.xml`. Use
 URL Inspection on the homepage and one news post to confirm Google sees
 them as indexable. Over the next week, watch Pages → "Not found (404)" for
 old URLs the map missed, and add them to `redirects.json`.
@@ -423,13 +408,16 @@ Until T+7, leave `mco-website`'s `gh-pages` branch, its Pages site (at the
 github.io URL) and the `next.climate.umt.edu` DNS record alone. All three
 are what R2 uses.
 
-### F3. Retire `next.climate.umt.edu` — UM IT · T+7 · Undo: yes (new ticket)
+### F3. Retire `next.climate.umt.edu` — UM IT · request at T0 · Undo: yes (new ticket)
 
 Plan item 23, last on purpose. The Pages side went at D3. Ask UM IT to
 delete the `next.climate.umt.edu` CNAME in **both** the public and internal
 views. Before asking, re-run the inbound-link search for
-`next.climate.umt.edu` (none on 23 Oct). After O5 the dangling record cannot
-be claimed by another account, but it should still go.
+`next.climate.umt.edu` (none on 23 Oct). **Essential.** The domain is not
+verified for the org (D25), so while the record points at
+`mt-climate-office.github.io` with no repo claiming it, any GitHub account
+can claim `next.climate.umt.edu` and serve its own pages there. Send the
+request on launch day; it is the only DNS change the cutover needs.
 
 ### F4. Archive the old site — Owner · T+30 · Undo: yes (unarchive; republish)
 
@@ -442,7 +430,7 @@ be claimed by another account, but it should still go.
 
 ### F5. Close the open items this unblocks — Owner
 
-`www` (P1.3 fallback), the canary (D3, if the repo is now public), and the
+The `next.` record (F3), and the
 note in `docs/DECISIONS.md` recording launch date and any P9 decisions.
 
 ---
