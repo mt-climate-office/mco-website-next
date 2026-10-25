@@ -547,3 +547,37 @@ What follows:
   footer.
 - The beacon code is now in two properties (dashboard, website), which
   makes it a kit candidate under HOUSE-STYLE §8. Not extracted yet.
+
+---
+
+## D27 — Soft launch, launch, then the gateway cutover
+
+**Decided 25 October 2026.**
+
+- **Soft launch to partners by Friday 30 October 2026**, on the staging
+  host. A deliberate exception to "never share a staging link" (CLAUDE.md,
+  D2): partners are told it is a preview, and every staging page says so,
+  with the date its links stop working. Staging stays `noindex` and is
+  still retired, not redirected, at launch.
+- **Launch starts Friday 13 November 2026 at 6:00 pm Mountain.**
+- **The Mesonet gateway cutover** (`mesonet.climate.umt.edu` to the
+  CloudFront gateway) **follows on Tuesday 17 November.** The gateway sent
+  `/dash/next/?s=<id>` to the dashboard with no station; mesonet-gateway #5
+  fixed it (applied 25 Oct), so the two cutovers are independent.
+- Dated runbook: `docs/cutover-checklist.md`.
+
+---
+
+## D28 — Search Console, the repo name, the newsletter at launch
+
+**Decided 25 October 2026** (cutover checklist P9).
+
+- **Search Console:** a new URL-prefix property for `https://climate.umt.edu/`,
+  verified by Google's HTML file in `public/`. No DNS record (D25).
+- **Rename the repo to `mco-website`** on Friday 20 November (a week after
+  launch), after the old Jekyll repo is renamed out of the way and
+  archived. Not on launch day.
+- **Launch waits for the newsletter signup** (D11). The owner creates the
+  MCO News list with the bootstrap script in `mco-mailing-lists` before
+  launch and sends its UUID. The footer form is built now and stays off
+  until the UUID is set.

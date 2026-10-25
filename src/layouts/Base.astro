@@ -6,6 +6,7 @@ import { contentSecurityPolicy } from '../kit/csp';
 import { kit, KIT_SRI, MAPLIBRE_IMPORT_MAP } from '../kit/kit';
 import { canonicalUrl } from '../lib/paths';
 import Header from '../components/layout/Header.astro';
+import PreviewNotice from '../components/layout/PreviewNotice.astro';
 import Footer from '../components/layout/Footer.astro';
 import '../styles/site.css';
 
@@ -111,6 +112,7 @@ const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [anti
 </head>
 <body>
   <a class="mco-skip-link" href="#main">Skip to main content</a>
+  {!import.meta.env.MCO_INDEXABLE && <PreviewNotice />}
   <Header overHero={darkHero} />
   <!-- Pagefind indexes only <main>, and only on pages that carry
        data-pagefind-body (scripts: build). -->

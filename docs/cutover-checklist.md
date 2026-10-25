@@ -77,16 +77,21 @@ document:
 
 ## Timeline at a glance
 
-| When | What |
-|---|---|
-| T−14 days | Decisions (P9) |
-| T−7 days | Freeze new posts on the old site. Content and AI-disclosure review. Inbound-link PRs in other repos. Prepare the cutover PRs |
-| T−1 day | Dry run again, `--strict` clean, `--live` re-checked, PRs green |
-| T0 | Launch day, steps D1–D9, then verification V1–V8 |
-| T0 | Also: ask UM IT to delete the `next.climate.umt.edu` record (F3, the one DNS request) |
-| T+1 to T+7 | Search Console, watch 404s |
-| T+7 | Rename the repo if decided |
-| T+30 | Archive `mco-website` |
+**Dates (owner, 25 Oct 2026; D27).** Soft launch to partners by Fri 30 Oct
+2026 on the staging host. Launch starts **Fri 13 Nov 2026 at 6:00 pm
+Mountain**. The Mesonet gateway cutover follows on Tue 17 Nov (P10).
+
+| When | Date | What |
+|---|---|---|
+| Soft launch | by Fri 30 Oct | Partners get the staging preview (S1) |
+| T−14 days | Fri 30 Oct | Decisions (P9) |
+| T−7 days | Fri 6 Nov | Freeze new posts on the old site. Content and AI-disclosure review. Inbound-link search |
+| T−3 days | Tue 10 Nov | Cutover PRs green (P8; drafts since 25 Oct: this repo #34, `mco-website` #14) |
+| T−1 day | Thu 12 Nov | Dry run again, `--strict` clean, `--live` re-checked. Gateway path comparison re-run (P10) |
+| T0 | Fri 13 Nov, 6:00 pm MT | Launch, steps D1–D9, then verification V1–V8. Ask UM IT to delete the `next.climate.umt.edu` record (F3) |
+| T+1 to T+7 | 14–20 Nov | Search Console, watch 404s. Tue 17 Nov: the gateway cutover (P10) |
+| T+7 | Fri 20 Nov | Rename the repo if decided |
+| T+30 | Sun 13 Dec | Archive `mco-website` |
 
 ---
 
@@ -188,9 +193,11 @@ redirect map covers every old sitemap URL. After launch, Search Console's
 
 ### P7. Newsletter — Owner · T−7 · Undo: yes
 
-- The **MCO News** list exists in Listmonk (D11, D19). Footer signup is
-  wired once the list's UUID exists. **Decide** whether launch waits for it
-  (P9).
+- **Launch waits for the signup (D28).** The owner runs
+  `mco-mailing-lists/scripts/listmonk_news_bootstrap.py` (dry run, then
+  `--apply`) and sends Claude the list's **UUID** (the form's `l` field)
+  and its numeric **id** (`LISTMONK_LIST_ID` for `send-newsletter.yml`).
+  Claude sets the UUID, which switches the footer form on, by T−3.
 - Confirm nothing else sends news posts by email after cutover. If the
   old Jekyll workflow or `mco-mailing-lists` sends posts, plan to switch it
   off at D8, when `NEWSLETTER_SEND_ENABLED` is set here.
@@ -213,20 +220,54 @@ redirect map covers every old sitemap URL. After launch, Search Console's
 
 ### P9. Decisions the owner makes before launch — Owner · T−14
 
-1. **Launch date and hour.** Off-hours, with the owner available for two
-   hours after.
+1. ~~**Launch date and hour**~~: Fri 13 Nov 2026, 6:00 pm Mountain (D27).
+   The owner is available for two hours after.
 2. ~~**The P2 owner rows**~~: decided 24 Oct 2026 (D23).
-3. **Newsletter signup at launch** (D11 says ship it at launch; the list
-   UUID is the blocker).
+3. ~~**Newsletter signup at launch**~~: yes (D28). The owner creates the
+   MCO News list before launch and sends the list's UUID; the footer form
+   is built and switches on when the UUID is set (P7).
 4. ~~**Analytics**~~: GoatCounter, as the Station Dashboard (D26). It
    counts from the production build only, so it starts at D5 with no step
    of its own. GA4's history is not kept.
-5. **Search Console**: reuse an existing property, or a URL-prefix
-   property verified by an HTML file (P1). No DNS record.
+5. ~~**Search Console**~~: a new URL-prefix property for
+   `https://climate.umt.edu/`, verified by Google's HTML file in `public/`
+   (D28). The owner creates the property and sends the file; Claude adds it
+   in a PR that merges with D4.
 6. ~~**`www`**~~: left as it is (D25).
-7. **Repo rename** (plan §2.1), below in R1.
+7. ~~**Repo rename**~~: rename to `mco-website` at T+7, Fri 20 Nov (D28;
+   R1).
 8. ~~**Repo visibility.**~~ Public since 23 Oct 2026 (D20); the site joined
    the kit's canary on 25 Oct 2026 (mco-web-style #75).
+
+### P10. The Mesonet gateway cutover, Tue 17 Nov — Owner + UM IT · Undo: yes
+
+`mesonet.climate.umt.edu` moves from the on-prem Caddy to the CloudFront
+gateway (`mesonet-gateway`, today serving `mesonet2.climate.umt.edu`) on
+Tue 17 Nov, four days after this site launches. This site reads data
+from `mesonet2` already, so the flip does not touch its fetches. It does
+touch its links: the tool links and every station page's dashboard link
+are `mesonet.climate.umt.edu/...`.
+
+Checked 25 Oct 2026, path by path on both hosts: `/explorer/`, `/photos/`,
+`/status/`, `/maintenance/`, `/umrb/`, `/air/`, `/api/v2/`,
+`/api/latest/wfs` and `/` match. **`/dash/next/?s=<id>` does not**: the
+gateway sent it to the `github.io` dashboard with no station.
+mesonet-gateway #5 proxies `/dash/next*` and `/mesonet-dashboard*` as Caddy
+does. **Applied and merged 25 Oct 2026**; checked:
+`/dash/next/?s=acepines` answers 200 on mesonet2 and opens The Pines in a
+browser with the dashboard's files loading from mesonet2, no errors. Every
+other path above still matches. The two cutovers do not depend on each
+other. Re-run the path comparison on T−1 and before the flip.
+
+### S1. Soft launch to partners — Owner · by Fri 30 Oct · Undo: n/a
+
+Partners get `next.climate.umt.edu` as a preview (D27). Every staging page
+carries a notice saying it replaces the current site on 13 Nov and that
+preview links stop working then (`src/components/layout/PreviewNotice.astro`;
+the production build has none). Staging stays `noindex`. In the message to
+partners, say the same: the address is temporary, and the pages move to
+`climate.umt.edu` on 13 Nov at the same paths. If the launch date moves,
+change `LAUNCH_DATE` in the notice.
 
 ---
 
@@ -437,7 +478,11 @@ note in `docs/DECISIONS.md` recording launch date and any P9 decisions.
 
 ## R — Rollback and the rename
 
-### R1. Repo rename (plan §2.1) — Owner decides by T−7 · Undo: yes (rename back)
+### R1. Repo rename (plan §2.1) — Fri 20 Nov (T+7; D28) · Undo: yes (rename back)
+
+**Decided: rename to `mco-website`.** Claude prepares the follow-up (the
+`CLAUDE.md` files, docs, `check-paths`, the kit canary row and
+`CONSUMERS.md`) as one PR for that day.
 
 The repo keeps serving `climate.umt.edu` after staging is retired, so its
 name outlives the "next". Two choices, both acceptable:

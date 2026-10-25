@@ -1,0 +1,31 @@
+---
+// The staging preview notice (DECISIONS D27): partners see this build from
+// 30 Oct 2026, before it replaces the current site. Only builds that are
+// not the production site render it (Base.astro); the production build
+// never does. Staging is retired, not redirected, at launch, so it says
+// the preview's links end then.
+//
+// The launch date is a decision, not data: change LAUNCH_DATE if it moves.
+const LAUNCH_DATE = { iso: '2026-11-13', label: 'November 13, 2026' };
+---
+<aside class="site-preview" aria-label="Preview">
+  <p class="wrap">
+    This is a preview of the new Montana Climate Office website. It replaces the current site on
+    <time datetime={LAUNCH_DATE.iso}>{LAUNCH_DATE.label}</time>, and links to this preview stop
+    working then. Send comments to
+    <a href="mailto:state.climatologist@umontana.edu?subject=Website%20preview">state.climatologist@umontana.edu</a>.
+  </p>
+</aside>
+
+<style>
+  .site-preview {
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    font-size: var(--fs-base);
+    line-height: 1.5;
+  }
+  .site-preview p { padding-block: var(--space-3); }
+  /* A link inside a sentence: underlined, in the link token, which clears
+     4.5:1 on --bg-raised in all three themes. */
+  .site-preview a { color: var(--accent-line); text-decoration: underline; }
+</style>
