@@ -72,16 +72,23 @@ export interface CspOptions {
    * api.weather.gov, nothing else.
    */
   summary?: boolean;
+  /**
+   * The build counts page views (production only; DECISIONS D26):
+   * connect-src for GoatCounter's endpoint, which src/scripts/analytics.ts
+   * reaches with navigator.sendBeacon. No script from it runs here.
+   */
+  count?: boolean;
 }
 
 const UNPKG = 'https://unpkg.com';
 const CARTO = 'https://basemaps.cartocdn.com https://tiles.basemaps.cartocdn.com';
 const NWS = 'https://api.weather.gov';
+const GOATCOUNTER = 'https://mt-climate-office.goatcounter.com';
 
 /** The policy for a page whose only inline scripts are `inlineScripts`. */
 export function contentSecurityPolicy(
   inlineScripts: string[],
-  { search = false, map = false, places = false, summary = false }: CspOptions = {},
+  { search = false, map = false, places = false, summary = false, count = false }: CspOptions = {},
 ): string {
   const hashes = inlineScripts.map(hash).join(' ');
   return [
@@ -93,7 +100,7 @@ export function contentSecurityPolicy(
     // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
     // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.
     `img-src 'self' data:${map ? ' blob:' : ''} ${JSDELIVR} ${DATA2}`,
-    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO}` : ''}${map || places ? ` ${JSDELIVR}` : ''}${summary ? ` ${NWS}` : ''}`,
+    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO}` : ''}${map || places ? ` ${JSDELIVR}` : ''}${summary ? ` ${NWS}` : ''}${count ? ` ${GOATCOUNTER}` : ''}`,
     "base-uri 'none'",
     `form-action ${search ? "'self'" : "'none'"}`,
   ].join('; ');

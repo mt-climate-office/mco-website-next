@@ -218,9 +218,9 @@ redirect map covers every old sitemap URL. After launch, Search Console's
 2. ~~**The P2 owner rows**~~: decided 24 Oct 2026 (D23).
 3. **Newsletter signup at launch** (D11 says ship it at launch; the list
    UUID is the blocker).
-4. **Analytics** (plan Part 7 Q8). The old site has GA4 on every page; this
-   site has none. Launching without it ends the old site's traffic series.
-   Adding it changes the CSP and needs a consent and privacy review.
+4. ~~**Analytics**~~: GoatCounter, as the Station Dashboard (D26). It
+   counts from the production build only, so it starts at D5 with no step
+   of its own. GA4's history is not kept.
 5. **Search Console**: reuse an existing property, or a URL-prefix
    property verified by an HTML file (P1). No DNS record.
 6. ~~**`www`**~~: left as it is (D25).

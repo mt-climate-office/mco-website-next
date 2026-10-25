@@ -1,0 +1,55 @@
+---
+// /privacy/: what this site counts and stores (DECISIONS D26). Each claim
+// names the code that makes it true. Keep it true: when a claim stops
+// holding, change the page in the same PR.
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/paths';
+---
+<Base short="Privacy"
+      description="What this site counts, what it stores in your browser, and which other sites your browser contacts.">
+  <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
+  <div class="prose">
+    <h1>Privacy</h1>
+
+    {/* No cookies: nothing in src/ sets document.cookie; GoatCounter sets
+        none (src/scripts/analytics.ts). */}
+    <p>This site sets no cookies and asks for no personal information.</p>
+
+    <h2>Page counts</h2>
+    {/* src/scripts/analytics.ts: p, t, s, r (host only), q (utm_* only);
+        skipped on Do Not Track or Global Privacy Control. */}
+    <p>
+      We count page views with <a href="https://www.goatcounter.com/">GoatCounter</a>, as the
+      Station Dashboard does. Each count records the page, its title, your screen size, the site
+      that linked you here (its name only) and any campaign tags in the link. It records no
+      cookie, name or account.
+    </p>
+    <p>
+      If your browser sends Do Not Track or Global Privacy Control, nothing is counted.
+    </p>
+
+    <h2>Stored in your browser</h2>
+    {/* MCO.initThemeToggle via src/scripts/chrome.ts: localStorage
+        'mco-theme', shared with the Mesonet tools (HOUSE-STYLE §4). */}
+    <p>
+      If you choose a theme, the site saves it in your browser so the next page, and the Mesonet
+      tools, open in it. Clearing your browser's site data removes it.
+    </p>
+
+    <h2>Other sites your browser contacts</h2>
+    {/* src/kit/csp.ts lists every host a page may reach. */}
+    <p>
+      Pages load fonts and shared code from jsDelivr, and read station data and photos from the
+      Montana Climate Office's servers. The homepage map loads its code from unpkg and its basemap
+      from CARTO, and the conditions
+      card reads the National Weather Service forecast for the station you pick. Each of these
+      sees your IP address, as any website you load does.
+    </p>
+
+    <h2>Mesonet app</h2>
+    <p>
+      The Montana Mesonet app has its own <a href={url('mesonet/app/privacy/')}>privacy policy</a>.
+      Questions go to <a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a>.
+    </p>
+  </div>
+</Base>

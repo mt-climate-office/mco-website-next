@@ -56,6 +56,10 @@ interface Props {
 const { short, description, indexable = true, fullBleed = false, search = false, photos = false, map = false, places = false, redirect, summary = false, darkHero = false } = Astro.props;
 const { searchable = indexable } = Astro.props;
 const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
+// Page counts (src/scripts/analytics.ts, DECISIONS D26): every page of the
+// production build, redirect pages and 404 included, so old URLs still in
+// use show up. Never staging, dev or verify builds.
+const count = Boolean(import.meta.env.MCO_INDEXABLE);
 const FAMILY_SHORT = 'MCO';
 const FAMILY_LONG = 'Montana Climate Office';
 // Tab: "<Short> · MCO". Card: "<Short> · Montana Climate Office".
@@ -63,10 +67,10 @@ const title = short ? `${short} · ${FAMILY_SHORT}` : FAMILY_LONG;
 const cardTitle = short ? `${short} · ${FAMILY_LONG}` : FAMILY_LONG;
 const canonical = canonicalUrl(Astro.url.pathname);
 const ogImage = kit('assets/og-card.png');
-const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, map, places, summary });
+const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, map, places, summary, count });
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" data-count={count ? '' : undefined}>
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content={csp}>
@@ -131,6 +135,7 @@ const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [anti
   )}
   <script>
     import '../scripts/chrome';
+    import '../scripts/analytics';
   </script>
 </body>
 </html>

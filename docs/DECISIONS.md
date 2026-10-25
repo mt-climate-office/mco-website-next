@@ -524,3 +524,26 @@ What follows:
   `next.climate.umt.edu` record, asked for on launch day (checklist F3).
   Unverified, a record pointing at GitHub Pages that no repo claims can be
   taken over by any GitHub account.
+
+---
+
+## D26 — Analytics: GoatCounter
+
+**Decided 25 October 2026** (plan Part 7 Q8).
+
+- **GoatCounter, as the Station Dashboard counts**, into the same account
+  (`mt-climate-office.goatcounter.com`). No GA4, and no need to keep the
+  old site's GA4 history.
+- One count per page view: path, title, screen size, the referring site
+  (host only) and `utm_*` tags. No cookies; nothing sent under Do Not Track
+  or Global Privacy Control. The site sends the beacon itself
+  (`src/scripts/analytics.ts`), so no third-party script runs, and only
+  `connect-src` grows.
+- **Production builds only.** Base sets `data-count` and the CSP allows the
+  endpoint only when the build is indexable, so staging, dev and the verify
+  builds never count. Redirect pages and the 404 page count too, which
+  shows old URLs still in use.
+- A short `/privacy/` page says what is counted and stored, linked from the
+  footer.
+- The beacon code is now in two properties (dashboard, website), which
+  makes it a kit candidate under HOUSE-STYLE §8. Not extracted yet.
