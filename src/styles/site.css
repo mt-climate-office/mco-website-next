@@ -412,6 +412,8 @@ main :is(.pub-back, .news-back, .station-back, .pub-title, .org-name, .pub-artic
   color: var(--text-secondary);
 }
 .site-footer-cols ul { list-style: none; display: grid; gap: var(--space-2); }
+.site-footer-net { margin-top: var(--site-head-gap); }
+.site-footer-net + .site-footer-meta { margin-top: var(--space-2); }
 .site-footer-meta { margin-top: var(--site-head-gap); }
 /* Footer links stand on their own lines: each is a 24 px target so
    neighbours never overlap (WCAG 2.5.8, Lighthouse target-size), and 40 px

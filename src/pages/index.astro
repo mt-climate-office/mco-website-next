@@ -29,6 +29,9 @@ import { loadHeroSnapshot } from '../lib/photo-snapshot';
 import { buildSnapshot, getLatest } from '../lib/mesonet';
 import { getCatalog } from '../lib/stations';
 import { AIR_TEMP_ELEMENTS, joinLatest } from '../lib/station-map';
+import { getNews } from '../lib/news-posts';
+import { newsDate, newsPath } from '../lib/news';
+import { url } from '../lib/paths';
 
 const [summary, hero, catalog, latest] = await Promise.all([
   loadSummary().then(toNetworkSummary),
@@ -37,6 +40,9 @@ const [summary, hero, catalog, latest] = await Promise.all([
   buildSnapshot('/latest/ air temperature', () => getLatest({ elements: AIR_TEMP_ELEMENTS, units: 'us' })),
 ]);
 const mapStations = joinLatest(catalog.stations, latest.rows);
+// The three newest public posts (owner, 25 Oct 2026: plan §4.2 puts news
+// on the homepage; DECISIONS D24).
+const news = (await getNews()).slice(0, 3);
 
 const QUESTIONS = [
   // mco-drought-dashboard/docs/index.html:175-178 (indices), :836 (15 d to
@@ -107,9 +113,8 @@ const QUESTIONS = [
   </section>
 
   <!--
-    "Where people usually start" audience cards wait for the /for/ hubs
-    (rebuild plan §4.2, Phase 3); their copy needs sourcing before it ships.
-    News ("From the office") waits for the news collection (Phase 4).
+    "Where people usually start" audience cards go with the /for/ hubs,
+    which are not built for launch (DECISIONS D24).
   -->
 
   <section class="section" aria-labelledby="tools-title">
@@ -118,9 +123,35 @@ const QUESTIONS = [
       <ToolList tools={TOOLS} />
     </div>
   </section>
+
+  {news.length > 0 && (
+    <section class="section" aria-labelledby="news-title">
+      <div class="wrap">
+        <h2 id="news-title" class="section-title">News</h2>
+        <ul class="news-list">
+          {news.map(({ data, slug, category }) => {
+            const d = newsDate(data.date);
+            return (
+              <li class="news-item">
+                <article aria-labelledby={`home-post-${slug}`}>
+                  <h3 class="news-item-title" id={`home-post-${slug}`}>
+                    <a href={url(newsPath(slug))}>{data.title}</a>
+                  </h3>
+                  <p class="stamp news-meta"><time datetime={d.iso}>{d.label}</time> · {category}</p>
+                  <p class="news-item-summary">{data.summary}</p>
+                </article>
+              </li>
+            );
+          })}
+        </ul>
+        <p class="news-all"><a class="site-link" href={url('news/')}>All news</a></p>
+      </div>
+    </section>
+  )}
 </Base>
 
 <style>
+  .news-all { margin-top: var(--site-head-gap); }
   .readings-inner {
     display: grid;
     /* Copy and the conditions beside the map, as in the reference comp.

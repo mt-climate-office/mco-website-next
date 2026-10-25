@@ -482,3 +482,25 @@ supersede the "A + C" instrument-panel direction. Where the spec and
   follows the theme"; the scrim's 90% floor where text sits still holds.
 - **HOUSE-STYLE records both navbar exceptions** (22 Oct and D21) as a
   docs-only kit change (mco-web-style #74).
+
+---
+
+## D24 — What ships at launch from the plan's site map
+
+**Decided 25 October 2026.**
+
+- **Built before launch:** `/mesonet/data/`, the API, quality-control
+  notes and downloads on one page (plan §4.2).
+- **Not built for launch:** the `/for/` audience pages, `/water/` and
+  `/mesonet/request/`. `/for/` needs staff input before any claim about
+  what an audience wants can ship (VOICE, "Claims"); `/water/` waits on
+  the streamflow owner (O7) and the HHP layers' review (plan Part 7 Q12).
+  The homepage's audience cards go with `/for/`. Reopen after launch.
+- **The homepage shows the three newest news posts**, below Tools, as the
+  plan's homepage line (§4.2) asks. The comp has no news section; this
+  adds one in the same frameless style.
+- **The footer carries the network line** (plan §4.3, D10): station count
+  and reporting percentage from the mesonet-compliance summary's
+  build-time snapshot, with its time, linking to `/mesonet/status/`. No
+  script; the nightly rebuild keeps it fresh.
+- The website is in the kit's canary (D3; mco-web-style #75).
