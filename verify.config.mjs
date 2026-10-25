@@ -110,6 +110,7 @@ export default {
     { name: 'projects', query: 'projects/', ready: chromeReady },
     { name: 'project', query: 'projects/mdc/', ready: chromeReady },
     { name: 'accessibility', query: 'accessibility/', ready: chromeReady },
+    { name: 'privacy', query: 'privacy/', ready: chromeReady },
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
   probes: async ({ open, check }) => {
