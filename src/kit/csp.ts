@@ -52,8 +52,9 @@ export interface CspOptions {
    *   - connect-src: CARTO's style JSON (basemaps.cartocdn.com) and its
    *     tiles, sprites and glyphs (tiles.basemaps.cartocdn.com), from the
    *     main thread and the worker; jsDelivr for the kit's Montana outline
-   *     GeoJSON (fetched with integrity).
-   * No terrain host: the homepage map draws no hillshade.
+   *     GeoJSON (fetched with integrity); and the kit's terrain tiles for
+   *     MCO.map.addHillshade (MCO.map.TERRARIUM_DEM), limited to their
+   *     bucket's path.
    */
   map?: boolean;
   /**
@@ -89,6 +90,7 @@ export interface CspOptions {
 
 const UNPKG = 'https://unpkg.com';
 const CARTO = 'https://basemaps.cartocdn.com https://tiles.basemaps.cartocdn.com';
+const TERRAIN = 'https://s3.amazonaws.com/elevation-tiles-prod/';
 const NWS = 'https://api.weather.gov';
 const GOATCOUNTER = 'https://mt-climate-office.goatcounter.com';
 
@@ -107,7 +109,7 @@ export function contentSecurityPolicy(
     // data: for the kit's CSS glyphs drawn from data: URI masks, such as the
     // .mco-search-icon magnifier. Status, Explorer and Photos allow it too.
     `img-src 'self' data:${map ? ' blob:' : ''} ${JSDELIVR} ${DATA2}`,
-    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO}` : ''}${map || places ? ` ${JSDELIVR}` : ''}${summary ? ` ${NWS}` : ''}${count ? ` ${GOATCOUNTER}` : ''}`,
+    `connect-src ${search ? "'self' " : ''}${API_ORIGIN} ${DATA2}${map ? ` ${CARTO} ${TERRAIN}` : ''}${map || places ? ` ${JSDELIVR}` : ''}${summary ? ` ${NWS}` : ''}${count ? ` ${GOATCOUNTER}` : ''}`,
     "base-uri 'none'",
     `form-action ${[search ? "'self'" : '', subscribe ? NEWS_LIST_ORIGIN : ''].filter(Boolean).join(' ') || "'none'"}`,
   ].join('; ');

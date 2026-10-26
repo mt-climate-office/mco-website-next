@@ -18,6 +18,8 @@
 //   - Popups are DOM-built (MCO.map.popupContent); every API string goes in
 //     as text.
 //   - Cooperative gestures: the map never captures page scroll.
+//   - Terrain shading from the kit (MCO.map.addHillshade, AWS Terrain Tiles),
+//     as on the Explorer.
 
 import { kit, KIT_SRI, MAPLIBRE_CSS, type KitFile } from '../kit/kit';
 import { stampMT } from '../lib/format';
@@ -165,6 +167,11 @@ export async function mount(el: HTMLElement, store: StationStore): Promise<void>
   }
 
   function addLayers() {
+    // Themed terrain shading under the labels, as the Explorer draws it
+    // (MCO.map.addHillshade; owner, 25 Oct 2026): valleys, ridges and the
+    // reservoirs in them read at the zoom this map fits Montana at. Paints
+    // follow the theme, so it is re-added with everything else on style.load.
+    if (!map.getLayer('mco-hillshade')) MCO.map.addHillshade(map);
     if (!map.getSource(SRC)) map.addSource(SRC, { type: 'geojson', data: features() });
     if (state && !map.getSource(STATE)) map.addSource(STATE, { type: 'geojson', data: state });
     if (state && !map.getLayer('sm-state-line')) {
