@@ -37,17 +37,24 @@ const direction = set?.direction ?? 'west';
 const tiles = set?.tiles ?? [];
 const start = set ? featuredIndex(set) : 0;
 const tile = tiles[start] ?? null;
-// The kit's large WebP on data2 (frameUrl size 'large').
+// The kit's WebP sizes on data2 (frameUrl 'large' and 'thumb'). The thumb
+// (~15 KB) paints first, softened, under the large photo (150 to 650 KB),
+// so a slow connection sees the station at once rather than a dark box.
 const FULL = { width: 1920, height: 1080 };
+const THUMB = { width: 320, height: 180 };
 ---
 <section class="hero" id="hero" data-theme="dark" aria-labelledby="hero-title"
          data-slot-at={set?.slotAt}
          data-index={start}
          data-stations={JSON.stringify(stations.map((s) => [s.id, s.name]))}
-         data-tiles={JSON.stringify(tiles.map((t) => [t.full, t.alt, t.stationName]))}>
+         data-tiles={JSON.stringify(tiles.map((t) => [t.full, t.alt, t.stationName, t.src]))}>
   {tile ? (
-    <img class="hero-photo" id="hero-photo" src={tile.full} alt={tile.alt}
-         width={FULL.width} height={FULL.height} fetchpriority="high" decoding="async">
+    <Fragment>
+      <img class="hero-photo hero-thumb" id="hero-thumb" src={tile.src} alt=""
+           width={THUMB.width} height={THUMB.height}>
+      <img class="hero-photo" id="hero-photo" src={tile.full} alt={tile.alt}
+           width={FULL.width} height={FULL.height} fetchpriority="high" decoding="async">
+    </Fragment>
   ) : (
     <div class="hero-photo is-empty" aria-hidden="true"></div>
   )}
@@ -121,9 +128,12 @@ const FULL = { width: 1920, height: 1080 };
     width: 100%;
     height: 100%;
     object-fit: cover;
-    background: var(--bg-raised);
     transition: opacity var(--transition);
   }
+  /* The thumbnail under the large photo: upscaled, so blurred, and scaled a
+     little so the blur's soft edge stays outside the hero. */
+  .hero { overflow: hidden; }
+  .hero-thumb { filter: blur(12px); transform: scale(1.06); }
   .hero-photo[aria-busy="true"] { opacity: 0.6; }
   /* Positioned too, so they paint over the photo in source order. */
   .hero-scrim, .hero-body { position: relative; }

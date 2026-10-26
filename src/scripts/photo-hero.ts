@@ -18,14 +18,15 @@ import { featuredIndex, HERO_VIEW, isIn, latestSet, type HeroSet, type HeroStati
 
 declare const MCO: Mco;
 
-/** [large URL, alt text, station name], as the component writes them. */
-type Shot = [string, string, string];
+/** [large URL, alt text, station name, thumbnail URL], as the component writes them. */
+type Shot = [string, string, string, string];
 
 const hero = document.getElementById('hero');
 const photo = document.getElementById('hero-photo') as HTMLImageElement | null;
-if (hero && photo && typeof MCO !== 'undefined' && MCO.photos) init(hero, photo);
+const thumb = document.getElementById('hero-thumb') as HTMLImageElement | null;
+if (hero && photo && thumb && typeof MCO !== 'undefined' && MCO.photos) init(hero, photo, thumb);
 
-function init(hero: HTMLElement, photo: HTMLImageElement) {
+function init(hero: HTMLElement, photo: HTMLImageElement, thumb: HTMLImageElement) {
   const P = MCO.photos;
   const stations: HeroStation[] = (JSON.parse(hero.dataset.stations || '[]') as [string, string][])
     .map(([id, name]) => ({ id, name }));
@@ -42,6 +43,8 @@ function init(hero: HTMLElement, photo: HTMLImageElement) {
     const shot = shots[i];
     if (!shot) return;
     const mine = ++step;
+    // The next station's thumbnail shows through while its photo loads.
+    thumb.src = shot[3];
     photo.setAttribute('aria-busy', 'true');
     try {
       const next = new Image();
@@ -58,6 +61,8 @@ function init(hero: HTMLElement, photo: HTMLImageElement) {
   }
 
   // The next station's photo, fetched while the visitor looks at this one.
+  // Never during page load: a second 300 KB photo then competes with the
+  // first for the connection (Lighthouse mobile fell from 90+ to 85).
   function preload(i: number) {
     const shot = shots[i];
     if (shot) new Image().src = shot[0];
@@ -67,7 +72,10 @@ function init(hero: HTMLElement, photo: HTMLImageElement) {
   if (next && shots.length > 1) {
     next.hidden = false;
     next.addEventListener('click', () => { void show((index + 1) % shots.length); });
-    preload((index + 1) % shots.length);
+    // First intent to press it: a pointer over it, or keyboard focus.
+    const warm = () => preload((index + 1) % shots.length);
+    next.addEventListener('pointerenter', warm, { once: true });
+    next.addEventListener('focus', warm, { once: true });
   }
 
   async function probe() {
@@ -92,7 +100,7 @@ function init(hero: HTMLElement, photo: HTMLImageElement) {
 
   function swapSet(set: HeroSet) {
     const current = shots[index]?.[2];
-    shots = set.tiles.map((t) => [t.full, t.alt, t.stationName]);
+    shots = set.tiles.map((t) => [t.full, t.alt, t.stationName, t.src]);
     const same = shots.findIndex((s) => s[2] === current);
     void show(same >= 0 ? same : featuredIndex(set));
     text('direction', set.direction);

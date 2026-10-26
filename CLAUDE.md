@@ -35,7 +35,7 @@ change the kit and bump the pinned version here; never patch a local copy.
 
 ## Design system (D1)
 
-**Pinned jsDelivr tag + SRI + `crossorigin`, v0.18.0.** Favicons and
+**Pinned jsDelivr tag + SRI + `crossorigin`, v0.19.0.** Favicons and
 `og-card.png` hot-linked from the pinned tag. Do not vendor, do not add a
 `package.json` to the kit, **do not self-host the fonts** — the kit uses
 `font-display: block` plus preload deliberately.
@@ -62,7 +62,8 @@ structure; the only ornament is the section-heading tick.
   crawlers and link previews see them. `MCO.setPageTitle` /
   `MCO.setSocialMeta` are for state that changes on the client, such as a
   selected station.
-- Theme contract: three themes, URL param → `localStorage` → OS preference,
+- Theme contract: three themes, URL param → `localStorage` →
+  `data-theme-default` (light, D29) → OS preference,
   anti-flash before first paint, `MCO.initThemeToggle({ cycle: true })`.
 - **Navbar exception** (owner, 22 Oct 2026; kit PR #60): no "A service of…"
   subtitle, and the badge links to this site's home.
