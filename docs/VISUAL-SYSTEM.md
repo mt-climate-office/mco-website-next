@@ -1,7 +1,8 @@
 # Visual system — climate.umt.edu
 
 **Approved 24 October 2026.** Supersedes the visual direction implied by the
-earlier reference comp.
+earlier reference comp. **Amended 25 October 2026 by DECISIONS D29**: one
+camera photo as the hero, landscape bands, light by default.
 
 Reference: `docs/design/homepage-reference.html` — a comp, not production code.
 **This document is authoritative where the two disagree.**
@@ -73,8 +74,10 @@ is the only ornament on the page. Frameless layouts drift without an anchor
 at the left margin; this is that anchor. Do not add others.
 
 ### Hero
-- `min(70vh, 760px)`, content bottom-aligned.
-- Mosaic full-bleed behind everything.
+- `min(88svh, 960px)` (D29; was `min(70vh, 760px)` with the mosaic),
+  content bottom-aligned.
+- One station photo full-bleed behind everything, with a "Next station"
+  control (D29; was the mosaic).
 - **Scrim runs bottom-up, not left-heavy:**
   `linear-gradient(180deg, rgba(15,19,25,.28) 0%, rgba(15,19,25,.10) 26%, rgba(15,19,25,.72) 62%, rgba(15,19,25,.96) 100%)`
   The previous comp ran 0.96 opacity across the left 40%, which hid the
@@ -95,6 +98,11 @@ Hero and map stay full-bleed. Prose never exceeds ~68ch.
 Use a surface change to mark a real boundary or not at all. Do not place two
 sections of the same surface adjacent and expect separation — that was
 happening on the built page and did nothing.
+
+On the homepage the sections band (D29): readings on the page ground, then
+`--band-prairie`, `--band-sky`, the page ground, `--band-sage`. Bands come from the kit's landscape tones, never
+a hex, and carry no meaning. Pages open in the light theme unless the
+visitor chose otherwise.
 
 ### Breakpoints
 ```

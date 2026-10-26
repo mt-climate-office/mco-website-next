@@ -9,10 +9,12 @@
 /** One public camera direction (DECISIONS D7: N/S/E/W only, default North). */
 export type PhotoDirection = 'north' | 'south' | 'east' | 'west';
 
-/** One station photo in the hero mosaic. */
+/** One station photo in the hero's set. */
 export interface PhotoTile {
   /** Image URL (the manifest's thumbnail WebP on data2). */
   src: string;
+  /** The same frame at the kit's large size, 1920 × 1080 (DECISIONS D29). */
+  full: string;
   /** Alt text describing the photo, e.g. "Looking north from Lolo Lower". */
   alt: string;
   /** Station display name, e.g. "Lolo Lower". */

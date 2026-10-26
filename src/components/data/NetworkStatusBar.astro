@@ -20,13 +20,15 @@ import { url } from '../../lib/paths';
 
 interface Props {
   summary?: NetworkSummary | null;
+  /** A landscape band for the section's ground (site.css, DECISIONS D29). */
+  band?: 'band-sky' | 'band-prairie' | 'band-sage';
 }
 
-const { summary = null } = Astro.props;
+const { summary = null, band } = Astro.props;
 const pct = summary ? percent(summary.reporting, summary.stations) : null;
 const windowLabel = summary ? `${summary.reportingWindowHours} hour${summary.reportingWindowHours === 1 ? "" : "s"}` : "";
 ---
-<section class="net" aria-labelledby="net-title">
+<section class:list={["net", band]} aria-labelledby="net-title">
   <div class="wrap net-inner">
     <h2 id="net-title" class="section-title">Station status</h2>
 

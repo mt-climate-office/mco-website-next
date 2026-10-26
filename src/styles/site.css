@@ -61,6 +61,17 @@ main.is-full-bleed { max-width: none; padding: 0; }
 .section { padding-block: var(--site-section); }
 .section + .section,
 .net + .section { padding-top: 0; }
+/* Landscape bands (DECISIONS D29, kit 0.19.0): a section's ground, so no
+   two adjacent sections share one (VISUAL-SYSTEM, Surfaces). Chrome only:
+   a band carries no meaning, and high contrast draws every band black. A
+   band starts its own rhythm, so it pads its own top, and so does the
+   section after it, instead of borrowing the bottom padding across the
+   boundary. */
+.band-sky { background: var(--band-sky); }
+.band-prairie { background: var(--band-prairie); }
+.band-sage { background: var(--band-sage); }
+:is(.section, .net):is(.band-sky, .band-prairie, .band-sage),
+:is(.band-sky, .band-prairie, .band-sage) + :is(.section, .net) { padding-top: var(--site-section); }
 .section-title {
   font-size: var(--site-fs-h2);
   line-height: 1.12;

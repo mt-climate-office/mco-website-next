@@ -7,10 +7,10 @@
 // slots, the 2026-10-22 public start, frame URLs, labels) is the kit's
 // MCO.photos; this file only decides which stations to ask and how to lay
 // out the answer. The hero uses the kit's default audience: no `since`, no
-// `fullHistory` (DECISIONS D16). It shows one view, West (D22).
+// `fullHistory` (DECISIONS D16). It shows one view, West (D22), one station
+// at a time (D29).
 
 import type { PhotoDirection, PhotoSet, PhotoTile } from '../components/data/types';
-import { count, stampMT } from './format';
 
 // ── The parts of MCO.photos this site calls (mco-web-style v0.15+) ────────
 
@@ -56,10 +56,6 @@ export interface HeroStation { id: string; name: string }
     time is in the Photo Explorer. */
 export const HERO_VIEW = 'W';
 
-/** Tiles the mosaic draws: twelve columns of eight on wide screens, every
-    other one on a phone. */
-export const TILE_COUNT = 96;
-
 /** 'N' → 'north', in the kit's own words. */
 export const directionOf = (P: McoPhotos, token: string): PhotoDirection =>
   P.label(token).toLowerCase() as PhotoDirection;
@@ -67,12 +63,6 @@ export const directionOf = (P: McoPhotos, token: string): PhotoDirection =>
 /** Alt text for one tile: "Looking north from Lolo Lower". */
 export const tileAlt = (P: McoPhotos, token: string, stationName: string): string =>
   `Looking ${P.label(token).toLowerCase()} from ${stationName}`;
-
-/** `n` items spread evenly across `xs`, keeping their order. */
-export function spread<T>(xs: readonly T[], n: number): T[] {
-  if (xs.length <= n) return [...xs];
-  return Array.from({ length: n }, (_, i) => xs[Math.floor((i * xs.length) / n)]);
-}
 
 /** The stations, in order, that have a camera in this schedule's audience. */
 export const cameraStations = (P: McoPhotos, schedule: PhotoSchedule, stations: readonly HeroStation[]): HeroStation[] =>
@@ -130,7 +120,12 @@ export async function loadSet(
   found.forEach((f, i) => {
     if (!f) return;
     const name = shot[i].name;
-    tiles.push({ src: f.thumbUrl, alt: tileAlt(P, view, name), stationName: name, capturedAt: f.slotUtcMs });
+    // The manifest's large WebP can be blank (the kit derives it when it
+    // can); the thumbnail is the fallback, never a missing image.
+    tiles.push({
+      src: f.thumbUrl, full: f.webpUrl || f.thumbUrl, alt: tileAlt(P, view, name),
+      stationName: name, capturedAt: f.slotUtcMs,
+    });
   });
   return {
     tiles, slotAt: ms, cameraCount: cams.length, reportedCount: tiles.length,
@@ -164,7 +159,8 @@ export async function latestSet(
   return best;
 }
 
-/** The mosaic's name. It is one image made of many photographs, so a
-    screen reader hears one sentence, not a list of every camera. */
-export const mosaicLabel = (set: HeroSet): string =>
-  `Photos from ${count(set.reportedCount)} station cameras facing ${set.direction}, ${stampMT(set.slotAt)}, laid out west to east across Montana`;
+/** The station the hero shows first: it moves along the set, west to east,
+    one station per hour of the slot, so the photo changes through the day.
+    The build and the browser pick it with this same function (D29). */
+export const featuredIndex = (set: Pick<HeroSet, 'slotAt' | 'tiles'>): number =>
+  set.tiles.length ? Math.floor(set.slotAt / 3_600_000) % set.tiles.length : 0;

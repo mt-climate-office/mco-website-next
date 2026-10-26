@@ -15,11 +15,14 @@ const chromeReady = () =>
   !document.documentElement.classList.contains('mco-booting') &&
   /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '');
 
-// The photo hero has its tiles (it has no controls; DECISIONS D22).
-const photosReady = () =>
-  !document.documentElement.classList.contains('mco-booting') &&
-  /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
-  document.querySelectorAll('#hero-mosaic img').length > 0;
+// The photo hero has its photo and its one control (DECISIONS D29).
+const photosReady = () => {
+  const photo = document.getElementById('hero-photo');
+  return !document.documentElement.classList.contains('mco-booting') &&
+    /^Switch to /.test(document.getElementById('btn-theme')?.getAttribute('aria-label') || '') &&
+    !!photo && photo.complete && photo.naturalWidth > 0 &&
+    document.getElementById('hero-next')?.hidden === false;
+};
 
 // The station map island has drawn (canvas, legend) and its tiles settled.
 // It loads when the map reaches the viewport, so this scrolls it there, and
@@ -114,33 +117,42 @@ export default {
     { name: 'search-results', query: 'search/?q=soil', ready: resultsReady },
   ],
   probes: async ({ open, check }) => {
-    // Photo hero: West only, no controls, one image to assistive
-    // technology, and the h1, stamp and label agree with the tiles (D22).
+    // Photo hero: one West photo at the large size, its alt and the stamp
+    // naming the station; one control, "Next station", which steps to
+    // another station and is heard through the stamp's live region (D29).
     {
       const { page, close } = await open('');
-      await page.waitForFunction(() => document.querySelectorAll('#hero-mosaic img').length > 0, null, { timeout: 30000 });
-      const hero = await page.evaluate(() => {
-        const m = document.getElementById('hero-mosaic');
-        const imgs = [...m.querySelectorAll('img')];
+      await page.waitForFunction(() => {
+        const p = document.getElementById('hero-photo');
+        return p && p.complete && p.naturalWidth > 0 && document.getElementById('hero-next')?.hidden === false;
+      }, null, { timeout: 30000 });
+      const read = () => page.evaluate(() => {
+        const p = document.getElementById('hero-photo');
         return {
-          n: imgs.length,
-          west: imgs.every((i) => /_W_/.test(i.getAttribute('src'))),
-          decorative: imgs.every((i) => i.getAttribute('alt') === ''),
-          role: m.getAttribute('role'),
-          label: m.getAttribute('aria-label'),
+          src: p.getAttribute('src'),
+          alt: p.getAttribute('alt'),
+          station: document.querySelector('[data-hero="station"]').textContent,
           h1: document.querySelector('h1').textContent,
-          stamp: document.querySelector('.hero .stamp').textContent,
-          controls: !!document.querySelector('#photo-controls, .hero input, .hero select'),
+          stamp: document.getElementById('hero-stamp').textContent,
+          live: document.getElementById('hero-stamp').getAttribute('aria-live'),
+          controls: [...document.querySelectorAll('.hero button, .hero input, .hero select')].map((c) => c.id),
           url: location.search,
         };
       });
-      check('photos: every tile faces west, and the h1, stamp and label say so',
-        hero.n > 30 && hero.west && /looking west/.test(hero.h1) && /facing west/.test(hero.stamp) &&
-        /facing west/.test(hero.label || ''), JSON.stringify(hero));
-      check('photos: the mosaic is one named image; its tiles are not read out one by one',
-        hero.role === 'img' && /^Photos from \d+ station cameras/.test(hero.label || '') && hero.decorative,
-        JSON.stringify({ role: hero.role, label: hero.label }));
-      check('photos: no controls, and the homepage URL is left clean', !hero.controls && hero.url === '');
+      const before = await read();
+      check('photos: one West photo at the large size; its alt and the stamp name the station; the h1 says west',
+        /_W_/.test(before.src) && /\/large\//.test(before.src) &&
+        before.alt === `Looking west from ${before.station}` &&
+        /looking west/.test(before.h1) && /facing west/.test(before.stamp), JSON.stringify(before));
+      check('photos: one control, "Next station"; the stamp is a polite live region; the URL is clean',
+        before.controls.join() === 'hero-next' && before.live === 'polite' && before.url === '', JSON.stringify(before));
+      await page.locator('#hero-next').click();
+      await page.waitForFunction((s) => document.querySelector('[data-hero="station"]').textContent !== s,
+        before.station, { timeout: 15000 });
+      const after = await read();
+      check('photos: Next station shows another station, and the alt follows',
+        after.src !== before.src && after.alt === `Looking west from ${after.station}` && after.url === '',
+        JSON.stringify({ before: before.station, after: after.station }));
       await close();
     }
 

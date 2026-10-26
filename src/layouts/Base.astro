@@ -62,6 +62,9 @@ const noindex = !indexable || !import.meta.env.MCO_INDEXABLE;
 // production build, redirect pages and 404 included, so old URLs still in
 // use show up. Never staging, dev or verify builds.
 const count = Boolean(import.meta.env.MCO_INDEXABLE);
+// <html data-theme-default="light">: content pages open light whatever the
+// OS says; ?theme= and a saved choice still win (DECISIONS D29). The kit's
+// anti-flash boot reads it before first paint.
 const FAMILY_SHORT = 'MCO';
 const FAMILY_LONG = 'Montana Climate Office';
 // Tab: "<Short> · MCO". Card: "<Short> · Montana Climate Office".
@@ -72,7 +75,7 @@ const ogImage = kit('assets/og-card.png');
 const csp = contentSecurityPolicy(map ? [antiFlash, MAPLIBRE_IMPORT_MAP] : [antiFlash], { search, map, places, summary, count, subscribe: Boolean(NEWS_LIST.uuid) });
 ---
 <!doctype html>
-<html lang="en" data-count={count ? '' : undefined}>
+<html lang="en" data-theme-default="light" data-count={count ? '' : undefined}>
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content={csp}>

@@ -35,7 +35,7 @@ change the kit and bump the pinned version here; never patch a local copy.
 
 ## Design system (D1)
 
-**Pinned jsDelivr tag + SRI + `crossorigin`, v0.18.0.** Favicons and
+**Pinned jsDelivr tag + SRI + `crossorigin`, v0.19.0.** Favicons and
 `og-card.png` hot-linked from the pinned tag. Do not vendor, do not add a
 `package.json` to the kit, **do not self-host the fonts** — the kit uses
 `font-display: block` plus preload deliberately.
@@ -62,7 +62,8 @@ structure; the only ornament is the section-heading tick.
   crawlers and link previews see them. `MCO.setPageTitle` /
   `MCO.setSocialMeta` are for state that changes on the client, such as a
   selected station.
-- Theme contract: three themes, URL param → `localStorage` → OS preference,
+- Theme contract: three themes, URL param → `localStorage` →
+  `data-theme-default` (light, D29) → OS preference,
   anti-flash before first paint, `MCO.initThemeToggle({ cycle: true })`.
 - **Navbar exception** (owner, 22 Oct 2026; kit PR #60): no "A service of…"
   subtitle, and the badge links to this site's home.
@@ -82,7 +83,8 @@ timeout**. Generate types from `/api/openapi.json`.
 - Photos go through the kit's `MCO.photos` (`photos/mco-photos.js`, D9),
   never a local copy. The homepage hero uses the kit's **default** audience
   (most recent capture, first date **2026-10-22**) and shows **West only,
-  with no controls** (D22); every other view is in the Photo Explorer. Never
+  one station at a time, with one control, "Next station"** (D22, D29);
+  every other view is in the Photo Explorer. Never
   pass `since` or `fullHistory` here; the tools pass `fullHistory` (D16).
   Snow/Pluvio/Solar stay staff-only (D8).
 - The hero's build-time set is computed by the same pinned kit bytes, loaded
@@ -162,7 +164,7 @@ src/lib/                paths.ts (url(), canonicalUrl()), nav.ts (sections),
                         photo-snapshot.ts (hero build-time snapshot)
 src/scripts/chrome.ts   theme toggle, drawer, MCO.ready()
 src/scripts/search.ts   /search/ on Pagefind's JS API (loaded on first query)
-src/scripts/photo-hero.ts  homepage hero: swaps in a newer West set once it is in
+src/scripts/photo-hero.ts  homepage hero: Next station; swaps in a newer West set
 src/scripts/hero-theme.ts  homepage hero and header as a dark theme island (D23)
 src/styles/site.css     site layer over the kit; tokens only
 src/pages/              routes, robots.txt endpoint, 404

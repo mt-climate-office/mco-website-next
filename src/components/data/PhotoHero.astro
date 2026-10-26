@@ -1,0 +1,271 @@
+---
+// Homepage hero: one West-facing station photo, full-bleed, with the page's
+// <h1> over it and one control, "Next station" (DECISIONS D29, reopening
+// D22's mosaic). Every other view, date and time is in the Photo Explorer.
+//
+// The set arrives as a prop, computed at build time by the kit's
+// MCO.photos (src/lib/photo-snapshot.ts): the most recent slot in the kit's
+// default public range (first date 2026-10-22, DECISIONS D16), facing West.
+// The station shown first rotates with the slot (featuredIndex), so the
+// build and the browser agree. With JS, src/scripts/photo-hero.ts steps
+// through the set west to east and swaps in a newer set once it is in.
+//
+// The hero is a dark theme island in every page theme (kit 0.18.0,
+// DECISIONS D23): photographs read best on a dark ground, and the copy over
+// them keeps the dark theme's contrast. On a high-contrast page it is a
+// high-contrast island instead (src/scripts/hero-theme.ts).
+//
+// The photo has its own alt text, "Looking west from <station>", and the
+// stamp naming the station is a polite live region, so a step is heard.
+//
+// Absent `set`: a token-coloured ground and copy with no figures. Never fake
+// a photograph. The schedule and the counts are never written here; they
+// come from the set.
+import type { HeroSet, HeroStation } from '../../lib/photo-hero';
+import { featuredIndex } from '../../lib/photo-hero';
+import { count, isoTime, stampMT } from '../../lib/format';
+import { PHOTO_EXPLORER } from '../../lib/tools';
+
+interface Props {
+  set?: HeroSet | null;
+  /** Every station with a public camera, west to east (the refresh's lookup table). */
+  stations?: HeroStation[];
+}
+
+const { set = null, stations = [] } = Astro.props;
+const direction = set?.direction ?? 'west';
+const tiles = set?.tiles ?? [];
+const start = set ? featuredIndex(set) : 0;
+const tile = tiles[start] ?? null;
+// The kit's WebP sizes on data2 (frameUrl 'large' and 'thumb'). Up to 750px
+// wide the hero shows the thumb (~15 KB): the large photo (150 to 650 KB)
+// put Lighthouse mobile at 84, under the 90 budget (D29). Above that, the
+// thumb paints first, softened, under the large photo, so a slow
+// connection sees the station at once rather than a dark box.
+const FULL = { width: 1920, height: 1080 };
+const THUMB = { width: 320, height: 180 };
+// The kit's 750px breakpoint, as the @media rule below and photo-hero.ts.
+const PHONE_MAX = 750;
+---
+<section class="hero" id="hero" data-theme="dark" aria-labelledby="hero-title"
+         data-slot-at={set?.slotAt}
+         data-index={start}
+         data-stations={JSON.stringify(stations.map((s) => [s.id, s.name]))}
+         data-tiles={JSON.stringify(tiles.map((t) => [t.full, t.alt, t.stationName, t.src]))}>
+  {tile ? (
+    <Fragment>
+      <img class="hero-photo hero-thumb" id="hero-thumb" src={tile.src} alt=""
+           width={THUMB.width} height={THUMB.height}>
+      <picture class="hero-photo">
+        <source id="hero-photo-small" media={`(max-width: ${PHONE_MAX}px)`} srcset={tile.src}
+                width={THUMB.width} height={THUMB.height}>
+        <img id="hero-photo" src={tile.full} alt={tile.alt}
+             width={FULL.width} height={FULL.height} fetchpriority="high" decoding="async">
+      </picture>
+    </Fragment>
+  ) : (
+    <div class="hero-photo is-empty" aria-hidden="true"></div>
+  )}
+  <div class="hero-scrim" aria-hidden="true"></div>
+
+  <div class="hero-body">
+    <div class="wrap">
+      <div class="hero-copy">
+        <h1 id="hero-title">Montana, looking <span data-hero="direction">{direction}</span></h1>
+        <p class="hero-lede">
+          The latest photo from each station camera, west to east.
+          Every direction and date is in the Photo Explorer.
+        </p>
+        <p class="hero-actions">
+          <a class="nav-btn is-primary site-cta hero-cta" href={PHOTO_EXPLORER}>Open the Photo Explorer</a>
+          <a class="site-link" href="#readings">See current readings</a>
+        </p>
+        {set && tile && (
+          <div class="hero-stamp-row">
+            <p class="stamp" id="hero-stamp" aria-live="polite">
+              <span data-hero="station">{tile.stationName}</span>
+              {' · '}<time data-hero="time" datetime={isoTime(set.slotAt)}>{stampMT(set.slotAt)}</time>
+              {' · '}facing <span data-hero="facing">{direction}</span>
+              {' · '}<span data-hero="ratio">{count(set.reportedCount)} of {count(set.cameraCount)}</span> cameras
+            </p>
+            <button type="button" class="nav-btn site-cta hero-next" id="hero-next"
+                    aria-controls="hero-photo" hidden>
+              Next station
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6"></path>
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import '../../scripts/hero-theme';
+  import '../../scripts/photo-hero';
+</script>
+
+<style>
+  /* Hero (VISUAL-SYSTEM, Hero): one photo full-bleed behind everything, at
+     min(88svh, 960px) so the photo has room above the copy's wash (D29;
+     the mosaic's 70vh left a strip), copy bottom-aligned, and the navbar over the top of
+     it. Photo, scrim and copy share one grid cell, so the hero is as tall
+     as whichever is taller and the copy can never spill out of it. It pulls
+     up under the sticky navbar by the bar's height: the site's known
+     height, so it is right at first paint, or mco-core's measured
+     --chrome-h if that is larger. --chrome-h alone is 0px until the script
+     runs, and the hero jumped 54px when it did (CLS 0.066). */
+  .hero {
+    --hero-pull: max(var(--chrome-h, 0px), var(--site-nav-h));
+    display: grid;
+    min-height: min(88svh, 60rem);
+    margin-top: calc(-1 * var(--hero-pull));
+    background: var(--bg-deep);
+  }
+  .hero { position: relative; }
+  .hero > * { grid-area: 1 / 1; min-width: 0; }
+  /* Out of flow, so a 16:9 photo never sets the hero's height: the copy
+     and min-height do, and the photo covers whatever that is. */
+  .hero-photo,
+  .hero-photo > img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity var(--transition);
+  }
+  /* The thumbnail under the large photo: upscaled, so blurred, and scaled a
+     little so the blur's soft edge stays outside the hero. */
+  .hero { overflow: hidden; }
+  .hero-thumb { filter: blur(12px); transform: scale(1.06); }
+  .hero-photo > img[aria-busy="true"] { opacity: 0.6; }
+  /* Positioned too, so they paint over the photo in source order. */
+  .hero-scrim, .hero-body { position: relative; }
+
+  /* Scrim, built from the island's --bg-deep, so it is dark in every page
+     theme (D23). Bottom-up, so the photograph shows. Where text sits it is
+     at least 90% opaque, so contrast never depends on what a photo shows
+     (HOUSE-STYLE §3): under the navbar (the spec's 28% fails the brand
+     title over a bright sky), and behind the copy (.hero-body). Between the
+     two the photo is left alone. */
+  .hero-scrim {
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--bg-deep) 90%, transparent) 0,
+      color-mix(in srgb, var(--bg-deep) 90%, transparent) var(--hero-pull),
+      color-mix(in srgb, var(--bg-deep) 10%, transparent) calc(var(--hero-pull) + 6rem),
+      color-mix(in srgb, var(--bg-deep) 10%, transparent) 100%);
+  }
+  /* Behind the copy the wash rises from clear to 70% where the <h1> starts
+     (large text: 3:1 over a white sky needs about 60%), and to 88% by the
+     lede, so the lede, links and stamp clear 4.5:1 over any photo. */
+  .hero-body {
+    align-self: end;
+    padding-block: 4rem 3rem;
+    background: linear-gradient(180deg,
+      transparent 0,
+      color-mix(in srgb, var(--bg-deep) 70%, transparent) 4rem,
+      color-mix(in srgb, var(--bg-deep) 88%, transparent) 10rem,
+      color-mix(in srgb, var(--bg-deep) 96%, transparent) 100%);
+  }
+  .hero h1 {
+    margin-bottom: var(--space-5);
+    font-size: var(--site-fs-h1);
+    line-height: 1.02;
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.035em;
+  }
+  .hero-lede {
+    max-width: 50ch;
+    margin-bottom: var(--space-6);
+    font-size: var(--site-fs-lede);
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+  .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-7); }
+  .hero-actions .site-link { font-size: var(--fs-lg); }
+  /* kit-override: the hero's one call to action takes the prairie fill, the
+     landscape tone for a page's primary action (kit 0.19.0, D29). */
+  .nav-btn.is-primary.hero-cta {
+    border-color: var(--prairie);
+    background: var(--prairie);
+    color: var(--text-on-prairie);
+  }
+  .nav-btn.is-primary.hero-cta:hover {
+    border-color: var(--prairie);
+    background: color-mix(in srgb, var(--prairie) 85%, var(--text-primary));
+    color: var(--text-on-prairie);
+  }
+  .hero-stamp-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-6);
+    margin-top: var(--space-5);
+  }
+  .hero-next { gap: var(--space-2); align-items: center; }
+  .hero-next[hidden] { display: none; }
+
+  /* The navbar over the hero: clear at the top of the page, its glass back
+     once the page scrolls (a scroll-driven animation; the navbar is sticky,
+     and over the readings below it needs the glass). Engines without
+     scroll timelines, and visitors who ask for less transparency, keep the
+     kit's glass bar throughout. */
+  @supports (animation-timeline: scroll()) {
+    @media not (prefers-reduced-transparency: reduce) {
+      /* kit-override: the navbar's glass, border and gradient underline
+         start clear on the homepage, so the photograph reaches the top. */
+      :global(.mco-navbar:has(~ main .hero)) {
+        background: transparent;
+        backdrop-filter: blur(0);
+        border-bottom-color: transparent;
+        animation: hero-nav-glass linear both;
+      }
+      :global(.mco-navbar:has(~ main .hero))::after {
+        opacity: 0;
+        animation: hero-nav-rule linear both;
+      }
+      /* The timeline in its own, more specific rule: the minifier folds a
+         timeline into the animation shorthand, a form Chromium drops. */
+      :global(html .mco-navbar:has(~ main .hero)),
+      :global(html .mco-navbar:has(~ main .hero))::after {
+        animation-timeline: scroll(root);
+        animation-range: 0 4rem;
+      }
+    }
+  }
+  @keyframes hero-nav-glass {
+    to {
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      border-bottom-color: var(--border);
+    }
+  }
+  @keyframes hero-nav-rule { to { opacity: 1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-photo { transition: none; }
+  }
+  /* On a phone the copy is taller than the photo is wide, so laid over it
+     the wash would hide all but a strip of sky. The photo takes its own
+     row, and the copy sits under it on the island's ground. */
+  @media (max-width: 750px) {
+    .hero { grid-template-rows: minmax(52svh, auto) auto; min-height: 0; }
+    /* `.hero >` to outrank `.hero > *` above. */
+    /* Relative, not absolute: the photo's own row, 52svh tall, and the box
+       its <img> fills. */
+    .hero > .hero-photo { position: relative; grid-area: 1 / 1; }
+    /* The thumb is the photo here; the blurred layer under it has no job. */
+    .hero > .hero-thumb { display: none; }
+    .hero > .hero-scrim { grid-area: 1 / 1; }
+    .hero > .hero-body {
+      grid-area: 2 / 1;
+      padding-block: var(--space-6) 3rem;
+      background: var(--bg-deep);
+    }
+  }
+</style>
