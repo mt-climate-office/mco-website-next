@@ -42,15 +42,15 @@ const STATION_ELEMENTS = `${API_BASE}/elements/${EXAMPLE_STATION}/`;
       reporting period. Soil readings are taken at several depths.
     </p>
     <p>
-      To see exactly which variables are measured at a given station, ask the API's
-      <code>elements</code> endpoint for that station, for example
+      To see exactly which variables are measured at a given station, ask the API's{' '}
+      <code>elements</code> endpoint for that station, for example{' '}
       <a href={STATION_ELEMENTS}>the elements measured at Bozeman (<code>{EXAMPLE_STATION}</code>)</a>.
       The <a href={url('mesonet/stations/')}>station list</a> has every station's ID.
     </p>
 
     <h2>Elements</h2>
     <p class="stamp">
-      {count(elements.length)} elements, from the API's element list as of
+      {count(elements.length)} elements, from the API's element list as of{' '}
       <time datetime={isoTime(fetchedAt)}>{stampMT(fetchedAt)}</time>.
     </p>
     <section class="method-table-wrap" aria-labelledby="t-elements" tabindex="0">
