@@ -1,7 +1,8 @@
 ---
 // Homepage, per docs/VISUAL-SYSTEM.md and its comp
-// (docs/design/homepage-reference.html): frameless, the station-camera
-// mosaic as the hero, every section on the page ground.
+// (docs/design/homepage-reference.html), as DECISIONS D29 amends them:
+// frameless, one station-camera photo as the hero, and the sections banded
+// in the kit's landscape tones so no two adjacent ones share a ground.
 //
 // Each data component takes typed props (src/components/data/types.ts) and
 // renders its empty state when they are absent. The status bar reads the
@@ -17,7 +18,7 @@
 // here; the page must not show a made-up figure.
 // Copy follows docs/VOICE.md. Each question's claims are sourced beside it.
 import Base from '../layouts/Base.astro';
-import PhotoMosaic from '../components/data/PhotoMosaic.astro';
+import PhotoHero from '../components/data/PhotoHero.astro';
 import ConditionsNow from '../components/data/ConditionsNow.astro';
 import NetworkStatusBar from '../components/data/NetworkStatusBar.astro';
 import StationMap from '../components/data/StationMap.astro';
@@ -82,7 +83,7 @@ const QUESTIONS = [
 ];
 ---
 <Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed photos map places summary darkHero>
-  <PhotoMosaic set={hero.set} stations={hero.stations} />
+  <PhotoHero set={hero.set} stations={hero.stations} />
 
   <section id="readings" class="readings" aria-labelledby="readings-title">
     <div class="wrap readings-inner">
@@ -100,9 +101,9 @@ const QUESTIONS = [
     </div>
   </section>
 
-  <NetworkStatusBar summary={summary} />
+  <NetworkStatusBar summary={summary} band="band-prairie" />
 
-  <section class="section" aria-labelledby="questions-title">
+  <section class="section band-sky" aria-labelledby="questions-title">
     <div class="wrap">
       <h2 id="questions-title" class="section-title">Start with a question</h2>
       <p class="section-lede">Each one links to the tool that answers it.</p>
@@ -125,7 +126,7 @@ const QUESTIONS = [
   </section>
 
   {news.length > 0 && (
-    <section class="section" aria-labelledby="news-title">
+    <section class="section band-sage" aria-labelledby="news-title">
       <div class="wrap">
         <h2 id="news-title" class="section-title">News</h2>
         <ul class="news-list">

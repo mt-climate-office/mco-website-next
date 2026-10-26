@@ -581,3 +581,41 @@ What follows:
   MCO News list with the bootstrap script in `mco-mailing-lists` before
   launch and sends its UUID. The footer form is built now and stays off
   until the UUID is set.
+
+---
+
+## D29 — One camera photo as the hero, landscape bands, light by default
+
+**Decided 25 October 2026**, after a design review that found the built
+homepage read as one dark slate surface with one blue. Reopens D22 and the
+theme default; D16, D21's scrim floor and D23's dark island still hold.
+
+- **The hero is one West photo, full-bleed**, at the kit's large size
+  (1920 × 1080), `min(88svh, 960px)` tall so the photo shows above the
+  copy's wash (VISUAL-SYSTEM's 70vh left a strip), from the same set D22 computes (the kit's default
+  audience, most recent West slot that is in). Supersedes D22's 96-tile
+  mosaic and "no controls".
+  - The station shown first rotates with the slot, so it changes through
+    the day; build and browser pick it with the same code.
+  - **One control: "Next station"**, stepping west to east through the
+    set and wrapping. The station name and stamp change with it, in a
+    polite live region. Directions, dates and times stay in the Photo
+    Explorer.
+  - The photo has real alt text ("Looking west from Bynum W"); the
+    one-sentence mosaic label goes with the mosaic.
+  - The hero's call to action takes `--prairie` with `--text-on-prairie`.
+- **Landscape tones (kit v0.19.0)**: `--band-sky`, `--band-prairie`,
+  `--band-sage`, `--prairie`, `--text-on-prairie` and the `-line` tones,
+  in all three themes. Admitted to the kit with one consumer as an explicit
+  owner exception to its AGENTS rule 5 (mco-web-style #76). Chrome only:
+  never a legend.
+- **Homepage sections band**: readings on the page ground, station status
+  on `--band-prairie`, questions on `--band-sky`, tools on the page ground,
+  news on `--band-sage`. No two adjacent sections share a ground, which
+  VISUAL-SYSTEM's Surfaces rule already asks. Bands carry no meaning; high
+  contrast draws them black.
+- **Content pages open light.** `<html data-theme-default="light">` on every
+  page this site builds (kit v0.19.0): a visitor with no `?theme=` and no
+  saved choice gets light, whatever the OS says. The toggle, `?theme=` and
+  the shared `mco-theme` choice still win. The map tools on other hosts keep
+  the OS default. URL writes compare against `MCO.defaultTheme()`.

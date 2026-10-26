@@ -82,7 +82,8 @@ timeout**. Generate types from `/api/openapi.json`.
 - Photos go through the kit's `MCO.photos` (`photos/mco-photos.js`, D9),
   never a local copy. The homepage hero uses the kit's **default** audience
   (most recent capture, first date **2026-10-22**) and shows **West only,
-  with no controls** (D22); every other view is in the Photo Explorer. Never
+  one station at a time, with one control, "Next station"** (D22, D29);
+  every other view is in the Photo Explorer. Never
   pass `since` or `fullHistory` here; the tools pass `fullHistory` (D16).
   Snow/Pluvio/Solar stay staff-only (D8).
 - The hero's build-time set is computed by the same pinned kit bytes, loaded
@@ -162,7 +163,7 @@ src/lib/                paths.ts (url(), canonicalUrl()), nav.ts (sections),
                         photo-snapshot.ts (hero build-time snapshot)
 src/scripts/chrome.ts   theme toggle, drawer, MCO.ready()
 src/scripts/search.ts   /search/ on Pagefind's JS API (loaded on first query)
-src/scripts/photo-hero.ts  homepage hero: swaps in a newer West set once it is in
+src/scripts/photo-hero.ts  homepage hero: Next station; swaps in a newer West set
 src/scripts/hero-theme.ts  homepage hero and header as a dark theme island (D23)
 src/styles/site.css     site layer over the kit; tokens only
 src/pages/              routes, robots.txt endpoint, 404

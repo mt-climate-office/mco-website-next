@@ -6,7 +6,8 @@ declare const MCO: any;
 const $ = (id: string) => document.getElementById(id);
 
 // Theme: the kit's 3-state toggle (HOUSE-STYLE §4). ?theme= is mirrored only
-// when it differs from the OS default, so share links stay clean.
+// when it differs from the page's default (light, DECISIONS D29; kit
+// MCO.defaultTheme), so share links stay clean.
 MCO.initThemeToggle({
   button: $('btn-theme'),
   iconSun: $('icon-sun'),
@@ -15,7 +16,7 @@ MCO.initThemeToggle({
   cycle: true,
   onChange(theme: string) {
     const params = MCO.urlParams();
-    if (theme === MCO.osTheme()) params.delete('theme');
+    if (theme === MCO.defaultTheme()) params.delete('theme');
     else params.set('theme', theme);
     MCO.replaceUrlState(params, { keepHash: true });
     MCO.announce(`Theme: ${theme.replace('-', ' ')}`);

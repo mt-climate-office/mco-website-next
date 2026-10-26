@@ -1,29 +1,74 @@
-// Homepage photo hero: progressive enhancement over the build-time mosaic.
+// Homepage photo hero: progressive enhancement over the build-time photo.
 //
 // The hero shows one view, West, on the kit's default public schedule (most
-// recent capture, first date 2026-10-22; DECISIONS D16, D22). It has no
-// controls: every other view, date and time is in the Photo Explorer.
+// recent capture, first date 2026-10-22; DECISIONS D16, D22), one station at
+// a time (D29). Its one control, "Next station", steps through the set west
+// to east and wraps. Every other view, date and time is in the Photo
+// Explorer.
 //
 // On load, and when the tab comes back into view, a newer West set than the
-// one on screen replaces it once at least half its cameras are in. Tiles are
-// swapped in place; the stamp and counts follow. Any failure keeps what is
-// on screen, with its stamp. The kit (mco-core.js, then mco-photos.js) are
-// classic scripts that have run before this module.
+// one on screen replaces it once at least half its cameras are in, keeping
+// the station on screen if it is in the new set. A photo swaps only once
+// the next one has decoded. Any failure keeps what is on screen, with its
+// stamp. The kit (mco-core.js, then mco-photos.js) are classic scripts that
+// have run before this module.
 
 import { count, isoTime, stampMT } from '../lib/format';
-import { HERO_VIEW, isIn, latestSet, mosaicLabel, spread, TILE_COUNT, type HeroSet, type HeroStation, type Mco } from '../lib/photo-hero';
+import { featuredIndex, HERO_VIEW, isIn, latestSet, type HeroSet, type HeroStation, type Mco } from '../lib/photo-hero';
 
 declare const MCO: Mco;
 
-const mosaic = document.getElementById('hero-mosaic');
-if (mosaic && typeof MCO !== 'undefined' && MCO.photos) init(mosaic);
+/** [large URL, alt text, station name], as the component writes them. */
+type Shot = [string, string, string];
 
-function init(mosaic: HTMLElement) {
+const hero = document.getElementById('hero');
+const photo = document.getElementById('hero-photo') as HTMLImageElement | null;
+if (hero && photo && typeof MCO !== 'undefined' && MCO.photos) init(hero, photo);
+
+function init(hero: HTMLElement, photo: HTMLImageElement) {
   const P = MCO.photos;
-  const stations: HeroStation[] = (JSON.parse(mosaic.dataset.stations || '[]') as [string, string][])
+  const stations: HeroStation[] = (JSON.parse(hero.dataset.stations || '[]') as [string, string][])
     .map(([id, name]) => ({ id, name }));
-  let shownAt = Number(mosaic.dataset.slotAt);
+  let shots: Shot[] = JSON.parse(hero.dataset.tiles || '[]');
+  let index = Number(hero.dataset.index) || 0;
+  let shownAt = Number(hero.dataset.slotAt);
   let busy = false;
+  let step = 0; // the latest show(); an older one that decodes late is dropped
+
+  const text = (key: string, value: string) =>
+    document.querySelectorAll<HTMLElement>(`[data-hero="${key}"]`).forEach((el) => { el.textContent = value; });
+
+  async function show(i: number) {
+    const shot = shots[i];
+    if (!shot) return;
+    const mine = ++step;
+    photo.setAttribute('aria-busy', 'true');
+    try {
+      const next = new Image();
+      next.src = shot[0];
+      await next.decode();
+    } catch { /* show it anyway; the browser draws what arrives */ }
+    if (mine !== step) return;
+    index = i;
+    photo.src = shot[0];
+    photo.alt = shot[1];
+    text('station', shot[2]);
+    photo.removeAttribute('aria-busy');
+    preload((i + 1) % shots.length);
+  }
+
+  // The next station's photo, fetched while the visitor looks at this one.
+  function preload(i: number) {
+    const shot = shots[i];
+    if (shot) new Image().src = shot[0];
+  }
+
+  const next = document.getElementById('hero-next');
+  if (next && shots.length > 1) {
+    next.hidden = false;
+    next.addEventListener('click', () => { void show((index + 1) % shots.length); });
+    preload((index + 1) % shots.length);
+  }
 
   async function probe() {
     if (busy) return;
@@ -32,7 +77,7 @@ function init(mosaic: HTMLElement) {
       const schedule = await P.load();
       const set = await latestSet(MCO, schedule, stations, HERO_VIEW, { after: shownAt });
       if (set && isIn(set) && set.slotAt > shownAt) {
-        render(set);
+        swapSet(set);
         shownAt = set.slotAt;
       }
     } catch { /* keep what is on screen */ } finally {
@@ -45,25 +90,11 @@ function init(mosaic: HTMLElement) {
     if (document.visibilityState === 'visible') void probe();
   });
 
-  function render(set: HeroSet) {
-    const tiles = spread(set.tiles, TILE_COUNT);
-    [...mosaic.children].forEach((cell, i) => {
-      const t = tiles[i];
-      let img = cell.querySelector('img');
-      if (!t) { img?.remove(); return; }
-      if (!img) {
-        img = document.createElement('img');
-        img.width = 320;
-        img.height = 180;
-        img.decoding = 'async';
-        img.alt = '';
-        cell.append(img);
-      }
-      img.src = t.src;
-    });
-    mosaic.setAttribute('aria-label', mosaicLabel(set));
-    const text = (key: string, value: string) =>
-      document.querySelectorAll<HTMLElement>(`[data-hero="${key}"]`).forEach((el) => { el.textContent = value; });
+  function swapSet(set: HeroSet) {
+    const current = shots[index]?.[2];
+    shots = set.tiles.map((t) => [t.full, t.alt, t.stationName]);
+    const same = shots.findIndex((s) => s[2] === current);
+    void show(same >= 0 ? same : featuredIndex(set));
     text('direction', set.direction);
     text('facing', set.direction);
     text('ratio', `${count(set.reportedCount)} of ${count(set.cameraCount)}`);
