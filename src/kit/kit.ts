@@ -5,7 +5,7 @@
 // snippets/head.html, re-vendor anti-flash.inline.js and public/mco-logo.png
 // from the same tag, and run `npm run check:kit`. CI fails on any mismatch.
 
-export const KIT_VERSION = '0.19.0';
+export const KIT_VERSION = '0.20.0';
 
 const KIT_BASE = `https://cdn.jsdelivr.net/gh/mt-climate-office/mco-web-style@${KIT_VERSION}/`;
 
@@ -35,7 +35,7 @@ export const KIT_SRI = {
   'places/mco-places.js': 'sha384-4Amo71pLoRONH4SjB2I+Ai9FpSNqDDGGqQVxq4z0Yu/0c7GtGgLUYtNX/wQDUHVg',
   'summary/mco-summary.js': 'sha384-9qE6iFiGkwK/CB8QUbb3Ue7Dd8n8XeXgyVkoBs9TJFcCIO3d+XlfpHfRvnnMplcj',
   'palette/mco-palette.js': 'sha384-nmQlqM0DO86ApUoiACDt0cl/bUjemVhSUytRow9vdP1ydxnXGamD81mumft3n41L',
-  'map/mco-map.js': 'sha384-BmAbWT508YkXfTenCpVne4+ONoA0HyPeR6qLIt1KxVFXTD+jWtHSWnysuInSQx8t',
+  'map/mco-map.js': 'sha384-TJcSjq9foMHwQ6wRRemH51xdfWJrZPjD2AVXY697GK17QFtFr+Hp2DdhBmTmw54W',
   'map/data/mt_state_simple.geojson': 'sha384-iAefAIf1SkdKze/Jw3NMj5mtk3smh6cr7LGf1gdnEEsij/hJPGEU7BYUUwFArq/o',
 } as const;
 
