@@ -10,6 +10,9 @@
 //     refresh and canonical name the same target
 //   - the canonical URL is on the production host (404.html: none, always noindex)
 //   - exactly one <h1>
+//   - no word glued to an inline link, time, code or emphasis: Astro drops a
+//     line break that is the only space between text and a tag, so
+//     "site on\n<time>" ships as "site on<time>". Write {' '} at the line end.
 //   - every internal href/src sits under the base path
 //   - robots.txt and sitemap.xml agree with the mode: a production build
 //     allows crawling, names the sitemap, and the sitemap lists exactly the
@@ -73,6 +76,13 @@ for (const file of pages(dist)) {
 
   const h1s = (html.match(/<h1[\s>]/g) || []).length;
   if (h1s !== 1) fail(`${h1s} <h1> elements`);
+
+  const text = html.replace(/<(script|style)[\s\S]*?<\/\1>/g, '');
+  const glued = [
+    ...text.matchAll(/[A-Za-z,.;:'’](?=<(?:a|time|code|strong|em|abbr)[\s>])/g),
+    ...text.matchAll(/<\/(?:a|time|code|strong|em|abbr)>(?=[A-Za-z])/g),
+  ];
+  for (const m of glued) fail(`no space around an inline tag: …${text.slice(Math.max(0, m.index - 30), m.index + 30).replace(/\s+/g, ' ')}…`);
 
   for (const [, url] of html.matchAll(/\s(?:href|src)="(\/[^/"][^"]*|\/)"/g)) {
     if (!url.startsWith(base)) fail(`internal URL outside the base path ${base}: ${url}`);
