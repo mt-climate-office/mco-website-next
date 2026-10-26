@@ -37,11 +37,15 @@ const direction = set?.direction ?? 'west';
 const tiles = set?.tiles ?? [];
 const start = set ? featuredIndex(set) : 0;
 const tile = tiles[start] ?? null;
-// The kit's WebP sizes on data2 (frameUrl 'large' and 'thumb'). The thumb
-// (~15 KB) paints first, softened, under the large photo (150 to 650 KB),
-// so a slow connection sees the station at once rather than a dark box.
+// The kit's WebP sizes on data2 (frameUrl 'large' and 'thumb'). Up to 750px
+// wide the hero shows the thumb (~15 KB): the large photo (150 to 650 KB)
+// put Lighthouse mobile at 84, under the 90 budget (D29). Above that, the
+// thumb paints first, softened, under the large photo, so a slow
+// connection sees the station at once rather than a dark box.
 const FULL = { width: 1920, height: 1080 };
 const THUMB = { width: 320, height: 180 };
+// The kit's 750px breakpoint, as the @media rule below and photo-hero.ts.
+const PHONE_MAX = 750;
 ---
 <section class="hero" id="hero" data-theme="dark" aria-labelledby="hero-title"
          data-slot-at={set?.slotAt}
@@ -52,8 +56,12 @@ const THUMB = { width: 320, height: 180 };
     <Fragment>
       <img class="hero-photo hero-thumb" id="hero-thumb" src={tile.src} alt=""
            width={THUMB.width} height={THUMB.height}>
-      <img class="hero-photo" id="hero-photo" src={tile.full} alt={tile.alt}
-           width={FULL.width} height={FULL.height} fetchpriority="high" decoding="async">
+      <picture class="hero-photo">
+        <source id="hero-photo-small" media={`(max-width: ${PHONE_MAX}px)`} srcset={tile.src}
+                width={THUMB.width} height={THUMB.height}>
+        <img id="hero-photo" src={tile.full} alt={tile.alt}
+             width={FULL.width} height={FULL.height} fetchpriority="high" decoding="async">
+      </picture>
     </Fragment>
   ) : (
     <div class="hero-photo is-empty" aria-hidden="true"></div>
@@ -121,7 +129,8 @@ const THUMB = { width: 320, height: 180 };
   .hero > * { grid-area: 1 / 1; min-width: 0; }
   /* Out of flow, so a 16:9 photo never sets the hero's height: the copy
      and min-height do, and the photo covers whatever that is. */
-  .hero-photo {
+  .hero-photo,
+  .hero-photo > img {
     position: absolute;
     inset: 0;
     display: block;
@@ -134,7 +143,7 @@ const THUMB = { width: 320, height: 180 };
      little so the blur's soft edge stays outside the hero. */
   .hero { overflow: hidden; }
   .hero-thumb { filter: blur(12px); transform: scale(1.06); }
-  .hero-photo[aria-busy="true"] { opacity: 0.6; }
+  .hero-photo > img[aria-busy="true"] { opacity: 0.6; }
   /* Positioned too, so they paint over the photo in source order. */
   .hero-scrim, .hero-body { position: relative; }
 
@@ -247,7 +256,11 @@ const THUMB = { width: 320, height: 180 };
   @media (max-width: 750px) {
     .hero { grid-template-rows: minmax(52svh, auto) auto; min-height: 0; }
     /* `.hero >` to outrank `.hero > *` above. */
-    .hero > .hero-photo { position: static; grid-area: 1 / 1; }
+    /* Relative, not absolute: the photo's own row, 52svh tall, and the box
+       its <img> fills. */
+    .hero > .hero-photo { position: relative; grid-area: 1 / 1; }
+    /* The thumb is the photo here; the blurred layer under it has no job. */
+    .hero > .hero-thumb { display: none; }
     .hero > .hero-scrim { grid-area: 1 / 1; }
     .hero > .hero-body {
       grid-area: 2 / 1;

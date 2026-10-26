@@ -24,6 +24,11 @@ type Shot = [string, string, string, string];
 const hero = document.getElementById('hero');
 const photo = document.getElementById('hero-photo') as HTMLImageElement | null;
 const thumb = document.getElementById('hero-thumb') as HTMLImageElement | null;
+// Up to the kit's 750px breakpoint the <picture> shows the thumbnail (D29).
+const small = document.getElementById('hero-photo-small') as HTMLSourceElement | null;
+const phone = window.matchMedia('(max-width: 750px)');
+/** The URL this screen draws for a shot: thumbnail on a phone, else large. */
+const urlFor = (shot: Shot) => (phone.matches ? shot[3] : shot[0]);
 if (hero && photo && thumb && typeof MCO !== 'undefined' && MCO.photos) init(hero, photo, thumb);
 
 function init(hero: HTMLElement, photo: HTMLImageElement, thumb: HTMLImageElement) {
@@ -48,11 +53,12 @@ function init(hero: HTMLElement, photo: HTMLImageElement, thumb: HTMLImageElemen
     photo.setAttribute('aria-busy', 'true');
     try {
       const next = new Image();
-      next.src = shot[0];
+      next.src = urlFor(shot);
       await next.decode();
     } catch { /* show it anyway; the browser draws what arrives */ }
     if (mine !== step) return;
     index = i;
+    if (small) small.srcset = shot[3];
     photo.src = shot[0];
     photo.alt = shot[1];
     text('station', shot[2]);
@@ -65,7 +71,7 @@ function init(hero: HTMLElement, photo: HTMLImageElement, thumb: HTMLImageElemen
   // first for the connection (Lighthouse mobile fell from 90+ to 85).
   function preload(i: number) {
     const shot = shots[i];
-    if (shot) new Image().src = shot[0];
+    if (shot) new Image().src = urlFor(shot);
   }
 
   const next = document.getElementById('hero-next');

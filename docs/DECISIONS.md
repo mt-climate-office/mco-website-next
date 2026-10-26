@@ -604,6 +604,13 @@ theme default; D16, D21's scrim floor and D23's dark island still hold.
   - The photo has real alt text ("Looking west from Bynum W"); the
     one-sentence mosaic label goes with the mosaic.
   - The hero's call to action takes `--prairie` with `--text-on-prairie`.
+  - **Up to 750px wide the photo is the kit's 320 px thumbnail** (about
+    15 KB), through `<picture>`; above that, the large WebP. Decided 25
+    October 2026 after the large photo (about 300 KB) put Lighthouse
+    mobile at 84 against the 90 budget; the thumbnail scored 96. The
+    photo is softer on a phone, accepted. A medium rendition (about
+    960 px) in the camera pipeline and `MCO.photos` would lift it, and is
+    not planned.
 - **Landscape tones (kit v0.19.0)**: `--band-sky`, `--band-prairie`,
   `--band-sage`, `--prairie`, `--text-on-prairie` and the `-line` tones,
   in all three themes. Admitted to the kit with one consumer as an explicit
