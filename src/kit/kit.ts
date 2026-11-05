@@ -5,7 +5,7 @@
 // snippets/head.html, re-vendor anti-flash.inline.js and public/mco-logo.png
 // from the same tag, and run `npm run check:kit`. CI fails on any mismatch.
 
-export const KIT_VERSION = '0.20.0';
+export const KIT_VERSION = '0.21.1';
 
 const KIT_BASE = `https://cdn.jsdelivr.net/gh/mt-climate-office/mco-web-style@${KIT_VERSION}/`;
 
@@ -29,13 +29,13 @@ export const kit = (path: string): string => KIT_BASE + path;
  * jsDelivr serves, like the others.
  */
 export const KIT_SRI = {
-  'theme/mco-theme.css': 'sha384-rTNAIEwih+PJn5SGoJzoje2bripU+o+3w0inaxaQR0SLZk26fqH4D+7AbFO7MhgS',
-  'core/mco-core.js': 'sha384-p1xp/8iMEAyKW2P1ALbBQFZhoRVU5y1PYVkBd4wBM5LlNAEsz90nbkbLr/4tZ5RP',
+  'theme/mco-theme.css': 'sha384-5AYcUgLLXlsD3HOobKS/jj+F5/NGNGtLFcidyU/qaiRWYN3AwClJa42Y4KaZXajf',
+  'core/mco-core.js': 'sha384-IVSuG2tnzj62YG4bFD5PxINjGy6kxD7pIoNKV6D4mK97+1D9Edp0dwFcVcXCxsJR',
   'photos/mco-photos.js': 'sha384-VepbbKE6CKKljLPjOlw1TATvqOZH73WIWtFXmpSR5RAgYVEphm1rE2fkGa+vK17C',
   'places/mco-places.js': 'sha384-4Amo71pLoRONH4SjB2I+Ai9FpSNqDDGGqQVxq4z0Yu/0c7GtGgLUYtNX/wQDUHVg',
   'summary/mco-summary.js': 'sha384-9qE6iFiGkwK/CB8QUbb3Ue7Dd8n8XeXgyVkoBs9TJFcCIO3d+XlfpHfRvnnMplcj',
-  'palette/mco-palette.js': 'sha384-nmQlqM0DO86ApUoiACDt0cl/bUjemVhSUytRow9vdP1ydxnXGamD81mumft3n41L',
-  'map/mco-map.js': 'sha384-TJcSjq9foMHwQ6wRRemH51xdfWJrZPjD2AVXY697GK17QFtFr+Hp2DdhBmTmw54W',
+  'palette/mco-palette.js': 'sha384-bMyfpU5iEKAQiHDJZLqmCMt3sTGm+HBi2GIY7I9xLyV+JYrbGgHOX9+/XVXy8CYV',
+  'map/mco-map.js': 'sha384-8ZLN6Xhnts1kIMbDa9M+H05sYgu770WLohBOrch1nTafMd+HEM7PlrP0e4fCoRb8',
   'map/data/mt_state_simple.geojson': 'sha384-iAefAIf1SkdKze/Jw3NMj5mtk3smh6cr7LGf1gdnEEsij/hJPGEU7BYUUwFArq/o',
 } as const;
 
