@@ -8,7 +8,7 @@
 //   Dashboard    mesonet-dashboard/web (NWS forecast, gridMET normals)
 //   Status       mesonet-status/app.js, last report + silent sensors
 //   Maintenance  mesonet-maintenance (Last visit column)
-//   UMRB         mesonet-umrb-build, build stages by grid cell
+//   HydroMet     mesonet-hydromet-build, build stages by grid cell
 //   Snowpack     mco-snowpack-explorer/index.html about panel
 //   D³           mco-drought-dashboard/docs/index.html (BETA pill, indices)
 
@@ -43,8 +43,8 @@ export const TOOLS = [
     description: 'When each station was last visited.',
   },
   {
-    name: 'UMRB Build Status',
-    href: 'https://mesonet.climate.umt.edu/umrb/',
+    name: 'HydroMet Build Status',
+    href: 'https://mesonet.climate.umt.edu/build/',
     description: 'Station build-out in the Upper Missouri River Basin, cell by cell. Cell assignments are provisional.',
   },
   {
