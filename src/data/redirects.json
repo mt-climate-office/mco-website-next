@@ -56,7 +56,7 @@
     { "from": "/mesonet/funding_draft/", "to": null, "status": 410, "reason": "A draft that was live by mistake (phase-0-report §7.12). The legacy Dash dashboard still links it (mesonet-dashboard/app/mdb/app.py:2579).", "source": "sitemap" },
     { "from": "/mesonet/qaqc/", "to": "/mesonet/qaqc/", "status": 200, "reason": "Quality-control procedures, migrated to the same path (papers may cite it).", "source": "sitemap" },
     { "from": "/mesonet/tutorials/", "to": "/mesonet/", "status": 301, "reason": "Videos for the legacy Dash dashboard.", "source": "sitemap" },
-    { "from": "/mesonet/umrb/", "to": "/mesonet/#mesonet-history", "status": 301, "reason": "UMRB build-out; the hub's history section covers it and links the UMRB Build Status map.", "source": "sitemap" },
+    { "from": "/mesonet/umrb/", "to": "/mesonet/#mesonet-history", "status": 301, "reason": "UMRB build-out; the hub's history section covers it and links the HydroMet Build Status map.", "source": "sitemap" },
     { "from": "/mesonet/variables/", "to": "/mesonet/variables/", "status": 200, "reason": "Variables measured, migrated to the same path; the table is now read from the API. Both dashboards link it.", "source": "sitemap" },
     { "from": "/mesonet/wfs/", "to": "/mesonet/wfs/", "status": 200, "reason": "OGC API - Features guide, migrated to the same path.", "source": "sitemap" },
     { "from": "/mesonet/app/", "to": "/mesonet/", "status": 301, "reason": "Mesonet app page; the hub covers it (D23).", "source": "sitemap" },
