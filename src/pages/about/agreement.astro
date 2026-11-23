@@ -3,6 +3,8 @@
 // Text matches mco-website/_pages/about/about_agreement.md; the license
 // wording comes from mt-climate-office/mesonet-license. Both Mesonet APIs and
 // the dashboard's data MANIFEST link this address (redirects.json keeps it).
+// The disclaimer applies to everything the office publishes, not only the
+// Mesonet, and must not limit what the CC BY 4.0 license grants.
 import Base from '../../layouts/Base.astro';
 import { url } from '../../lib/paths';
 ---
@@ -13,26 +15,36 @@ import { url } from '../../lib/paths';
     <h2 id="mesonet-license">Montana Mesonet data license</h2>
     <p>
       Montana Mesonet data are licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+      You may copy, share and adapt them for any purpose, including commercial use, if you credit
+      the Montana Mesonet, link to the license, and say whether you changed the data.
+    </p>
+    <p>
       Credit: Montana Mesonet, Montana Climate Office. A service of the University of Montana. <a href={url('mesonet/') + '#mesonet-cite'}>How to cite the data</a>.
     </p>
     <p>
       The license covers data measured at Montana Mesonet stations: observations, logger records,
       station photos, power, compliance and soil data. It does not cover the air quality data,
-      which come from PurpleAir sensors.
+      which come from PurpleAir sensors and whose terms are still being reviewed. It does not
+      cover software or other Montana Climate Office products.
     </p>
     <h2 id="disclaimer">Disclaimer</h2>
     <p>
-      The Montana Climate Office (MCO) provides products and services for informational purposes
-      only. Any products created or distributed by the MCO were not produced for, nor are they
-      suitable for legal, engineering, or surveying purposes. Consumers of MCO information should
-      review or consult the primary data and information sources to ascertain the viability of the
-      information for their purposes. The MCO provides these data in good faith but does not
-      represent or warrant its accuracy, adequacy, or completeness. In no event shall the MCO be
-      liable for any incorrect results or analysis; any direct, indirect, special, or consequential
-      damages to any party; or any lost profits arising out of or in connection with the use or the
-      inability to use the data or the services provided. The MCO makes these data and services
-      available as a convenience to the public, and for no other purpose. The MCO reserves the right
-      to change or revise published data and/or services at any time.
+      The Montana Climate Office (MCO) publishes its data and services in good faith as a public
+      service. The MCO does not warrant their accuracy, adequacy, or completeness. Observations
+      from automated sensors can contain errors, gaps, and delays, and they may be corrected,
+      backfilled, or revised at any time. The MCO may change or discontinue its services at any
+      time.
+    </p>
+    <p>
+      MCO products were not produced for legal, engineering, or surveying purposes. Anyone relying
+      on them for such purposes should consult the primary data and information sources to confirm
+      they are suitable.
+    </p>
+    <p>
+      To the extent permitted by law, the MCO is not liable for incorrect results or analysis, or
+      for any direct, indirect, special, or consequential damages or lost profits arising from use
+      of, or inability to use, the data or services. Nothing in this disclaimer restricts the
+      rights granted to you under the CC BY 4.0 license.
     </p>
   </div>
 </Base>
