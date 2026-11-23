@@ -1,13 +1,26 @@
 ---
-// User agreement and disclaimer. Text copied word for word from
-// mco-website/_pages/about/about_agreement.md. Both Mesonet APIs and the
-// dashboard's data MANIFEST link this address (redirects.json keeps it).
+// User agreement and disclaimer, plus the Montana Mesonet data license.
+// Text matches mco-website/_pages/about/about_agreement.md; the license
+// wording comes from mt-climate-office/mesonet-license. Both Mesonet APIs and
+// the dashboard's data MANIFEST link this address (redirects.json keeps it).
 import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/paths';
 ---
 <Base short="User agreement"
-      description="The Montana Climate Office user agreement and disclaimer for its data and services.">
+      description="The Montana Mesonet data license (CC BY 4.0) and the Montana Climate Office user agreement and disclaimer for its data and services.">
   <div class="prose">
     <h1>User Agreement and Disclaimer</h1>
+    <h2 id="mesonet-license">Montana Mesonet data license</h2>
+    <p>
+      Montana Mesonet data are licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+      Credit: Montana Mesonet, Montana Climate Office. A service of the University of Montana. <a href={url('mesonet/') + '#mesonet-cite'}>How to cite the data</a>.
+    </p>
+    <p>
+      The license covers data measured at Montana Mesonet stations: observations, logger records,
+      station photos, power, compliance and soil data. It does not cover the air quality data,
+      which come from PurpleAir sensors.
+    </p>
+    <h2 id="disclaimer">Disclaimer</h2>
     <p>
       The Montana Climate Office (MCO) provides products and services for informational purposes
       only. Any products created or distributed by the MCO were not produced for, nor are they

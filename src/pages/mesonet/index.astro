@@ -12,10 +12,19 @@ import { loadSummary } from '../../lib/compliance';
 import { getCatalog } from '../../lib/stations';
 import { count, isoTime, stampMT } from '../../lib/format';
 import { tools } from '../../lib/hubs';
-import { url } from '../../lib/paths';
+import { canonicalUrl, url } from '../../lib/paths';
 import { MESONET_METHODS } from '../../lib/methods';
 
 const [summary, catalog] = await Promise.all([loadSummary(), getCatalog()]);
+
+// The Mesonet data license (mt-climate-office/mesonet-license). The short
+// credit links the full citation by its legacy address, /mesonet/citation/,
+// which works on the old site now and 301s to #mesonet-cite here.
+const CC_BY = 'https://creativecommons.org/licenses/by/4.0/';
+const CITE_URL = canonicalUrl(url('mesonet/citation/'));
+const CREDIT_HTML = `<a href="${CITE_URL}">Data from the Montana Mesonet</a>,
+a service of the University of Montana ·
+<a href="${CC_BY}">CC BY 4.0</a>`;
 
 const hours = summary.reporting.threshold_minutes / 60;
 const windowLabel = Number.isInteger(hours)
@@ -116,8 +125,19 @@ const PAGES = [
 
   <section class="hub-section" aria-labelledby="mesonet-cite">
     <h2 id="mesonet-cite" class="hub-h2">Cite the data</h2>
-    {/* mco-website/_pages/mesonet_citation.md, verbatim form. */}
-    <p>If you use Mesonet data in research, cite it as</p>
-    <p class="hub-cite">Montana Mesonet, Montana Climate Office {'{Year Accessed}'}. Data accessed from {'{URL Used for Data Download}'} on {'{Access Date}'}.</p>
+    {/* Wording from mt-climate-office/mesonet-license (README), the single
+        source for the Mesonet data license and citation; mco-website's
+        _pages/mesonet_citation.md carries the same text. */}
+    <p>
+      Mesonet data are licensed under <a href={CC_BY}>CC BY 4.0</a>. Anyone can use them,
+      including commercially, with credit.
+    </p>
+    <p>If you use Mesonet data, cite them as</p>
+    <p class="hub-cite">Montana Mesonet, Montana Climate Office. A service of the University of Montana. {'{Year Accessed}'}. Data accessed from {'{URL Used for Data Download}'} on {'{Access Date}'}. Licensed CC BY 4.0.</p>
+    <p>In a dashboard, figure or app, a short credit is enough if it links here:</p>
+    <p class="hub-cite"><a href={CITE_URL}>Data from the Montana Mesonet</a>, a service of the University of Montana · <a href={CC_BY}>CC BY 4.0</a></p>
+    <div class="prose">
+      <pre tabindex="0"><code>{CREDIT_HTML}</code></pre>
+    </div>
   </section>
 </Base>
