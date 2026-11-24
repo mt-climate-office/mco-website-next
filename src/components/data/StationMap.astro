@@ -24,6 +24,7 @@ import { formatTemp, hiddenLines, summarize } from '../../lib/station-map';
 import { isoTime, stampMT } from '../../lib/format';
 import { stationPath } from '../../lib/stations';
 import { url } from '../../lib/paths';
+import { tool } from '../../lib/tools';
 
 interface Props {
   stations?: MapStation[] | null;
@@ -32,7 +33,7 @@ interface Props {
 }
 
 const { stations = null, fetchedAt = 0 } = Astro.props;
-const EXPLORER = 'https://mesonet.climate.umt.edu/explorer/';
+const EXPLORER = tool('Mesonet Explorer').href;
 const sum = stations ? summarize(stations, fetchedAt) : null;
 const stampAt = sum?.latestAt ?? fetchedAt;
 ---

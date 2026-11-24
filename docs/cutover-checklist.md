@@ -261,13 +261,12 @@ other. Re-run the path comparison on T−1 and before the flip.
 
 ### S1. Soft launch to partners — Owner · by Fri 30 Oct · Undo: n/a
 
-Partners get `next.climate.umt.edu` as a preview (D27). Every staging page
-carries a notice saying it replaces the current site on 13 Nov and that
-preview links stop working then (`src/components/layout/PreviewNotice.astro`;
-the production build has none). Staging stays `noindex`. In the message to
+Partners get `next.climate.umt.edu` as a preview (D27). Staging pages
+carried a notice giving the launch date until 24 Nov 2026, when the owner
+removed it after the date passed; restore it from git history before
+sharing staging again. Staging stays `noindex`. In the message to
 partners, say the same: the address is temporary, and the pages move to
-`climate.umt.edu` on 13 Nov at the same paths. If the launch date moves,
-change `LAUNCH_DATE` in the notice.
+`climate.umt.edu` on 13 Nov at the same paths.
 
 ---
 

@@ -14,6 +14,7 @@ import Base from '../../../layouts/Base.astro';
 import { loadSummary } from '../../../lib/compliance';
 import { count, isoTime, stampMT } from '../../../lib/format';
 import { url } from '../../../lib/paths';
+import { tool } from '../../../lib/tools';
 import {
   cellText, HEALTH_LABEL, loadStationHealth, stationHref, type Health,
 } from '../../../lib/station-health';
@@ -25,8 +26,8 @@ const windowLabel = Number.isInteger(hours) ? `${hours} hour${hours === 1 ? '' :
 const networks = [...new Set(table.rows.map((r) => r.network).filter(Boolean))].sort();
 const healthKeys = Object.keys(HEALTH_LABEL) as Health[];
 
-const STATUS_TOOL = 'https://mesonet.climate.umt.edu/status/?mode=health';
-const MAINTENANCE_TOOL = 'https://mesonet.climate.umt.edu/maintenance/';
+const STATUS_TOOL = `${tool('Station Status').href}?mode=health`;
+const MAINTENANCE_TOOL = tool('Station Maintenance').href;
 const RULESET = `https://github.com/mt-climate-office/mesonet-compliance/tree/v${summary.ruleset_version}`;
 
 const FIGURES = [
