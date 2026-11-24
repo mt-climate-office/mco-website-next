@@ -233,7 +233,7 @@ export default {
       }));
       check('station map: a station opens a popup with its reading, page and dashboard links',
         !!hit && pop.temp && pop.links.some((h) => /\/mesonet\/stations\/[a-z0-9_]+\/$/.test(h)) &&
-        pop.links.some((h) => /^https:\/\/mesonet\.climate\.umt\.edu\/dash\/next\/\?s=/.test(h)), JSON.stringify(pop));
+        pop.links.some((h) => /^https:\/\/mesonet2\.climate\.umt\.edu\/dash\/\?s=/.test(h)), JSON.stringify(pop));
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
       check('station map: Esc closes the popup', await page.evaluate(() => !document.querySelector('.maplibregl-popup')));
@@ -322,7 +322,7 @@ export default {
         JSON.stringify(zip));
       check('conditions: the pick links the station page and dashboard, writes ?s= and keeps focus in the field',
         zip.links.some((h) => new RegExp(`/mesonet/stations/${zip.s}/$`).test(h)) &&
-        zip.links.includes(`https://mesonet.climate.umt.edu/dash/next/?s=${zip.s}`) && /^[a-z0-9_]+$/.test(zip.s || '') &&
+        zip.links.includes(`https://mesonet2.climate.umt.edu/dash/?s=${zip.s}`) && /^[a-z0-9_]+$/.test(zip.s || '') &&
         zip.focus === 'cond-q', JSON.stringify(zip));
       check('conditions: the card is announced once, in words',
         zip.live.includes(`${zip.station}, ${zip.from}.`), zip.live);

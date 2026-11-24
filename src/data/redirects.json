@@ -49,7 +49,7 @@
     { "from": "/streamflow/", "to": "/drought/", "status": 301, "reason": "Wrapped streamflow.climate.umt.edu in an iframe; that host has no known owner (DECISIONS O7). The drought hub stands in until it has one (D23).", "source": "sitemap" },
 
     { "from": "/mesonet/", "to": "/mesonet/", "status": 200, "reason": "Section hub, same path.", "source": "sitemap" },
-    { "from": "/mesonet_dashboard/", "to": "https://mesonet.climate.umt.edu/dash/next/", "status": 301, "reason": "Pre-Jekyll dashboard address in the March 2020 Montana Drought & Climate newsletter; 404 on the old site too. The Station Dashboard.", "source": "inbound links (docs/cutover-inbound-links.md)" },
+    { "from": "/mesonet_dashboard/", "to": "https://mesonet2.climate.umt.edu/dash/", "status": 301, "reason": "Pre-Jekyll dashboard address in the March 2020 Montana Drought & Climate newsletter; 404 on the old site too. The Station Dashboard.", "source": "inbound links (docs/cutover-inbound-links.md)" },
     { "from": "/mesonet/stations/", "to": "/mesonet/stations/", "status": 200, "reason": "Station directory, same path.", "source": "sitemap" },
     { "from": "/mesonet/api/", "to": "/mesonet/data/", "status": 301, "reason": "API guide; /mesonet/data/ is now the API's page (base URL, example requests, limits, QC levels).", "source": "sitemap" },
     { "from": "/mesonet/citation/", "to": "/mesonet/#mesonet-cite", "status": 301, "reason": "Data citation, carried over verbatim to the hub.", "source": "sitemap" },

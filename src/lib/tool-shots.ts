@@ -50,7 +50,7 @@ export const TOOL_SHOTS = {
   },
   photos: {
     key: 'photos',
-    live: 'https://mesonet.climate.umt.edu/photos/preview.png',
+    live: 'https://mesonet2.climate.umt.edu/photos/preview.png',
     alt: 'The Photo Explorer: the latest west-facing photo from each station camera, tiled across a map of Montana near its station, mostly open prairie under a wide sky.',
   },
   dashboard: {
@@ -60,12 +60,12 @@ export const TOOL_SHOTS = {
   },
   status: {
     key: 'status',
-    live: 'https://mesonet.climate.umt.edu/status/assets/og-card.png',
+    live: 'https://mesonet2.climate.umt.edu/status/assets/og-card.png',
     alt: 'Station Status: a map of Montana with each station marked by whether it has reported in the last two hours, and the reporting-status legend at the lower left.',
   },
   build: {
     key: 'build',
-    live: 'https://mesonet.climate.umt.edu/build/assets/og-card.png',
+    live: 'https://mesonet2.climate.umt.edu/build/assets/og-card.png',
     alt: 'HydroMet Build Status: eastern and central Montana divided into grid cells, each coloured by whether its station is operational, due to be installed in 2027 or still available, with a dot at every station.',
   },
 } as const satisfies Record<string, ToolShot>;

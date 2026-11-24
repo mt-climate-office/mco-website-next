@@ -1,6 +1,8 @@
 // The office's public tools. External hosts, so plain URLs (paths.ts is for
-// this site's own routes). Dashboard links use the on-prem host until the
-// gateway cutover: mesonet2 drops ?s= (phase-0-report §3.3).
+// this site's own routes). The Mesonet tools hang off one origin, as in
+// every other app (HOUSE-STYLE §4); at the gateway cutover change it here.
+// mesonet2 serves the current dashboard at /dash/ and keeps ?s= (checked
+// 24 Nov 2026; on mesonet.climate.umt.edu /dash/ is still the legacy app).
 //
 // Descriptions are checked against each tool's own code and copy:
 //   Explorer     mesonet-explorer/app.js REGISTRY, modes latest/hourly/daily
@@ -12,14 +14,16 @@
 //   Snowpack     mco-snowpack-explorer/index.html about panel
 //   D³           mco-drought-dashboard/docs/index.html (BETA pill, indices)
 
-export const DASHBOARD = 'https://mesonet.climate.umt.edu/dash/next/';
+export const MESONET_ORIGIN = 'https://mesonet2.climate.umt.edu';
+
+export const DASHBOARD = `${MESONET_ORIGIN}/dash/`;
 // Opens one station's photos with ?station=<id> (docs/app.js deep link).
-export const PHOTO_EXPLORER = 'https://mesonet.climate.umt.edu/photos/';
+export const PHOTO_EXPLORER = `${MESONET_ORIGIN}/photos/`;
 
 export const TOOLS = [
   {
     name: 'Mesonet Explorer',
-    href: 'https://mesonet.climate.umt.edu/explorer/',
+    href: `${MESONET_ORIGIN}/explorer/`,
     description: 'Every station on one map. Pick a variable, from air temperature to soil moisture, and see the latest reading or the hourly and daily values for any date.',
   },
   {
@@ -34,17 +38,17 @@ export const TOOLS = [
   },
   {
     name: 'Station Status',
-    href: 'https://mesonet.climate.umt.edu/status/',
+    href: `${MESONET_ORIGIN}/status/`,
     description: 'Which stations have reported in the last two hours, and at each one, any sensor that has gone quiet.',
   },
   {
     name: 'Station Maintenance',
-    href: 'https://mesonet.climate.umt.edu/maintenance/',
+    href: `${MESONET_ORIGIN}/maintenance/`,
     description: 'When our field crew last visited each station.',
   },
   {
     name: 'HydroMet Build Status',
-    href: 'https://mesonet.climate.umt.edu/build/',
+    href: `${MESONET_ORIGIN}/build/`,
     description: 'Where the HydroMet network is still being built in the Upper Missouri River Basin, cell by cell. Cell assignments can still change.',
   },
   {
