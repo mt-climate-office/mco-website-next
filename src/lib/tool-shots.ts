@@ -1,10 +1,9 @@
 // Screenshots of the office's tools, for the hubs and the homepage.
 //
-// Four tools publish a social image that their own nightly job redraws from
-// the live app (the preview workflows in mesonet-photo-explorer,
-// mesonet-status and mesonet-umrb-build, and the dashboard's og-card.png).
-// The build fetches each of those, so the nightly rebuild shows that day's
-// map. Station Maintenance has one too and is left out on purpose: its
+// Four tools publish a social image of the live app: photos, status and
+// build redraw theirs every 6 hours (the kit's og-preview workflow,
+// assets/og-card.jpg), and the dashboard has its og-card.png. The build
+// fetches each of those, so the nightly rebuild shows that day's map. Station Maintenance has one too and is left out on purpose: its
 // legend prints the visited and overdue counts, and no compliance figure is
 // published on this site (DECISIONS D4, D10). The Explorer, Snowpack and D³
 // publish only
@@ -50,7 +49,7 @@ export const TOOL_SHOTS = {
   },
   photos: {
     key: 'photos',
-    live: 'https://mesonet2.climate.umt.edu/photos/preview.png',
+    live: 'https://mesonet2.climate.umt.edu/photos/assets/og-card.jpg',
     alt: 'The Photo Explorer: the latest west-facing photo from each station camera, tiled across a map of Montana near its station, mostly open prairie under a wide sky.',
   },
   dashboard: {
@@ -60,12 +59,12 @@ export const TOOL_SHOTS = {
   },
   status: {
     key: 'status',
-    live: 'https://mesonet2.climate.umt.edu/status/assets/og-card.png',
+    live: 'https://mesonet2.climate.umt.edu/status/assets/og-card.jpg',
     alt: 'Station Status: a map of Montana with each station marked by whether it has reported in the last two hours, and the reporting-status legend at the lower left.',
   },
   build: {
     key: 'build',
-    live: 'https://mesonet2.climate.umt.edu/build/assets/og-card.png',
+    live: 'https://mesonet2.climate.umt.edu/build/assets/og-card.jpg',
     alt: 'HydroMet Build Status: eastern and central Montana divided into grid cells, each coloured by whether its station is operational, due to be installed in 2027 or still available, with a dot at every station.',
   },
 } as const satisfies Record<string, ToolShot>;
