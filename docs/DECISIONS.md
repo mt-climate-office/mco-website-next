@@ -347,6 +347,23 @@ the protection, tier it.
   engine against it (PRs `[chromium]`, the full tier `[chromium, webkit]`),
   each with its own browser cache. Lighthouse runs in the Chromium job.
 
+**Amended 23 November 2026.** Pull requests still took 16–18 minutes. The
+pull request tier narrows again; push to main, the nightly run and manual
+runs keep the full set, so every deploy still passes it.
+
+- **Content pull requests run the build job only.** A PR counts as content
+  when every file it changes is Markdown under `src/content/` (not
+  `_fields.ts`), `src/data/publications.json`, a file under `docs/` or an
+  image under `public/images/`. The build gates still check it: schema and
+  alt text, built pages, HTML, redirects, the publications cache.
+- **Other pull requests run six core scenarios** (`VERIFY_SCENARIOS`):
+  home, home-map, status, news-post, publications and search-results, axe
+  in all three themes at both widths, the keyboard probes, and head checks
+  on those pages (`check:built` covers every page's head). Chromium only,
+  Lighthouse on the homepage, median of 3, as before.
+- A regression on a page outside the core set is caught on the push to
+  main, before deploy, not on the PR.
+
 ---
 
 ## D18 — Homepage CSP allows inline style attributes
