@@ -24,12 +24,16 @@ const projectOnly = all.filter((p) => p.roles.length === 0 && p.projects.length 
 const logo = (p: Partner) => (p.logo ? contentImage(p.logo, `partner ${p.slug}`) : null);
 ---
 <Base short="Partners and sponsors"
-      description="Organizations the Montana Climate Office works with, the agencies that sponsor its work, and its project partners.">
+      description="The organizations the Montana Climate Office works with, and the agencies that fund our work.">
   <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
   <p class="pub-back"><a href={url('about/')}>About</a></p>
   <h1 class="section-title pub-page-title">Partners and sponsors</h1>
   <p class="section-lede">
-    Organizations the Montana Climate Office works with, and the agencies that sponsor its work.
+    {/* Partners and sponsors as the old site's pages named them
+        (mco-website/_pages/about/about_partnerships.md, about_sponsors.md:
+        "grateful for the support of our sponsors"). */}
+    These are the organizations we work with as a state climate office, and the government agencies whose
+    support keeps the Mesonet and our tools running.
   </p>
 
   <section class="hub-section" aria-labelledby="partners">
@@ -52,7 +56,7 @@ const logo = (p: Partner) => (p.logo ? contentImage(p.logo, `partner ${p.slug}`)
 
   <section class="hub-section" aria-labelledby="sponsors">
     <h2 id="sponsors" class="hub-h2">Sponsors</h2>
-    <p>Government agencies that sponsor the office's work.</p>
+    <p>These government agencies sponsor our work.</p>
     <ul class="org-list">
       {sponsors.map((p) => {
         const img = logo(p);
@@ -71,7 +75,7 @@ const logo = (p: Partner) => (p.logo ? contentImage(p.logo, `partner ${p.slug}`)
   {projectOnly.length > 0 && (
     <section class="hub-section" aria-labelledby="project-partners">
       <h2 id="project-partners" class="hub-h2">Project partners and funders</h2>
-      <p>Organizations named by the office's <a href={url('projects/')}>projects</a>.</p>
+      <p>These organizations work with us, or fund the work, on particular <a href={url('projects/')}>projects</a>.</p>
       <ul class="org-list">
         {projectOnly.map((p) => {
           const img = logo(p);

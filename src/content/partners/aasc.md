@@ -4,5 +4,5 @@ slug: aasc
 url: https://stateclimate.org/
 roles:
   - partner
-note: The office is a member, as Montana's state climate office.
+note: We are a member, as Montana's state climate office.
 ---

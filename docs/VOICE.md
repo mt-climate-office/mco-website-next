@@ -1,133 +1,140 @@
 # Voice — Montana Climate Office website
 
-How copy on `climate.umt.edu` is written. This applies to every word that
-ships: headings, body, buttons, labels, captions, error states, alt text,
-commit-adjacent content like release notes. It does not apply to code
-comments.
+How we write the words on `climate.umt.edu`: headings, body copy, buttons,
+labels, captions, alt text, error messages. Code comments are exempt.
 
-**The office did not have a written voice before this document.** It was
-derived from the one place the office already writes well: the microcopy
-inside its own tools. Those lines were written to be used, not approved, and
-they are the model.
-
----
-
-## The model
-
-```
-Partly cloudy tonight, calm, no precipitation in 3 days.
-Updated 17 min ago · Provisional
-1 station hidden (no report in 3 h)
-Only HydroMet stations require a Maintenance visit at least once per
-  calendar year (a Repair visit does not count).
-Cell status subject to change
-```
-
-Dry. Exact. Qualified in line. Assumes the reader is competent. Never sells.
-
-## The anti-model
-
-From the live site, retained here so it is recognisable, not reproduced:
-
-```
-The MCO sits at the nexus of two of America's great river basins… No other
-provider of climate information has within their mission the goal of
-assimilating, organizing, and disseminating climate information across
-providers for the benefit of a large and diverse stakeholder community.
-```
-
-Written to be approved. Says nothing a reader can act on. If a draft could
-sit in that paragraph without friction, rewrite it.
+**Revised 23 November 2026.** The first version asked for copy that was
+"dry, exact" and never described the office. It got exactly that, and the
+site read as if a machine had written it: noun lists where sentences
+should be, a question for every heading, nobody doing anything. This
+version keeps what worked (no invented claims, no numbers that go stale,
+no marketing words) and changes the register.
 
 ---
 
-## Six rules
+## Who is talking
 
-1. **Lead with the number or the measurement**, not a claim about it.
-2. **Name the specific thing** — the place, the index, the program, the
-   county. "59 inches at Lolo Pass", not "significant snowfall".
-3. **Put the limit in the same sentence as the claim.** Provisional. In
-   review. As of. Subject to change. This is where authority comes from for a
-   data office; naming a limit is not conceding one.
-4. **One idea per sentence.** If the second clause restates the first, cut it.
-5. **Use the verbs you would use out loud**: measure, check, publish, run,
-   visit, fix, install. Not deliver, provide, strive, leverage, empower,
-   facilitate.
-6. **Never describe the office.** Let the figures do it. There is exactly one
-   page where the office may describe itself, and it is `/about/`.
+We are. The office writes in the first person plural, the way staff talk
+when someone calls with a question: "We run 253 stations" becomes "We run
+the Montana Mesonet", and "The office installed the first six stations in
+2016" becomes "We installed the first six stations in 2016."
 
-Rule 3 is the distinctive one. Rule 6 is the one that kills most bad drafts.
+Use "the Montana Climate Office" when a reader needs the name: the first
+line of the About page, a citation, a partner's credit. Otherwise "we".
 
----
+Do not address the reader as "you". Write about people in general, in
+the third person, and let it sound like it comes from here: Montanans,
+ranchers, county extension agents, anyone planning a trip over Lolo Pass.
+"Montanans can check the snowpack in their own watershed", not "You can
+check the snowpack in your watershed". Name real places and real work
+where a sentence allows it, without inventing what people want (see
+Claims).
 
-## Test for "service-oriented"
+## Write in sentences
 
-Every page makes clear what the reader can do next. A page that only informs
-is an about page, and the site has one.
+A sentence has someone doing something. "Soil moisture at three depths at
+every station" is a label. "Every station measures soil moisture at three
+depths" is a sentence. Body copy is sentences. Labels, table headers, map
+legends and button text can be fragments.
 
----
+Say what a thing is for before what it contains. Not "SPI, SPEI, EDDI and
+SVPDI for the contiguous US, computed daily from gridMET", but:
 
-## Rewrites
+> D³ shows how dry it is anywhere in the country, and for how long it has
+> been dry. We recompute it every day.
 
-| Instead of | Write |
-|---|---|
-| "a variety of meteorological variables" | "air temperature, humidity, wind, precipitation, and soil moisture at four depths" |
-| "high-quality, timely, relevant, and scientifically based climate information" | "253 stations. Every reading checked before it is published. Free to anyone." |
-| "🚨 NEW TOOL ALERT! 🚨 Mesonet Photo Explorer Now Live!" | "Mesonet Photo Explorer — photos from 152 station cameras, on one map, searchable by direction and time." |
-| "Conditions across the state" | "How dry is it?" |
-| "Start where you work" | "Where people usually start" |
-| "Our mission is to provide…" | (delete; show the numbers) |
+Then the detail, for readers who want it.
 
----
+Vary the length. Short sentences are good. A page of them is not.
 
-## Banned constructions
+## Explain a little
 
-These are the tells that make copy read as machine-written. None of them
-appear in the tools' microcopy, and none should appear on the site.
+A reader who lands on the Drought page may not know what EDDI is. One
+plain sentence saying why it matters is worth more than the acronym:
+"EDDI tracks how thirsty the air is, which often shows drought coming
+before rain gauges do." Give the reader a reason to click.
 
-- **Antithesis with a semicolon or colon.** "Sensors tell you the number;
-  these tell you the season." Never.
-- **"Not X, but Y"** framing.
-- **Colon-then-reveal.** "One thing matters above all: soil moisture."
-- **Tricolon.** "whether the grass came back, whether the snow held, whether
-  the smoke rolled in." Pick one.
-- **Em-dash asides** carrying the real content.
-- **Tracked-out ALL-CAPS eyebrow labels** above headings.
-- **Meta strings joined with middle dots** as decoration. (A timestamp line
-  like `Oct 21, 3:00 PM · facing north` is data, and is fine.)
-- **"→" appended to link text.**
-- **Stock openers**: "In today's rapidly changing climate…", "It's worth
-  noting that…", "Whether you're a rancher or a researcher…"
-- **Emoji**, including in headings and news posts.
+Where something is new, provisional or in review, say so in the same
+sentence, in ordinary words: "These numbers are provisional, so they can
+change as we check them." Naming a limit is how a data office earns
+trust.
 
-## Banned words
+## Describe the office when it helps
 
-deliver (except of physical things), provide, strive, robust, leverage,
-empower, facilitate, utilize, seamless, cutting-edge, state-of-the-art,
-world-class, comprehensive, holistic, stakeholder-facing, actionable insights,
-unlock, journey, solution, ecosystem (unless literally ecological).
+It is fine, on any page, to say what we do and why, if it helps the
+reader understand a tool or trust the data: who visits the stations, why
+the network has two kinds of station, why a camera faces west. What is
+not fine is praise: "leading", "world-class", "trusted source". Let the
+work speak.
 
-"Stakeholder" is permitted in grant and policy contexts where it is the term
-of art. It does not belong on a public page.
+## Things that change
 
----
+Never type these into prose. Read them from data, with a component, or
+leave them out:
 
-## Specifics that change
+- how many stations, cameras or reporting stations there are
+- the photo capture schedule
+- any "as of" date
+- network health percentages
 
-Never state these in prose; read them from data and let the UI show them.
-
-- The number of stations, cameras, or reporting stations
-- The photo capture schedule (it is changing; see the rebuild plan §1.4.3)
-- Any "as of" date
-- Percentages of network health
-
-A sentence that will be wrong next quarter is a sentence to rewrite now.
-
----
+"We run the Montana Mesonet" stays true. "We run 253 stations" does not.
 
 ## Claims
 
-Do not invent supporting claims. An earlier draft of this site's copy
-contained "the measurement most Montana producers ask for first", which was
-fabricated. If a claim about what users want or do is not sourced, cut it or
-mark it for someone to verify.
+Do not invent supporting claims. If a sentence says what Montana
+producers want, or what most people use a tool for, someone at the office
+must have said so. If nobody has, cut it, or leave a comment in the source
+asking staff to confirm.
+
+---
+
+## What gives copy away as machine-written
+
+Avoid these. Each one on its own is ordinary English; together they are
+how a reader recognises copy no person wrote.
+
+- **Headings that are questions**, page after page. One is fine. A hub
+  built of them is a form.
+- **Explaining the page's own layout**: "Each card links to the tool that
+  answers it." "Pick the question closest to yours." Let the layout work.
+- **Noun lists standing in for sentences**: "Air temperature, humidity,
+  wind, precipitation and soil moisture."
+- **Antithesis**: "not X but Y", "Sensors tell you the number; photos
+  tell you the season."
+- **Colon reveals**: "One thing matters most: soil moisture."
+- **Lists of three** used for rhythm rather than because there are three
+  things.
+- **Em dashes** carrying an aside. Use a comma, brackets or a new sentence.
+- **Middle dots** joining words for decoration. A data stamp like
+  `Oct 21, 3:00 PM · facing west` is fine.
+- **"→" on link text**, emoji, tracked-out capital eyebrows over headings.
+- **Stock openers**: "In today's changing climate", "Whether you're a
+  rancher or a researcher", "It's worth noting that".
+
+## Words we do not use
+
+leverage, empower, facilitate, utilize, robust, seamless, cutting-edge,
+state-of-the-art, world-class, comprehensive, holistic, actionable
+insights, unlock, journey, solution, ecosystem (unless it is one),
+stakeholder (outside grant and policy writing). Prefer "give" or "run" to
+"provide" and "deliver".
+
+## An example
+
+Before, from the Drought page:
+
+> Each tool here answers a different question about drought. Pick the
+> question closest to yours.
+>
+> **How dry is it?** SPI, SPEI, EDDI and SVPDI for the contiguous US,
+> computed daily from gridMET. Timescales run from 15 days to two years.
+
+After:
+
+> Drought can show up in the snowpack months before it reaches the soil,
+> so we look at it in more than one way. Each tool below covers a
+> different part of it.
+>
+> **D³ Drought Data Dashboard** maps four drought indices for the whole
+> country, recomputed every day, over windows from two weeks to two years.
+> It is still in beta, so expect it to change.

@@ -1,0 +1,61 @@
+---
+// One tool, shown: its screenshot beside its name and a paragraph or two
+// about what it is for (the default slot). Features alternate sides on
+// wide screens (`flip`) and stack, picture first, on narrow ones.
+import ToolShot from './ToolShot.astro';
+import type { ShotKey } from '../../lib/tool-shots';
+
+interface Props {
+  name: string;
+  href: string;
+  shot?: ShotKey;
+  /** Status the tool itself shows, e.g. "beta". Printed in words. */
+  status?: string;
+  flip?: boolean;
+  /** Heading level for the tool's name; hubs use h3 under an h2. */
+  level?: 2 | 3;
+}
+
+const { name, href, shot, status, flip = false, level = 3 } = Astro.props;
+const H = `h${level}` as 'h2' | 'h3';
+---
+<article class:list={['tool-feature', { 'is-flipped': flip, 'no-shot': !shot }]}>
+  {shot && (
+    <div class="tool-feature-shot">
+      <ToolShot shot={shot} sizes="(max-width: 750px) 100vw, (max-width: 1440px) 55vw, 790px" />
+    </div>
+  )}
+  <div class="tool-feature-text">
+    <H class="tool-feature-name">
+      <a class="site-link" href={href}>{name}</a>{status && <span class="tool-feature-status"> ({status})</span>}
+    </H>
+    <slot />
+  </div>
+</article>
+
+<style>
+  .tool-feature {
+    display: grid;
+    grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
+    gap: var(--site-grid-gap-wide);
+    align-items: center;
+  }
+  .tool-feature.is-flipped { grid-template-columns: minmax(0, 9fr) minmax(0, 11fr); }
+  .tool-feature.is-flipped .tool-feature-shot { order: 2; }
+  .tool-feature.no-shot { grid-template-columns: minmax(0, 1fr); }
+  .tool-feature + :global(.tool-feature) { margin-top: var(--site-section); }
+  .tool-feature-name { font-size: var(--fs-xl); font-weight: var(--fw-semibold); line-height: 1.25; }
+  .tool-feature-name a { font-size: inherit; }
+  .tool-feature-status { font-weight: var(--fw-regular); color: var(--text-secondary); }
+  .tool-feature-text { min-width: 0; max-width: 60ch; }
+  .tool-feature-text :global(p) {
+    margin-top: var(--space-4);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-body);
+    color: var(--text-secondary);
+  }
+  @media (max-width: 1060px) {
+    .tool-feature, .tool-feature.is-flipped { grid-template-columns: minmax(0, 1fr); gap: var(--site-grid-gap); }
+    .tool-feature.is-flipped .tool-feature-shot { order: 0; }
+  }
+</style>

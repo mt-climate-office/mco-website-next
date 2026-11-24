@@ -1,51 +1,94 @@
 ---
-// /about/ (rebuild plan §4.2). The one page where the office may describe
-// itself (VOICE rule 6), kept to facts with a source each. Staff, partners
-// and projects have their own pages, from the content collections.
+// /about/ (rebuild plan §4.2). Where the office says the most about itself
+// (docs/VOICE.md, "Describe the office when it helps"), kept to facts with a
+// source each. Staff, partners and projects have their own pages, from the
+// content collections.
 import Base from '../../layouts/Base.astro';
 import { url } from '../../lib/paths';
 ---
 <Base short="About"
-      description="The Montana Climate Office at the University of Montana: what it is, and how to reach it.">
+      description="The Montana Climate Office at the University of Montana: what we do, and how to reach us.">
   <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
   <div class="prose">
     <h1>About the Montana Climate Office</h1>
 
     {/* Designation: mco-website/_pages/about/about.md ("In 2006 Governor
         Schweitzer designated the Montana Climate Office, at the University
-        of Montana, as the official state climate office"). */}
+        of Montana, as the official state climate office"; "an independent
+        state-designated body"). College and town: the site footer, owner
+        decision of 22 Oct 2026 (rebuild plan Phase 1 item 3; DECISIONS D15
+        postal address). */}
     <p>
-      The Montana Climate Office is Montana's official state climate office.
-      Governor Schweitzer designated it in 2006.
+      The Montana Climate Office is Montana's state climate office. Governor Schweitzer designated
+      it in 2006, at the University of Montana, as an independent office serving the whole state.
+      We work out of the W.A. Franke College of Forestry &amp; Conservation in Missoula.
     </p>
 
-    {/* College and town: the site footer, owner decision of 22 Oct 2026
-        (rebuild plan Phase 1 item 3; DECISIONS D15 postal address). */}
+    {/* Two basins and work past the state line: mco-website/_pages/about/
+        about.md ("at the nexus of two of America's great river basins, the
+        Columbia and the Missouri"; "many of the Montana Climate Office
+        products extend to other regions"). */}
     <p>
-      The office is part of the W.A. Franke College of Forestry &amp; Conservation at the
-      University of Montana, in Missoula.
+      Montana holds the headwaters of two of the country's largest river basins, the Columbia and
+      the Missouri. Water that falls here ends up a long way downstream, so a good deal of our work
+      reaches past the state line.
     </p>
 
+    <h2>What we do</h2>
     {/* Operates the Mesonet: mco-website/index.md ("stations that the MCO
-        operates across Montana"). The tools: src/lib/tools.ts, repos under
-        mt-climate-office (phase-0-report §3). */}
+        operates across Montana"). First stations 2016 and the Corps of
+        Engineers build: src/pages/mesonet/index.astro. Visits: the Station
+        Maintenance tool (src/lib/tools.ts). Quality control:
+        src/pages/mesonet/qaqc.astro. */}
     <p>
-      It runs the Montana Mesonet and builds the data tools linked from
-      the <a href={url('conditions/')}>Conditions</a>, <a href={url('drought/')}>Drought</a>{' '}
-      and <a href={url('mesonet/')}>Mesonet</a> pages.
+      We run the Montana Mesonet, the statewide network of weather and soil moisture stations we
+      have been building since 2016. Our field staff install
+      the stations and go back to maintain them, and every reading goes through quality-control checks
+      before it settles into the record.
+    </p>
+
+    {/* The tools: src/lib/tools.ts, repos under mt-climate-office
+        (phase-0-report §3). */}
+    <p>
+      We also build the web tools that put that data on a map, along with national drought and
+      snowpack data. The Mesonet Explorer, the Station Dashboard, the Snowpack Explorer and the
+      D³ Drought Data Dashboard are all ours. The <a href={url('conditions/')}>Conditions</a>,{' '}
+      <a href={url('drought/')}>Drought</a> and <a href={url('mesonet/')}>Mesonet</a> pages say what
+      each one is for.
+    </p>
+
+    {/* Interpreting climate information: mco-website/_pages/about/about.md
+        ("assist stakeholders in interpreting climate information or adapting
+        climate products to their needs"). */}
+    <p>
+      Part of a state climate office's job is helping people read climate information and fit it to
+      their own work. Anyone with a question about a map or a number on this site can write to us,
+      and we will explain it.
+    </p>
+
+    {/* MSDI stewardship: src/content/projects/msl.md. AASC membership and
+        federal partners: src/content/partners/{aasc,noaa}.md. */}
+    <p>
+      Since 2013 we have been the state's official steward for climate data in the Montana Spatial
+      Data Infrastructure. We are a member of the American Association of State Climatologists and,
+      like the other state climate offices, work with NOAA, its Regional Climate Centers and the
+      National Weather Service.
     </p>
 
     <h2>People, partners and projects</h2>
-    <ul>
-      <li><a href={url('about/team/')}>Team</a>: staff, students and affiliates, with their roles.</li>
-      <li><a href={url('about/partnerships/')}>Partners and sponsors</a>: the organizations the office works with and is funded by.</li>
-      <li><a href={url('projects/')}>Projects</a>: research and data projects, with their partners and publications.</li>
-    </ul>
+    <p>
+      The <a href={url('about/team/')}>team page</a> introduces the staff, students and affiliates
+      who work here. Our <a href={url('about/partnerships/')}>partners and sponsors</a> are the
+      organizations we work with and the agencies that fund the work. The research we do with other
+      universities and agencies is on the <a href={url('projects/')}>projects</a> page.
+    </p>
 
     <h2>Contact</h2>
     {/* Address and email: the site footer (rebuild plan Phase 1 item 3). */}
     <p>
-      Email <a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a>.
+      Email reaches the whole office at{' '}
+      <a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a>.
+      Our mailing address is:
     </p>
     <address>
       Montana Climate Office<br>
@@ -55,11 +98,12 @@ import { url } from '../../lib/paths';
     </address>
 
     <h2>Using our data</h2>
-    {/* src/pages/about/agreement.astro, copied from the old site's
-        /about/agreement/; the APIs link it. */}
+    {/* src/pages/about/agreement.astro (CC BY 4.0 for Mesonet data, the
+        disclaimer for the rest); the APIs link it. */}
     <p>
-      Data and products from the office come with a{' '}
-      <a href={url('about/agreement/')}>user agreement and disclaimer</a>.
+      Montana Mesonet data are free to use under a Creative Commons license. The{' '}
+      <a href={url('about/agreement/')}>user agreement and disclaimer</a> has the license terms and
+      covers the rest of our data and services.
     </p>
   </div>
 </Base>

@@ -134,14 +134,14 @@ function init(card: HTMLElement, input: HTMLInputElement, listbox: HTMLElement, 
   el.near.addEventListener('click', async () => {
     search.cancel();
     search.close();
-    message('Finding your location.');
+    message('Finding the nearest stations.');
     const mine = ++locating;
     try {
       const stations = await loadCatalog();
       const r = await P.nearMe(stations, { n: LIST_MAX });
       if (mine !== locating) return;
       message(null);
-      if (!r.rows.length) { message('No stations found near you.'); return; }
+      if (!r.rows.length) { message('No stations found nearby.'); return; }
       await show(r.rows[0].station, { place: null, result: r }, { announce: true, write: true });
     } catch (err) {
       if (mine !== locating) return;
@@ -151,7 +151,7 @@ function init(card: HTMLElement, input: HTMLInputElement, listbox: HTMLElement, 
         : reason === 'unsupported'
           ? 'This browser cannot share a location. Search by town or ZIP code instead.'
           : reason
-            ? 'Your location could not be found. Search by town or ZIP code instead.'
+            ? 'The location could not be found. Search by town or ZIP code instead.'
             : 'The station list could not be loaded. Try again in a minute.';
       message(text);
       say(text);
@@ -173,7 +173,7 @@ function init(card: HTMLElement, input: HTMLInputElement, listbox: HTMLElement, 
 
   function nearListTitle(f: From): string {
     const p = f.place;
-    if (!p) return 'Stations near you';
+    if (!p) return 'Nearest stations';
     if (f.result.inside) return p.kind === 'reservation' ? `Stations on the ${p.name}` : `Stations in ${p.name}`;
     return `Stations near ${p.at ?? (p.kind === 'zip' ? `ZIP code ${p.name}` : p.name)}`;
   }

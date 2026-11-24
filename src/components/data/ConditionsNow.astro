@@ -36,7 +36,7 @@ const dashFor = (id: string) => `${DASHBOARD}?s=${encodeURIComponent(id)}`;
     {/* Laid out from first paint whenever scripts run, so it never shifts
         the card; held invisible until MCO.ready() (the kit's data-hold). */}
     <div class="cond-search" id="cond-search" data-hold>
-      <label class="cond-label" for="cond-q">Find conditions near you</label>
+      <label class="cond-label" for="cond-q">Conditions near a place</label>
       <p class="cond-hint" id="cond-hint">A town, county, reservation, ZIP code or station name.</p>
       <div class="cond-row">
         <div class="mco-search cond-field">

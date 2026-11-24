@@ -1,55 +1,78 @@
 ---
-// /conditions/ (rebuild plan §4.2): hub for the tools that show what it is
-// doing now, at the stations. Questions and their sources: src/lib/hubs.ts.
-// Copy follows docs/VOICE.md; no figures that change.
+// /conditions/ (rebuild plan §4.2): the tools that show what the weather is
+// doing now, at the stations. Copy follows docs/VOICE.md; no figures that
+// change. What each tool shows: src/lib/tools.ts sources.
+//
+// Provisional: /latest/ rows carry provisional: true (rebuild plan §1.3);
+// mco-website/_pages/mesonet_citation.md (data subject to change with
+// backfilling and QA/QC). Every fifteen minutes and the QC tests:
+// src/pages/mesonet/variables.astro and qaqc.astro.
 import Base from '../../layouts/Base.astro';
-import QuestionCard from '../../components/content/QuestionCard.astro';
+import ToolFeature from '../../components/content/ToolFeature.astro';
 import ToolList from '../../components/content/ToolList.astro';
-import { CONDITIONS_QUESTIONS } from '../../lib/hubs';
+import { tool } from '../../lib/tools';
 import { url } from '../../lib/paths';
 
-// Descriptions of this site's own pages, from each page's own description
-// (src/pages/mesonet/{stations,status}/index.astro).
+// This site's own pages.
 const PAGES = [
   {
     name: 'Mesonet stations',
     href: url('mesonet/stations/'),
-    description: 'Every station, with its network, county, elevation and install date. Each station page links to its data.',
+    description: 'A page for every station, giving its network, county, elevation and the year it went in, with links to its data.',
   },
   {
     name: 'Station status',
     href: url('mesonet/status/'),
-    description: 'Whether each station is reporting, and which of its sensors are not.',
+    description: 'Which stations are reporting and which sensors are down, with the whole table to download as CSV.',
   },
 ];
 ---
 <Base short="Conditions"
-      description="Current readings, soil moisture, station photos and forecasts from the Montana Mesonet.">
+      description="What the weather is doing across Montana right now, from the Montana Mesonet's stations and cameras.">
   <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
   <h1 class="section-title">Conditions</h1>
   <p class="section-lede">
-    Readings and photos from Montana Mesonet stations. Recent readings are provisional and can change.
+    Our Mesonet stations report around the clock, and these tools show what they are seeing.
+    The newest readings are provisional, so they can change after we check them.
   </p>
-  {/* Provisional: /latest/ rows carry provisional: true (rebuild plan §1.3);
-      mco-website/_pages/mesonet_citation.md (data subject to change with
-      backfilling and QA/QC). */}
 
-  <section class="hub-section" aria-labelledby="conditions-questions">
-    <h2 id="conditions-questions" class="hub-h2">Start with a question</h2>
-    <div class="hub-grid">
-      {CONDITIONS_QUESTIONS.map((q) => <QuestionCard {...q} />)}
-    </div>
+  <section class="hub-section" aria-labelledby="conditions-tools">
+    <h2 id="conditions-tools" class="hub-h2">Right now, across Montana</h2>
+
+    <ToolFeature name="Station Dashboard" href={tool('Station Dashboard').href} shot="dashboard">
+      <p>
+        The Dashboard is the quickest way to see one place.
+        Type a town, a county, a ZIP code or a station name and it finds the nearest stations.
+        Each station’s page puts its recent temperature, wind, rain and soil moisture next to the normal for the time of year, with the National Weather Service forecast for that spot.
+      </p>
+    </ToolFeature>
+
+    <ToolFeature name="Mesonet Explorer" href={tool('Mesonet Explorer').href} shot="explorer" flip>
+      <p>
+        The Explorer shows the whole state at once.
+        Every station sits on one map with its latest reading of whatever variable is chosen, so a cold front or a dry stretch shows up as a pattern across the map.
+        Hourly and daily values for earlier dates are a click away.
+      </p>
+    </ToolFeature>
+
+    <ToolFeature name="Photo Explorer" href={tool('Photo Explorer').href} shot="photos">
+      <p>
+        Numbers only say so much about fresh snow or green grass.
+        The cameras on our HydroMet stations take pictures through the day, and the Photo Explorer lays the newest ones across the state.
+        Each camera can be turned to face north, south, east or west, and stepped back through its archive.
+      </p>
+    </ToolFeature>
   </section>
 
   <section class="hub-section" aria-labelledby="conditions-pages">
-    <h2 id="conditions-pages" class="hub-h2">Stations on this site</h2>
+    <h2 id="conditions-pages" class="hub-h2">The stations themselves</h2>
     <ToolList tools={PAGES} />
   </section>
 
   <section class="hub-section" aria-labelledby="conditions-more">
     <h2 id="conditions-more" class="hub-h2">Drought and snowpack</h2>
     <p>
-      Drought indices and snowpack percentiles are on the <a href={url('drought/')}>Drought</a> page.
+      Drought maps and the snowpack against its record are on the <a href={url('drought/')}>Drought</a> page.
     </p>
   </section>
 </Base>

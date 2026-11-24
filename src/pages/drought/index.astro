@@ -1,28 +1,108 @@
 ---
-// /drought/ (rebuild plan §4.2, §4.8): the drought tools overlap and are easy
-// to confuse, so each leads with the question it answers, and D³ keeps the
-// beta label it shows itself. Questions and their sources: src/lib/hubs.ts.
+// /drought/ (rebuild plan §4.2, §4.8). D³ leads, with its screenshot as the
+// page's hero; the other tools follow, each with what it is for. D³ keeps
+// the beta label it shows itself. Copy follows docs/VOICE.md.
+//
+// Sources:
+//   D³: mco-drought-dashboard/docs/methods.html §1–2 (daily, CONUS, gridMET
+//     at about 4 km; SPI, SPEI, EDDI, SVPDI), docs/index.html:175-178 and
+//     :836 (indices; 15 days to 730 days, water year, year to date), the
+//     layer picker (precipitation and temperature departures, SNODAS SWE,
+//     VHI, GHCNd stations, USDM overlay, HUC aggregation), the "Institutional
+//     partners" panel (NGP-RIDR, NIDIS, DNRC), the BETA navbar pill and the
+//     point query.
+//   EDDI as an early signal: NOAA PSL, "Evaporative Demand Drought Index"
+//     (psl.noaa.gov/eddi): rising evaporative demand often precedes
+//     drought, so EDDI can give early warning.
+//   Snowpack: mco-snowpack-explorer/index.html About panel and legend
+//     (SNODAS daily since 30 Sep 2003, same calendar day, ~1 km grid, HUC
+//     2-8 zonal view, D/W classes).
+//   LFP Explorer: its own description, fetched 22 Oct 2026 from
+//     https://sustainable-fsa.com/lfp-explorer/.
+//   Soil moisture: mesonet-explorer/app.js REGISTRY (shallow, mid, deep).
+//   Snowmelt and summer streamflow: STAFF, confirm the wording of "a good
+//     share of the water in Montana's rivers through the summer starts as
+//     mountain snow".
 //
 // Not here, pending the owner (rebuild plan Part 7 Q12): the two HHP layers
 // D³ marks "In Review".
 import Base from '../../layouts/Base.astro';
-import QuestionCard from '../../components/content/QuestionCard.astro';
-import { DROUGHT_QUESTIONS } from '../../lib/hubs';
+import ToolShot from '../../components/content/ToolShot.astro';
+import ToolFeature from '../../components/content/ToolFeature.astro';
+import { tool } from '../../lib/tools';
 import { url } from '../../lib/paths';
+
+const d3 = tool('D³ Drought Data Dashboard');
 ---
 <Base short="Drought"
-      description="Drought indices, snowpack percentiles and livestock forage eligibility, each by the question it answers.">
+      description="Daily drought maps for Montana and the rest of the country, snowpack against the record, and the soil moisture our stations measure.">
   <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
   <h1 class="section-title">Drought</h1>
   <p class="section-lede">
-    Each tool here answers a different question about drought. Pick the question closest to yours.
+    Drought can show up in the snowpack months before it reaches the soil, so we watch it in more than one way.
+    Each of the tools on this page looks at a different part of it.
   </p>
 
-  <section class="hub-section" aria-labelledby="drought-questions">
-    <h2 id="drought-questions" class="hub-h2">Questions and the tools that answer them</h2>
-    <div class="hub-grid">
-      {DROUGHT_QUESTIONS.map((q) => <QuestionCard {...q} />)}
+  <section class="drought-hero" aria-labelledby="d3-title">
+    <ToolShot shot="d3-drought" priority sizes="(max-width: 1440px) 100vw, 1440px" class="drought-hero-shot" />
+    <div class="drought-hero-text">
+      <h2 id="d3-title" class="hub-h2">
+        <a class="site-link" href={d3.href}>D³ Drought Data Dashboard</a> <span class="drought-status">(beta)</span>
+      </h2>
+      <p>
+        D³ maps drought across the lower 48 states, and we recompute it every day from gridMET weather data.
+        It carries four drought indices, each of which can be read over anything from the last 15 days to the last two years.
+      </p>
+      <p>
+        The Standardized Precipitation Index looks at rain and snow alone.
+        The Standardized Precipitation-Evapotranspiration Index sets that against how much water the air would draw out of the ground.
+        The Evaporative Demand Drought Index follows that thirst on its own, and because the air often dries out before the rain gauges show a shortfall, it can warn of drought early.
+        The fourth index does the same for vapor pressure deficit.
+      </p>
+      <p>
+        Behind the indices sit precipitation and temperature departures, snow water equivalent, a vegetation health index from NOAA and long station records.
+        The weekly U.S. Drought Monitor can be laid over any of them, and every layer can be averaged over a watershed.
+        Clicking a spot on the map gives that place’s numbers.
+      </p>
+      <p>
+        D³ is in beta, so its layers and the way they are drawn may still change.
+        We run it with three institutional partners: the Northern Great Plains Regional Incubator for Drought Resiliency, NOAA’s National Integrated Drought Information System and the Montana Department of Natural Resources and Conservation.
+      </p>
     </div>
+  </section>
+
+  <section class="hub-section" aria-labelledby="drought-more">
+    <h2 id="drought-more" class="hub-h2">Snow, forage and soil</h2>
+
+    <ToolFeature name="Snowpack Explorer" href={tool('Snowpack Explorer').href} shot="snowpack">
+      <p>
+        A good share of the water in Montana’s rivers through the summer starts as mountain snow, which makes the snowpack worth watching all winter.
+        The Snowpack Explorer compares the snow on the ground today with the same date in every winter since 2003, using NOAA’s SNODAS snow model at about a kilometre.
+      </p>
+      <p>
+        It colours the map the way the Drought Monitor colours drought, from dark red where the snowpack is near the bottom of its record for the day to dark blue where it is near the top.
+        The same comparison is there for whole watersheds, from the whole Missouri basin down to subbasins the size of the Upper Clark Fork.
+      </p>
+    </ToolFeature>
+
+    <ToolFeature name="LFP Explorer" href="https://sustainable-fsa.com/lfp-explorer/" flip>
+      <p>
+        The USDA’s Livestock Forage Disaster Program pays ranchers when drought hits their county’s grazing land hard enough.
+        The LFP Explorer maps which counties qualified, and shows the Drought Monitor record and the Farm Service Agency grazing season behind each decision.
+        It comes out of Sustainable FSA, our research partnership with the USDA.
+      </p>
+    </ToolFeature>
+
+    <ToolFeature name="Mesonet Explorer" href={tool('Mesonet Explorer').href} shot="explorer">
+      <p>
+        Every Mesonet station measures soil moisture in the ground beneath it, at several depths.
+        The Mesonet Explorer maps the latest readings from the shallow, middle and deep sensors.
+        They are measured in the ground at real places, which makes them a useful check on the gridded maps above.
+      </p>
+      <p>
+        More on what the stations measure is on the <a href={url('conditions/')}>Conditions</a> page.
+      </p>
+    </ToolFeature>
   </section>
 
   <section class="hub-section" aria-labelledby="drought-moved">
@@ -30,14 +110,24 @@ import { url } from '../../lib/paths';
     {/* drought.climate.umt.edu serves a "has moved" page that redirects to
         d3drought.org (fetched 22 Oct 2026). */}
     <p>
-      The office's earlier drought dashboard at drought.climate.umt.edu now sends visitors to the <a href="https://d3drought.org/">D³ Drought Data Dashboard</a>.
-    </p>
-  </section>
-
-  <section class="hub-section" aria-labelledby="drought-stations">
-    <h2 id="drought-stations" class="hub-h2">Station readings</h2>
-    <p>
-      Soil moisture at each Mesonet station is on the <a href={url('conditions/')}>Conditions</a> page.
+      Our older drought dashboard at drought.climate.umt.edu now sends visitors to <a href={d3.href}>D³</a>.
     </p>
   </section>
 </Base>
+
+<style>
+  .drought-hero { margin-top: var(--site-head-gap); }
+  /* The screenshot runs wider than the text column, up to the site's
+     widest container, as a hero should. */
+  .drought-hero :global(.drought-hero-shot) { width: min(100%, 1440px); }
+  .drought-hero-text { max-width: 68ch; margin-top: var(--site-head-gap); }
+  .drought-hero-text h2 a { font-size: inherit; }
+  .drought-status { font-weight: var(--fw-regular); color: var(--text-secondary); }
+  .drought-hero-text p {
+    margin-top: var(--space-4);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-body);
+    color: var(--text-secondary);
+  }
+  .drought-hero-text h2 + p { margin-top: var(--site-head-gap); }
+</style>

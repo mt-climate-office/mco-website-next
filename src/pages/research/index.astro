@@ -14,12 +14,12 @@ const featured = pubs.filter((p) => p.featured);
 const projects = (await getProjects()).filter((p) => p.status === 'active');
 ---
 <Base short="Research"
-      description="Papers with Montana Climate Office authors, the office's research projects, and the Montana Climate Assessment.">
+      description="Papers written by Montana Climate Office staff, the projects behind them, and our work on the Montana Climate Assessment.">
   <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
   <h1 class="section-title">Research</h1>
   <p class="section-lede">
-    Papers with Montana Climate Office authors, the projects they come from, and the Montana Climate Assessment
-    reports the office worked on.
+    Our research is published in scientific journals, often with colleagues at other universities and agencies.
+    A few of the papers are below, along with the projects they grew out of.
   </p>
 
   <section class="hub-section" aria-labelledby="research-pubs">
@@ -35,7 +35,7 @@ const projects = (await getProjects()).filter((p) => p.status === 'active');
       </ul>
     )}
     <p class="pub-all">
-      <a class="nav-btn site-cta" href={url('research/publications/')}>All {count(pubs.length)} publications, with filters and citations</a>
+      <a class="nav-btn site-cta" href={url('research/publications/')}>All {count(pubs.length)} publications</a>
     </p>
   </section>
 
@@ -50,7 +50,7 @@ const projects = (await getProjects()).filter((p) => p.status === 'active');
       ))}
     </ul>
     <p class="pub-all">
-      <a class="nav-btn site-cta" href={url('projects/')}>All projects, active and completed</a>
+      <a class="nav-btn site-cta" href={url('projects/')}>All projects, including finished ones</a>
     </p>
   </section>
 
@@ -58,6 +58,13 @@ const projects = (await getProjects()).filter((p) => p.status === 'active');
     <h2 id="research-mca" class="hub-h2">Montana Climate Assessment</h2>
     {/* mco-website/_pages/climate.md lists both as climate projects of the
         office. Both URLs answered 200 on 22 Oct 2026. */}
+    {/* What the assessment is: montanaclimate.org (the 2017 report's title
+        page and introduction). */}
+    <p>
+      The Montana Climate Assessment is the state's own account of how its climate has changed and how it is
+      likely to change. We worked on the first assessment, in 2017, and on the 2021 report on climate change
+      and human health.
+    </p>
     <ul class="pub-list">
       <li>
         <p class="pub-title"><a href="https://montanaclimate.org/chapter/title-page">2017 Montana Climate Assessment</a></p>

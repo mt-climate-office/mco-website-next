@@ -30,8 +30,9 @@ const keywords = (s: (typeof stations)[number]) =>
       description="Every Montana Mesonet station, with its network, county, elevation and install date.">
   <h1 class="section-title">Mesonet stations</h1>
   <p class="section-lede">
-    {count(stations.length)} stations. {networkList}. Each station's page lists its location
-    and identifiers, with links to its data.
+    We run {count(stations.length)} stations across Montana. {networkList}. Each station has
+    its own page with where it sits, when we installed it and the IDs other networks know it by,
+    along with links to its readings and photos.
   </p>
   <p class="stamp stations-stamp">Station list as of <time datetime={isoTime(fetchedAt)}>{stampMT(fetchedAt)}</time></p>
 
