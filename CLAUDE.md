@@ -243,9 +243,13 @@ KIT_DIR=<mco-web-style checkout at the pinned tag> BASE_PATH=/verify-base/ npm r
 BASE_PATH=/verify-base/ npm run lighthouse
 ```
 
-Locally `verify` and `lighthouse` run the full set. CI tiers them (D17):
-PRs run `VERIFY_ENGINES=chromium LH_PAGES=home` (still 3 runs); push to main,
-the nightly schedule and manual runs use Chromium and WebKit and every page
-at 3 runs before deploy. Axe runs on every PR either way. In CI, `build`
+Locally `verify` and `lighthouse` run the full set. CI tiers them (D17, as
+amended 23 Nov 2026): a PR that changes only Markdown under `src/content/`,
+`src/data/publications.json`, `docs/` or `public/images/` runs the build job
+alone. Other PRs run `VERIFY_ENGINES=chromium LH_PAGES=home` (still 3 runs)
+and `VERIFY_SCENARIOS` set to six core scenarios (home, home-map, status,
+news-post, publications, search-results); head checks run on those pages
+only. Push to main, the nightly schedule and manual runs use every scenario,
+Chromium and WebKit and every page at 3 runs before deploy. In CI, `build`
 runs the cheap gates once and each engine verifies that `dist/` in its own
 parallel job (D19); deploy still builds its own.

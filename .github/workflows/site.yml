@@ -4,13 +4,17 @@
 # only, after both pass. Actions are pinned to commit SHAs; npm packages are
 # pinned exactly in package-lock.json.
 #
-# Tiers (DECISIONS D17, D19). build runs every cheap gate once and uploads
-# dist/. verify is a matrix over browser engines, one job each, in parallel,
-# all testing that one build. Pull requests: Chromium only (axe still runs in
-# all three themes at both widths), and Lighthouse on the homepage. Push to
-# main, the nightly schedule and a manual run: Chromium and WebKit, and
-# Lighthouse on every page, before deploy. Lighthouse runs in the Chromium job
-# only, at three runs per page. The scripts default to the full set locally.
+# Tiers (DECISIONS D17 as amended, D19). build runs every cheap gate once and
+# uploads dist/. verify is a matrix over browser engines, one job each, in
+# parallel, all testing that one build.
+#   - Content pull requests (every changed file is a post or page in Markdown,
+#     the publications cache, docs or a post image): build only; verify skips.
+#   - Other pull requests: Chromium only, the core scenarios (VERIFY_SCENARIOS,
+#     axe in all three themes at both widths), and Lighthouse on the homepage.
+#   - Push to main, the nightly schedule and a manual run: every scenario in
+#     Chromium and WebKit, and Lighthouse on every page, before deploy.
+# Lighthouse runs in the Chromium job only, at three runs per page. The
+# scripts default to the full set locally.
 name: site
 
 on:
@@ -35,6 +39,8 @@ jobs:
     name: Build and cheap gates
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    outputs:
+      content-only: ${{ steps.changes.outputs.content-only }}
     env:
       # A base path no deploy uses, so any link that ignores the base path
       # 404s in the browser pass. The deploy base comes from configure-pages.
@@ -43,6 +49,33 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # A pull request checks out its merge commit; depth 2 brings the
+          # base as its first parent, for the content-only test below.
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
+
+      # Content-only: every file the pull request changes is Markdown under
+      # src/content/ (not _fields.ts, the schema), the publications cache,
+      # docs, or an image under public/images/. Those cannot change a
+      # template, script or style, and the build gates below still check
+      # them (schema, alt text, built pages, HTML). Never true off a PR.
+      - name: Content-only change?
+        id: changes
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            echo "content-only=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          files=$(git diff --name-only HEAD^1 HEAD)
+          echo "$files"
+          if [ -z "$files" ]; then
+            echo "content-only=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          other=$(echo "$files" | grep -vE '^(src/content/.+\.md|src/data/publications\.json|docs/.+|public/images/.+)$' || true)
+          if [ -z "$other" ]; then
+            echo "content-only=true" >> "$GITHUB_OUTPUT"
+            echo "Content only: verify skips." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "content-only=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
@@ -83,6 +116,9 @@ jobs:
   verify:
     name: Verify (${{ matrix.engine }})
     needs: build
+    # Content pull requests stop at build. deploy needs verify, and runs only
+    # off pull requests, where this is never skipped.
+    if: needs.build.outputs.content-only != 'true'
     runs-on: ubuntu-24.04
     # One engine per job. Installs are minutes on a cold apt mirror; the
     # harness is the rest, and Lighthouse adds ~3 to the Chromium job.
@@ -96,6 +132,10 @@ jobs:
       BASE_PATH: /verify-base/
       # Read by scripts/verify.mjs: one engine per job.
       VERIFY_ENGINES: ${{ matrix.engine }}
+      # Read by scripts/verify.mjs: pull requests run the core scenarios, one
+      # per data island plus the two script-heavy content pages; empty runs
+      # them all.
+      VERIFY_SCENARIOS: ${{ github.event_name == 'pull_request' && 'home,home-map,status,news-post,publications,search-results' || '' }}
       # Read by scripts/lighthouse.mjs.
       LH_PAGES: ${{ github.event_name == 'pull_request' && 'home' || 'all' }}
       # Three runs even on PRs: a single run scored the homepage 89 against a
@@ -172,7 +212,7 @@ jobs:
             ~/.cache/apt-archives
           key: ${{ steps.pwcache.outputs.cache-primary-key }}
 
-      - name: Kit gates (head, lint-css, axe × 3 themes × 2 widths, keyboard; ${{ matrix.engine }})
+      - name: Kit gates (head, lint-css, axe × 3 themes × 2 widths, keyboard; ${{ matrix.engine }}; ${{ env.VERIFY_SCENARIOS || 'all scenarios' }})
         run: npm run verify
         env:
           KIT_DIR: .kit
