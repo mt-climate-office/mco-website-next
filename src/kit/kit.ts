@@ -5,7 +5,7 @@
 // snippets/head.html, re-vendor anti-flash.inline.js and public/mco-logo.png
 // from the same tag, and run `npm run check:kit`. CI fails on any mismatch.
 
-export const KIT_VERSION = '0.21.1';
+export const KIT_VERSION = '1.3.0';
 
 const KIT_BASE = `https://cdn.jsdelivr.net/gh/mt-climate-office/mco-web-style@${KIT_VERSION}/`;
 
@@ -29,13 +29,13 @@ export const kit = (path: string): string => KIT_BASE + path;
  * jsDelivr serves, like the others.
  */
 export const KIT_SRI = {
-  'theme/mco-theme.css': 'sha384-5AYcUgLLXlsD3HOobKS/jj+F5/NGNGtLFcidyU/qaiRWYN3AwClJa42Y4KaZXajf',
-  'core/mco-core.js': 'sha384-IVSuG2tnzj62YG4bFD5PxINjGy6kxD7pIoNKV6D4mK97+1D9Edp0dwFcVcXCxsJR',
-  'photos/mco-photos.js': 'sha384-VepbbKE6CKKljLPjOlw1TATvqOZH73WIWtFXmpSR5RAgYVEphm1rE2fkGa+vK17C',
-  'places/mco-places.js': 'sha384-4Amo71pLoRONH4SjB2I+Ai9FpSNqDDGGqQVxq4z0Yu/0c7GtGgLUYtNX/wQDUHVg',
-  'summary/mco-summary.js': 'sha384-9qE6iFiGkwK/CB8QUbb3Ue7Dd8n8XeXgyVkoBs9TJFcCIO3d+XlfpHfRvnnMplcj',
-  'palette/mco-palette.js': 'sha384-bMyfpU5iEKAQiHDJZLqmCMt3sTGm+HBi2GIY7I9xLyV+JYrbGgHOX9+/XVXy8CYV',
-  'map/mco-map.js': 'sha384-8ZLN6Xhnts1kIMbDa9M+H05sYgu770WLohBOrch1nTafMd+HEM7PlrP0e4fCoRb8',
+  'theme/mco-theme.css': 'sha384-3NnxwFCsQtUxhjn1qkcZ8kWMVfCU1wQvygRG4Z5xev3LZYiO0CIT5DmlOYmrH0mn',
+  'core/mco-core.js': 'sha384-Lg1ZYKs0QP/c+2yHsq7uESujpfwptLkhliGBSfiL1ujTp546sMarq5wDVwfu6+Fn',
+  'photos/mco-photos.js': 'sha384-hSCdglCTRDvhI6uURav/0deADiDAl+SPXF7WlYJoApm/QQSm1DB4HI5kQalK1Krn',
+  'places/mco-places.js': 'sha384-o466EG179AbHeGgIqShv/SOZJey7dpFZmoau7VQ/MndZu2FhUoTjRaHrBVBGnGxz',
+  'summary/mco-summary.js': 'sha384-Ddz8IQRrF2NGqAKlZHghk0YqkH8nbk/pEYc5RsZgRAcSDYYgxNx2rK52UcUq2Bk0',
+  'palette/mco-palette.js': 'sha384-mtdhOYFvyU0JAkjqYKGQdb01xBkaJEHn9EKyEXVFQw4TCdz3l0M+T/tYHlHhj6aJ',
+  'map/mco-map.js': 'sha384-e0qIyit6dZojkXI677UlnDsT21wfxDYDRH6tisxwamJWoUkFoM+T6A3YgkEs6KtE',
   'map/data/mt_state_simple.geojson': 'sha384-iAefAIf1SkdKze/Jw3NMj5mtk3smh6cr7LGf1gdnEEsij/hJPGEU7BYUUwFArq/o',
 } as const;
 
