@@ -20,42 +20,54 @@ export const TOOLS = [
   {
     name: 'Mesonet Explorer',
     href: 'https://mesonet.climate.umt.edu/explorer/',
-    description: 'Every station on one map, with latest, hourly and daily values for each variable.',
+    description: 'Every station on one map. Pick a variable, from air temperature to soil moisture, and see the latest reading or the hourly and daily values for any date.',
   },
   {
     name: 'Photo Explorer',
     href: PHOTO_EXPLORER,
-    description: 'Station camera photos on one map, by date, time and direction.',
+    description: 'The station cameras on one map. Step back through the days and turn each camera north, south, east or west.',
   },
   {
     name: 'Station Dashboard',
     href: DASHBOARD,
-    description: 'One station in detail, with the National Weather Service forecast for that spot.',
+    description: 'Everything about one station, with its recent readings set against the normal for the date and the National Weather Service forecast for that spot.',
   },
   {
     name: 'Station Status',
     href: 'https://mesonet.climate.umt.edu/status/',
-    description: 'When each station last reported, and which sensors are not reporting.',
+    description: 'Which stations have reported in the last two hours, and at each one, any sensor that has gone quiet.',
   },
   {
     name: 'Station Maintenance',
     href: 'https://mesonet.climate.umt.edu/maintenance/',
-    description: 'When each station was last visited.',
+    description: 'When our field crew last visited each station.',
   },
   {
     name: 'HydroMet Build Status',
     href: 'https://mesonet.climate.umt.edu/build/',
-    description: 'Station build-out in the Upper Missouri River Basin, cell by cell. Cell assignments are provisional.',
+    description: 'Where the HydroMet network is still being built in the Upper Missouri River Basin, cell by cell. Cell assignments can still change.',
   },
   {
     name: 'Snowpack Explorer',
     href: 'https://snow.climate.umt.edu/',
-    description: 'Snow water equivalent percentiles for the contiguous US, from NOAA SNODAS.',
+    description: 'Today’s snowpack against the same date in every winter since 2003, for the lower 48 states.',
   },
   {
     name: 'D³ Drought Data Dashboard',
     href: 'https://d3drought.org/',
-    description: 'Drought indices for the contiguous US, by grid cell or watershed.',
+    description: 'Daily drought indices for the lower 48 states, by grid cell or by watershed.',
     status: 'beta',
   },
 ] as const satisfies readonly { name: string; href: string; description: string; status?: string }[];
+
+type ToolName = (typeof TOOLS)[number]['name'];
+
+/** One entry of TOOLS by name; a typo fails the build. */
+export function tool(name: ToolName) {
+  const t = TOOLS.find((x) => x.name === name);
+  if (!t) throw new Error(`tools: no tool named ${name}`);
+  return t;
+}
+
+/** TOOLS entries by name, in the order given. */
+export const tools = (...names: ToolName[]) => names.map(tool);

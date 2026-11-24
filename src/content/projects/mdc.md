@@ -1,7 +1,7 @@
 ---
 name: Montana Drought & Climate
 slug: mdc
-summary: A USDA-funded study, with Montana State University Extension, of how Montana farmers and ranchers use climate information in decisions about water and drought. The office's Montana Drought & Climate updates continue under its name.
+summary: A USDA-funded study, run with Montana State University Extension, of how Montana farmers and ranchers use climate information when deciding about water and drought. Our Montana Drought & Climate updates still carry its name.
 status: completed
 partners:
   - usda-nifa
@@ -15,11 +15,11 @@ sources:
   - Status "completed" is inferred from the four-year timeline of a 2017 grant; not confirmed by the office.
 ---
 
-Montana Drought & Climate was a research project of the Montana Climate Office with Montana State University Extension. It was supported by Water for Agriculture Challenge Area grant no. 2017-67027-26313 from the USDA National Institute of Food and Agriculture, and by the Montana Water Center.
+Montana Drought & Climate was a research project we ran with Montana State University Extension. It was supported by Water for Agriculture Challenge Area grant no. 2017-67027-26313 from the USDA National Institute of Food and Agriculture, and by the Montana Water Center.
 
-The project turned forecasts and projections into newsletters, maps and figures for agricultural producers, and studied how producers use that information in decisions about water use and conservation, drought and variability. Its team ran focus groups with farmers and ranchers across Montana.
+The project had two halves. One turned forecasts and climate projections into newsletters, maps and figures written for farmers and ranchers. The other asked how producers actually use that kind of information when they make decisions about water, conservation and drought, and the team ran focus groups with farmers and ranchers around the state to find out.
 
-The office still publishes Montana Drought & Climate updates. They are in [News](/news/).
+We still publish the Montana Drought & Climate update. Recent issues are in [News](/news/).
 
 ## Team
 

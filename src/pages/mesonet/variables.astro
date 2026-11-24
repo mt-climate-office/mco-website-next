@@ -29,23 +29,22 @@ const STATION_ELEMENTS = `${API_BASE}/elements/${EXAMPLE_STATION}/`;
   <div class="prose">
     <h1>Variables measured at Montana Mesonet stations</h1>
     <p>
-      Variables measured and the measurement interval differ between the AgriMet and HydroMet
-      networks. AgriMet stations take a reading every 10 seconds; these readings are averaged (or
-      totalled for precipitation) in the 15-minute data that is reported by the MCO. The HydroMet
-      stations take readings every 3 seconds, with the readings being averaged (or totalled for
-      precipitation) in the 5-minute data that is reported by the MCO (except for precipitation, soil
-      data, and snow depth, which are read every 1, 5, and 5 minutes, respectively).
+      Our two networks measure slightly different things, and they read their sensors at
+      different rates. AgriMet stations take a reading every 10 seconds and report the average
+      (or, for precipitation, the total) every 15 minutes. HydroMet stations take a reading every
+      3 seconds and report every 5 minutes. On HydroMet stations the rain gauge is read every
+      minute, and the soil sensors and snow depth sensor every 5 minutes.
     </p>
     <p>
-      Most values are the average over the reporting period. Precipitation is the total since the
-      last report. Maximum precipitation rate and wind gust speed are the highest values in the
-      reporting period. Soil readings are taken at several depths.
+      Most values are averages over the reporting period. Precipitation is the total since the
+      last report, while the maximum precipitation rate and the wind gust are the highest values
+      seen in that period. Soil sensors sit at several depths at each station.
     </p>
     <p>
-      To see exactly which variables are measured at a given station, ask the API's{' '}
-      <code>elements</code> endpoint for that station, for example{' '}
-      <a href={STATION_ELEMENTS}>the elements measured at Bozeman (<code>{EXAMPLE_STATION}</code>)</a>.
-      The <a href={url('mesonet/stations/')}>station list</a> has every station's ID.
+      Not every station measures everything. The API's <code>elements</code> endpoint lists what a
+      given station records, as it does for{' '}
+      <a href={STATION_ELEMENTS}>Bozeman (<code>{EXAMPLE_STATION}</code>)</a>, and every station ID
+      is in the <a href={url('mesonet/stations/')}>station list</a>.
     </p>
 
     <h2>Elements</h2>
@@ -79,8 +78,8 @@ const STATION_ELEMENTS = `${API_BASE}/elements/${EXAMPLE_STATION}/`;
       </table>
     </section>
     <p class="method-note">
-      Readings that fail a check are flagged; <a href={url('mesonet/qaqc/')}>quality control</a> has
-      the tests and their thresholds.
+      Readings that fail one of our checks are flagged. The tests and their thresholds are on the{' '}
+      <a href={url('mesonet/qaqc/')}>quality control</a> page.
     </p>
   </div>
 </Base>

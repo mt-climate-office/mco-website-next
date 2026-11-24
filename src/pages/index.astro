@@ -16,15 +16,16 @@
 // failed fetch fails the build too) and refreshes itself in the browser.
 // Never pass sample data
 // here; the page must not show a made-up figure.
-// Copy follows docs/VOICE.md. Each question's claims are sourced beside it.
+// Copy follows docs/VOICE.md. The drought and snow features' claims are
+// sourced in src/pages/drought/index.astro, which says the same at length.
 import Base from '../layouts/Base.astro';
 import PhotoHero from '../components/data/PhotoHero.astro';
 import ConditionsNow from '../components/data/ConditionsNow.astro';
 import NetworkStatusBar from '../components/data/NetworkStatusBar.astro';
 import StationMap from '../components/data/StationMap.astro';
-import QuestionCard from '../components/content/QuestionCard.astro';
+import ToolFeature from '../components/content/ToolFeature.astro';
 import ToolList from '../components/content/ToolList.astro';
-import { DASHBOARD, TOOLS } from '../lib/tools';
+import { TOOLS, tool } from '../lib/tools';
 import { loadSummary, toNetworkSummary } from '../lib/compliance';
 import { loadHeroSnapshot } from '../lib/photo-snapshot';
 import { buildSnapshot, getLatest } from '../lib/mesonet';
@@ -45,42 +46,6 @@ const mapStations = joinLatest(catalog.stations, latest.rows);
 // on the homepage; DECISIONS D24).
 const news = (await getNews()).slice(0, 3);
 
-const QUESTIONS = [
-  // mco-drought-dashboard/docs/index.html:175-178 (indices), :836 (15 d to
-  // 730 d, plus water year and year to date); methods.html:373-375 (gridMET,
-  // daily). BETA is the tool's own navbar pill.
-  {
-    question: 'How dry is it?',
-    body: 'SPI, SPEI, EDDI and SVPDI for the contiguous US, computed daily from gridMET. Timescales run from 15 days to two years.',
-    tool: 'D³ Drought Data Dashboard',
-    href: 'https://d3drought.org/',
-    status: 'beta',
-  },
-  // mco-snowpack-explorer/index.html About panel: SNODAS from 30 Sep 2003,
-  // same calendar day, ~1 km grid, HUC 2-8.
-  {
-    question: 'Is the snow where it should be?',
-    body: 'Snow water equivalent compared with the same day in every year since 2003, from NOAA SNODAS. Mapped on a grid of about 1 km or by watershed.',
-    tool: 'Snowpack Explorer',
-    href: 'https://snow.climate.umt.edu/',
-  },
-  // mesonet-explorer/app.js REGISTRY: soil moisture shallow / mid / deep,
-  // GDD and reference ET. Not "four depths": the Explorer groups them in three.
-  {
-    question: 'How wet is the soil?',
-    body: 'Shallow, mid-depth and deep soil moisture at each Mesonet station, with growing degree days and reference ET.',
-    tool: 'Mesonet Explorer',
-    href: 'https://mesonet.climate.umt.edu/explorer/',
-  },
-  // mesonet-dashboard/web/src/ui/charts/resources.ts:63 (gridMET normals),
-  // NWS points/forecast.
-  {
-    question: 'Is this normal for the time of year?',
-    body: 'Daily values at one station plotted against gridMET normals, with the National Weather Service forecast for that spot.',
-    tool: 'Station Dashboard',
-    href: DASHBOARD,
-  },
-];
 ---
 <Base description="Weather, soil moisture, drought and snowpack data for Montana." fullBleed photos map places summary darkHero>
   <PhotoHero set={hero.set} stations={hero.stations} />
@@ -91,8 +56,9 @@ const QUESTIONS = [
         <div class="readings-text">
           <h2 id="readings-title" class="section-title">What the stations are reading</h2>
           <p class="section-lede">
-            Air temperature, humidity, wind, precipitation, soil moisture and soil temperature.
-            Recent values are provisional.
+            Every station reports the weather above it and the soil beneath it several times an hour.
+            Search for a town or a station to see its latest readings.
+            The newest values are provisional until we have checked them.
           </p>
         </div>
         <ConditionsNow />
@@ -103,13 +69,26 @@ const QUESTIONS = [
 
   <NetworkStatusBar summary={summary} band="band-prairie" />
 
-  <section class="section band-sky" aria-labelledby="questions-title">
+  <section class="section band-sky" aria-labelledby="dry-title">
     <div class="wrap">
-      <h2 id="questions-title" class="section-title">Start with a question</h2>
-      <p class="section-lede">Each one links to the tool that answers it.</p>
-      <div class="card-grid">
-        {QUESTIONS.map((q) => <QuestionCard {...q} />)}
+      <h2 id="dry-title" class="section-title">Drought and snowpack</h2>
+      <p class="section-lede">
+        Drought can show up in the snowpack long before it reaches the soil, so we track both, every day.
+      </p>
+      <div class="features">
+        <ToolFeature name="D³ Drought Data Dashboard" href={tool('D³ Drought Data Dashboard').href} shot="d3-drought" status="beta">
+          <p>
+            Daily drought maps for Montana and the rest of the lower 48, from rainfall alone to how hard the air is pulling water out of the ground.
+            Any of them can be read over the last two weeks or the last two years.
+          </p>
+        </ToolFeature>
+        <ToolFeature name="Snowpack Explorer" href={tool('Snowpack Explorer').href} shot="snowpack" flip>
+          <p>
+            Today’s snowpack set against the same date in every winter since 2003, mapped across the mountains or added up for a whole watershed.
+          </p>
+        </ToolFeature>
       </div>
+      <p class="features-more"><a class="site-link" href={url('drought/')}>More on drought</a></p>
     </div>
   </section>
 
@@ -120,7 +99,7 @@ const QUESTIONS = [
 
   <section class="section" aria-labelledby="tools-title">
     <div class="wrap">
-      <h2 id="tools-title" class="section-title">Tools</h2>
+      <h2 id="tools-title" class="section-title">All our tools</h2>
       <ToolList tools={TOOLS} />
     </div>
   </section>
@@ -164,19 +143,13 @@ const QUESTIONS = [
     padding-block: var(--site-section);
   }
   .readings-side { display: grid; gap: var(--site-grid-gap); align-content: start; min-width: 0; }
-  /* Two by two: four across left each question about thirty characters a
-     line. */
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--site-head-gap) var(--site-grid-gap);
-    margin-top: var(--site-head-gap);
-  }
+  .features { margin-top: var(--site-head-gap); }
+  .features-more { margin-top: var(--site-head-gap); }
   #tools-title { margin-bottom: var(--site-head-gap); }
   @media (max-width: 1060px) {
     .readings-inner { gap: var(--site-grid-gap); }
   }
   @media (max-width: 750px) {
-    .readings-inner, .card-grid { grid-template-columns: minmax(0, 1fr); }
+    .readings-inner { grid-template-columns: minmax(0, 1fr); }
   }
 </style>

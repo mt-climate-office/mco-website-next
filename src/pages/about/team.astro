@@ -28,13 +28,13 @@ const groups = await Promise.all((await getTeam()).map(async (g) => ({
 })));
 ---
 <Base short="Team"
-      description="Staff, students and affiliates of the Montana Climate Office, with their roles.">
+      description="The staff, students and affiliates who work at the Montana Climate Office, and what each of them does.">
   <!-- Page copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). Names, titles and bios are as the old team page had them. -->
   <p class="pub-back"><a href={url('about/')}>About</a></p>
   <h1 class="section-title pub-page-title">Team</h1>
   <p class="section-lede">
-    Staff, students and affiliates of the Montana Climate Office. To reach the office as a whole, email{' '}
-    <a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a>.
+    The people who work at the Montana Climate Office, with the students and affiliates who work alongside us.
+    Email to{' '}<a href="mailto:state.climatologist@umontana.edu">state.climatologist@umontana.edu</a> reaches all of us.
   </p>
 
   {groups.map((g) => (

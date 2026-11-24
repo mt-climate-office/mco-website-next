@@ -38,7 +38,9 @@ const FIGURES = [
 <Base short="Station status" description="Whether each Montana Mesonet station is reporting, and which of its sensors are not, with the full station table as CSV.">
   <h1 class="section-title">Mesonet station status</h1>
   <p class="section-lede">
-    Whether each Montana Mesonet station is reporting, and which of its sensors are not.
+    This page shows which Montana Mesonet stations have reported recently and, at each station,
+    which sensors have gone quiet. The figures below cover the whole network, and the table
+    further down lists every station, with a copy to download as CSV.
   </p>
 
   <section class="st-section" aria-labelledby="st-network">
@@ -64,7 +66,7 @@ const FIGURES = [
     </p>
     <p class="st-note">
       Percentages are rounded down, so they can add up to less than 100.
-      Figures come from the <a href={RULESET}>mesonet-compliance ruleset</a>, version <span data-sum="ruleset">{summary.ruleset_version}</span>.
+      We work these figures out with the <a href={RULESET}>mesonet-compliance ruleset</a>, version <span data-sum="ruleset">{summary.ruleset_version}</span>.
     </p>
     <p class="stamp">As of <time data-sum="asof" datetime={isoTime(summary.generated_at)}>{stampMT(summary.generated_at)}</time></p>
     <ul class="st-links">

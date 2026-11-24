@@ -48,7 +48,12 @@ const otherIds = [
   <p class="station-back"><a href={url('mesonet/stations/')}>All stations</a></p>
 
   <h1 class="section-title station-title">{s.name}</h1>
-  <p class="section-lede">{s.sub_network} station in {s.county} County</p>
+  <p class="section-lede">
+    {s.name} is a {s.sub_network} station in {s.county} County.
+    {s.sub_network === 'AgriMet' && ' Our AgriMet stations are built for precision agriculture.'}
+    {s.sub_network === 'HydroMet' && ' Our HydroMet stations are built for hydrology and water management.'}
+  </p>
+  {/* Network purposes: src/pages/mesonet/index.astro, "Two networks". */}
 
   <p class="station-actions">
     <a class="nav-btn is-primary site-cta" href={dashboard}>Open {s.name} in the Station Dashboard</a>

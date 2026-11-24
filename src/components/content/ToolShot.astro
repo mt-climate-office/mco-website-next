@@ -1,0 +1,52 @@
+---
+// A screenshot of one of the office's tools (src/lib/tool-shots.ts), served
+// from this site at two widths. Width and height come from the rendered
+// image, so the page does not shift when it loads.
+//
+// The screenshot is not a link: the tool's name beside it is, and a second
+// link to the same place would only add a tab stop.
+import { render, TOOL_SHOTS, type ShotKey } from '../../lib/tool-shots';
+import { url } from '../../lib/paths';
+
+interface Props {
+  shot: ShotKey;
+  /** The `sizes` attribute: how wide the image is drawn. */
+  sizes?: string;
+  /** The page's main image: load it first, not lazily. */
+  priority?: boolean;
+  class?: string;
+}
+
+const { shot, sizes = '(max-width: 750px) 100vw, 50vw', priority = false, class: cls } = Astro.props;
+const { alt } = TOOL_SHOTS[shot];
+const [small, large] = await Promise.all([render(shot, 800), render(shot, 1600)]);
+const src = (w: number) => url(`images/tools/${shot}-${w}.webp`);
+---
+<img
+  class:list={['tool-shot', cls]}
+  src={src(1600)}
+  srcset={`${src(800)} ${small.width}w, ${src(1600)} ${large.width}w`}
+  sizes={sizes}
+  width={large.width}
+  height={large.height}
+  alt={alt}
+  loading={priority ? 'eager' : 'lazy'}
+  decoding="async"
+  fetchpriority={priority ? 'high' : undefined}
+/>
+
+<style>
+  /* A screenshot sits on the page ground with a light shadow, not a border:
+     the tools' own pale map basemaps otherwise run into a light page. The
+     one ornament VISUAL-SYSTEM allows is the heading tick; a shadow on a
+     picture of a different program is how the page says "this is a
+     screenshot", and it carries no meaning. */
+  .tool-shot {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    background: var(--bg-raised);
+  }
+</style>

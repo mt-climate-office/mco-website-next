@@ -36,13 +36,13 @@ const groups = [
 ].filter((g) => g.values.length > 1);
 ---
 <Base short="Publications"
-      description="Papers with Montana Climate Office authors, with abstracts, citations, and BibTeX and CSL-JSON downloads.">
+      description="Every paper, report and dataset with a Montana Climate Office author, with abstracts and ready-made citations.">
   <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
   <p class="pub-back"><a href={url('research/')}>Research</a></p>
   <h1 class="section-title pub-page-title">Publications</h1>
   <p class="section-lede">
-    Papers with Montana Climate Office authors. Each title opens a page with the abstract and a citation.
-    Titles, authors and abstracts are as {registries} {registries.includes(" and ") ? "record" : "records"} them.
+    Everything our staff have published, newest first. We take the titles, authors and abstracts straight from
+    {registries}, so they read as the publishers recorded them.
   </p>
   <ul class="pub-downloads">
     <li><a class="nav-btn site-cta" href={url('research/publications/publications.bib')} download="mco-publications.bib">BibTeX for all {count(total)}</a></li>

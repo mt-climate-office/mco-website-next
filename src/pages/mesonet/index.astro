@@ -8,10 +8,11 @@
 // prose. No maintenance figure (D4, D15).
 import Base from '../../layouts/Base.astro';
 import ToolList from '../../components/content/ToolList.astro';
+import ToolFeature from '../../components/content/ToolFeature.astro';
 import { loadSummary } from '../../lib/compliance';
 import { getCatalog } from '../../lib/stations';
 import { count, isoTime, stampMT } from '../../lib/format';
-import { tools } from '../../lib/hubs';
+import { tool } from '../../lib/tools';
 import { canonicalUrl, url } from '../../lib/paths';
 import { MESONET_METHODS } from '../../lib/methods';
 
@@ -39,29 +40,29 @@ const PAGES = [
   {
     name: 'Mesonet data',
     href: url('mesonet/data/'),
-    description: 'How to download the data, through the API or without writing code, and how to cite it.',
+    description: 'How to download the data, with the API or without writing any code, and how to cite it.',
   },
   {
     name: 'Mesonet stations',
     href: url('mesonet/stations/'),
-    description: 'Every station, with its network, county, elevation and install date. Each station page links to its data.',
+    description: 'A page for every station, giving its network, county, elevation and the year it went in, with links to its data.',
   },
   {
     name: 'Station status',
     href: url('mesonet/status/'),
-    description: 'Whether each station is reporting, and which of its sensors are not, with the full table as CSV.',
+    description: 'Which stations are reporting and which sensors are down, with the whole table to download as CSV.',
   },
 ];
 ---
 <Base short="Mesonet"
-      description="The Montana Mesonet: its stations, the tools that show their data, and how to download and cite it.">
+      description="The Montana Mesonet is our statewide network of weather and soil moisture stations. Its data are free, and these tools show them.">
   <!-- Copy drafted with AI assistance; needs MCO staff review before launch (UM AI disclosure). -->
   <h1 class="section-title">Montana Mesonet</h1>
   {/* "weather, soil moisture and snow monitoring stations that the MCO
       operates across Montana": mco-website/index.md. Figures: summary.json. */}
   <p class="section-lede">
-    Weather, soil moisture and snow stations run by the Montana Climate Office.{' '}
-    {count(summary.stations.total)} stations, and {count(summary.reporting.reporting)} of them
+    The Montana Mesonet is our network of weather, soil moisture and snow stations, spread across the state from the western mountains to the Dakota line.
+    It has {count(summary.stations.total)} stations, and {count(summary.reporting.reporting)} of them
     ({summary.reporting.pct}%) reported in the last {windowLabel}.
   </p>
   <p class="stamp hub-stamp">
@@ -70,9 +71,46 @@ const PAGES = [
   </p>
 
   <section class="hub-section" aria-labelledby="mesonet-tools">
-    <h2 id="mesonet-tools" class="hub-h2">Tools</h2>
-    <ToolList tools={tools('Mesonet Explorer', 'Photo Explorer', 'Station Dashboard',
-                           'Station Status', 'Station Maintenance', 'HydroMet Build Status')} />
+    <h2 id="mesonet-tools" class="hub-h2">Looking at the data</h2>
+    {/* What each tool shows: src/lib/tools.ts sources. The Photo Explorer's
+        cameras: mco-website/_pages/mesonet/mesonet.md ("pan-tilt-zoom
+        camera", cardinal directions) and DECISIONS D8 (snow, pluvio and
+        solar views are staff-only). */}
+    <ToolFeature name="Mesonet Explorer" href={tool('Mesonet Explorer').href} shot="explorer">
+      <p>
+        The Explorer puts every station on one map of Montana.
+        Pick a variable, anything from air temperature and wind to soil moisture, and each station shows its latest reading.
+        It can also step back through hourly and daily values for any date, and lay the live weather radar over the map.
+      </p>
+    </ToolFeature>
+    <ToolFeature name="Photo Explorer" href={tool('Photo Explorer').href} shot="photos" flip>
+      <p>
+        Every HydroMet station carries a pan-tilt-zoom camera that photographs the country around it through the day.
+        The Photo Explorer lays the latest pictures across the state, and any station’s camera can be turned north, south, east or west, or stepped back through its archive.
+      </p>
+    </ToolFeature>
+    <ToolFeature name="Station Dashboard" href={tool('Station Dashboard').href} shot="dashboard">
+      <p>
+        The Dashboard is for anyone who keeps an eye on one particular station.
+        Search for a station, a town, a county or a ZIP code and it shows that station’s recent readings against the normal for the date, with the National Weather Service forecast for the same spot.
+      </p>
+    </ToolFeature>
+    <ToolFeature name="Station Status" href={tool('Station Status').href} shot="status" flip>
+      <p>
+        Now and then a station stops reporting, or one of its sensors fails while the rest carry on.
+        Station Status shows which stations have reported in the last two hours and, at each one, any sensor that has stopped.
+      </p>
+    </ToolFeature>
+    <ToolFeature name="HydroMet Build Status" href={tool('HydroMet Build Status').href} shot="build">
+      <p>
+        We are still building out the HydroMet network across central and eastern Montana, one station in each grid cell.
+        This map shows which cells have a working station, which are still to come and which are open.
+        Cell assignments can still change.
+      </p>
+    </ToolFeature>
+    <p class="mesonet-maint">
+      <a class="site-link" href={tool('Station Maintenance').href}>Station Maintenance</a> shows when our field crew last visited each station.
+    </p>
   </section>
 
   <section class="hub-section" aria-labelledby="mesonet-pages">
@@ -91,25 +129,34 @@ const PAGES = [
         Networks" and the AgriMet / HydroMet configuration tables. Camera
         count: stations in /stations/ with a public view in schedule.json. */}
     <p>
-      AgriMet stations{stationsLabel(inNetwork('AgriMet'))} are built for precision agriculture.
-      HydroMet stations{stationsLabel(inNetwork('HydroMet'))} are built for hydrology and water management.
+      The Mesonet is really two networks.
+      AgriMet stations{stationsLabel(inNetwork('AgriMet'))} are set up for farm and ranch work, with one all-in-one weather sensor.
+      HydroMet stations{stationsLabel(inNetwork('HydroMet'))} are bigger, built to track water from the snowpack down through the soil.
     </p>
     <p>
-      Both measure air temperature, humidity, air pressure, solar radiation, wind, precipitation,
-      and soil temperature and moisture at several depths. HydroMet stations add a snow depth sensor,
-      and their precipitation gauge measures snow as well as rain.{' '}
-      {count(catalog.cameras.size)} HydroMet stations have a camera.
+      Both kinds measure the weather above ground and the temperature and moisture of the soil below it.
+      A HydroMet station goes further, with wind measured at 10 metres instead of 2, a gauge that weighs snow as well as rain, a snow depth sensor, and soil sensors down to a metre.{' '}
+      {count(catalog.cameras.size)} HydroMet stations also have a camera.
     </p>
   </section>
 
   <section class="hub-section" aria-labelledby="mesonet-history">
     <h2 id="mesonet-history" class="hub-h2">How the network grew</h2>
-    {/* mco-website/_pages/mesonet/mesonet.md, "Background". */}
+    {/* mco-website/_pages/mesonet/mesonet.md, "Background" and "A
+        Cooperative Framework". */}
     <p>
-      The office installed the first six stations in 2016, under the Montana Research and Economic
-      Development Initiative. In 2020 the U.S. Army Corps of Engineers contracted the office to add
-      stations in central and eastern Montana, about one every 500 square miles.
-      The <a href={tools('HydroMet Build Status')[0].href}>HydroMet Build Status</a> map tracks that work.
+      We put in the first six stations in 2016, under the Montana Research and Economic Development Initiative.
+      They were meant to help with statewide drought assessments, precision agriculture, and the management of rangeland and forested watersheds.
+    </p>
+    <p>
+      The network grew from there with help from private landowners, watershed groups, tribes, state agencies and federal grants.
+      In 2020 the U.S. Army Corps of Engineers asked us to add stations across central and eastern Montana, about one every 500 square miles, to improve drought assessments and flood forecasting.
+      The <a href={tool('HydroMet Build Status').href}>HydroMet Build Status</a> map follows that work.
+    </p>
+    <p>
+      Some stations belong to cooperators, such as a landowner, a watershed group or an agency, who buy a science-grade station from us at a reduced cost.
+      We install it and run it with the rest, and a yearly service fee covers data transmission, computing and maintenance.
+      We make no money from the stations.
     </p>
   </section>
 
@@ -118,8 +165,8 @@ const PAGES = [
     {/* Free: mco-website/_pages/mesonet/mesonet_api.md. The API, its
         limits, QC levels and downloads live on /mesonet/data/ (one home). */}
     <p>
-      Mesonet data are free. <a href={url('mesonet/data/')}>Mesonet data</a> has the API, with
-      example requests, and the downloads that need no code.
+      Mesonet data are free to anyone.
+      The <a href={url('mesonet/data/')}>Mesonet data</a> page explains the API, with example requests, and the downloads that need no code at all.
     </p>
   </section>
 
@@ -129,15 +176,18 @@ const PAGES = [
         source for the Mesonet data license and citation; mco-website's
         _pages/mesonet_citation.md carries the same text. */}
     <p>
-      Mesonet data are licensed under <a href={CC_BY}>CC BY 4.0</a>. Anyone can use them,
-      including commercially, with credit.
+      Mesonet data are licensed under <a href={CC_BY}>CC BY 4.0</a>, so anyone can use them, commercially or not, as long as they give credit.
     </p>
-    <p>If you use Mesonet data, cite them as</p>
+    <p>The full citation reads</p>
     <p class="hub-cite">Montana Mesonet, Montana Climate Office. A service of the University of Montana. {'{Year Accessed}'}. Data accessed from {'{URL Used for Data Download}'} on {'{Access Date}'}. Licensed CC BY 4.0.</p>
-    <p>In a dashboard, figure or app, a short credit is enough if it links here:</p>
+    <p>In a dashboard, figure or app, a short credit that links back here is enough.</p>
     <p class="hub-cite"><a href={CITE_URL}>Data from the Montana Mesonet</a>, a service of the University of Montana · <a href={CC_BY}>CC BY 4.0</a></p>
     <div class="prose">
       <pre tabindex="0"><code>{CREDIT_HTML}</code></pre>
     </div>
   </section>
 </Base>
+
+<style>
+  .mesonet-maint { margin-top: var(--site-section); font-size: var(--fs-lg); line-height: var(--lh-body); color: var(--text-secondary); }
+</style>

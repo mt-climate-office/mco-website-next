@@ -264,7 +264,7 @@ export default {
         url: location.search,
       }));
       check('conditions: empty card with a labelled search, homepage URL left clean',
-        empty.result && empty.empty && empty.label === 'Find conditions near you' && empty.url === '', JSON.stringify(empty));
+        empty.result && empty.empty && empty.label === 'Conditions near a place' && empty.url === '', JSON.stringify(empty));
 
       await page.locator('#cond-q').click();
       await page.keyboard.type('bozeman');
@@ -494,7 +494,8 @@ export default {
       check('header search link points at the search page', /\/search\/$/.test(href || ''), href);
       await page.goto(new URL(href, page.url()).href);
       await page.locator('#search-q').focus();
-      await page.keyboard.type('soil');
+      // The homepage's own h1 (PhotoHero), which Pagefind weights highest.
+      await page.keyboard.type('looking west');
       await page.keyboard.press('Enter');
       await page.waitForFunction(() => /result/.test(document.getElementById('search-status').textContent), null, { timeout: 15000 });
       // MCO.announce clears the region, then sets it on a later tick.

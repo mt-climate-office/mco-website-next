@@ -24,7 +24,8 @@
     "check:cms": "node scripts/generate-pages-yml.mjs --check",
     "publications:refresh": "node scripts/publications-refresh.mjs",
     "check:publications": "node scripts/publications-refresh.mjs --check",
-    "check:redirects": "node scripts/check-redirects.mjs"
+    "check:redirects": "node scripts/check-redirects.mjs",
+    "screenshots:capture": "node scripts/capture-tools.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "0.4.3",
@@ -44,6 +45,7 @@
     "openapi-typescript": "7.13.0",
     "pagefind": "1.5.2",
     "playwright": "1.64.0",
+    "sharp": "0.35.5",
     "typescript": "6.0.3",
     "yaml": "2.9.1"
   },

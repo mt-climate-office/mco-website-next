@@ -1,7 +1,7 @@
 ---
 name: Native Resilience
 slug: native-resilience
-summary: A USDA-funded project, led by the Desert Research Institute, that works to make agricultural and environmental data more useful to Tribes in the Southwest and Northern Plains. It was called Native Climate on the office's old website.
+summary: A USDA-funded project, led by the Desert Research Institute, that works to make agricultural and environmental data more useful to Tribes in the Southwest and Northern Plains. Our old website called it Native Climate.
 status: active
 url: https://native-resilience.com/
 partners:
@@ -16,10 +16,10 @@ sources:
   - native-resilience/data-portal/README.md (USDA NIFA and Climate Hubs support; data archive maintained by the Montana Climate Office)
 ---
 
-Native Resilience supports agricultural adaptation in Native American communities of the USDA Climate Hubs' Southwest and Northern Plains regions. It works with Tribal natural resource, agriculture and climate leaders, and with Tribal Extension staff at the Federally Recognized Tribes Extension Program and Tribal colleges.
+Native Resilience helps Native American communities in the USDA Climate Hubs' Southwest and Northern Plains regions adapt their agriculture to a changing climate. The project works with Tribal leaders in natural resources, agriculture and climate, and with Tribal Extension staff at the Federally Recognized Tribes Extension Program and at Tribal colleges.
 
 The Desert Research Institute leads the project with the Federally Recognized Tribes Extension Program, University of Nevada, Reno Tribal Extension, the University of Montana, Montana State University, University of Arizona Extension and the USDA Climate Hubs. It builds on the Native Waters on Arid Lands project (2015–2022).
 
-The project runs a working group that meets monthly online, a webinar series, a Resilience Reporter program for students, and place-based lesson plans for Native teachers.
+A working group meets online every month, and the project also runs a webinar series. Students can join its Resilience Reporter program, and Native teachers can use its lesson plans, which are written around their own places.
 
-The Montana Climate Office maintains the project's public data archive at [data.native-resilience.com](https://data.native-resilience.com/).
+We maintain the project's public data archive at [data.native-resilience.com](https://data.native-resilience.com/).
